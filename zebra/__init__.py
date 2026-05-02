@@ -1,4 +1,4 @@
-"""Application factory for the Zebra label app."""
+"""Application factory for Doctor Zebra."""
 
 import logging
 from pathlib import Path
@@ -10,6 +10,8 @@ from zebra.cache_scheduler import start_scheduler
 from zebra.db import init_db
 from zebra.lookup_cache import init_cache
 from zebra.settings import Settings
+
+__version__ = '0.1.0'
 
 # Path to the package root (read-only assets when frozen with PyInstaller).
 PACKAGE_ROOT = Path(__file__).resolve().parent.parent
@@ -75,6 +77,7 @@ def create_app(
             printer_status=status,
             status_color=color,
             active_profile=app.config.get('PROFILE_NAME', 'default'),
+            app_version=__version__,
         )
 
     logging.info('Zebra app initialized')

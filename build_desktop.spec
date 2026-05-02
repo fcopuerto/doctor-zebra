@@ -21,11 +21,18 @@
 #   - app.log
 
 # -*- mode: python ; coding: utf-8 -*-
+import re
 import sys
 from pathlib import Path
 
 block_cipher = None
 root = Path(SPECPATH)  # noqa: F821 (injected by PyInstaller)
+
+# Single source of truth: read __version__ from zebra/__init__.py without
+# importing the package (avoids pulling Flask etc. into the build process).
+_init = (root / 'zebra' / '__init__.py').read_text(encoding='utf-8')
+_m = re.search(r"^__version__\s*=\s*['\"]([^'\"]+)['\"]", _init, re.M)
+APP_VERSION = _m.group(1) if _m else '0.0.0'
 
 datas = [
     (str(root / 'templates'),      'templates'),
@@ -110,7 +117,7 @@ if sys.platform == 'darwin':
         info_plist={
             'CFBundleName': 'Doctor Zebra',
             'CFBundleDisplayName': 'Doctor Zebra',
-            'CFBundleShortVersionString': '1.0.0',
+            'CFBundleShortVersionString': APP_VERSION,
             'NSHighResolutionCapable': True,
             'LSBackgroundOnly': False,
         },
