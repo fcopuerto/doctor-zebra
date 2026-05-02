@@ -1,4 +1,4 @@
-"""Application factory for Doctor Zebra."""
+"""Application factory for Comandante Zebra."""
 
 import logging
 from pathlib import Path
@@ -11,9 +11,9 @@ from zebra.db import init_db
 from zebra.lookup_cache import init_cache
 from zebra.settings import Settings
 
-LANG_COOKIE = 'doctor_zebra_lang'
+LANG_COOKIE = 'comandante_zebra_lang'
 
-__version__ = '0.3.3'
+__version__ = '0.4.0'
 
 # Path to the package root (read-only assets when frozen with PyInstaller).
 PACKAGE_ROOT = Path(__file__).resolve().parent.parent
@@ -31,7 +31,7 @@ def create_app(
     ``base_dir`` is the writable root that holds ``profiles/`` (and any other
     user-mutable state). When running from source it defaults to the project
     root; when frozen with PyInstaller, ``desktop.py`` passes
-    ``~/.doctor_zebra/`` so user data persists outside the bundle.
+    ``~/.comandante_zebra/`` so user data persists outside the bundle.
     """
     base = Path(base_dir) if base_dir else BASE_DIR
 

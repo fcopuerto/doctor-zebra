@@ -79,7 +79,7 @@
   "form.lookup.starts_with_prefix": "Starts with… (use * for any) —",
 
   "settings.title": "Settings",
-  "settings.intro": "Configure Doctor Zebra by topic. Each section is independent — you can come back to any of them later.",
+  "settings.intro": "Configure Comandante Zebra by topic. Each section is independent — you can come back to any of them later.",
   "settings.tabs.overview": "Overview",
   "settings.tabs.printers": "Printers",
   "settings.tabs.templates": "Templates",
@@ -103,7 +103,7 @@
   "settings.running_on": "Running on",
 
   "wizard.title": "Setup Wizard",
-  "wizard.subtitle": "Get Doctor Zebra ready for everyday printing in a few steps.",
+  "wizard.subtitle": "Get Comandante Zebra ready for everyday printing in a few steps.",
   "wizard.step.connection": "Connect to your database",
   "wizard.step.printer": "Choose your printer",
   "wizard.step.template": "Pick or import a template",
@@ -173,5 +173,5 @@
   "splash.step.5": "Syncing item cache…",
   "splash.step.6": "Warming up the preview engine…",
   "splash.step.7": "Priming the print queue…",
-  "splash.step.8": "Doctor Zebra is ready."
+  "splash.step.8": "Comandante Zebra is ready."
 }

@@ -79,7 +79,7 @@
   "form.lookup.starts_with_prefix": "Empieza por… (usa * como comodín) —",
 
   "settings.title": "Configuración",
-  "settings.intro": "Configura Doctor Zebra por temas. Cada sección es independiente — puedes volver a cualquiera más tarde.",
+  "settings.intro": "Configura Comandante Zebra por temas. Cada sección es independiente — puedes volver a cualquiera más tarde.",
   "settings.tabs.overview": "Resumen",
   "settings.tabs.printers": "Impresoras",
   "settings.tabs.templates": "Plantillas",
@@ -103,7 +103,7 @@
   "settings.running_on": "Ejecutándose en",
 
   "wizard.title": "Asistente de configuración",
-  "wizard.subtitle": "Deja Doctor Zebra listo para imprimir en pocos pasos.",
+  "wizard.subtitle": "Deja Comandante Zebra listo para imprimir en pocos pasos.",
   "wizard.step.connection": "Conecta a tu base de datos",
   "wizard.step.printer": "Elige tu impresora",
   "wizard.step.template": "Elige o importa una plantilla",
@@ -173,5 +173,5 @@
   "splash.step.5": "Sincronizando caché de artículos…",
   "splash.step.6": "Calentando el motor de previsualización…",
   "splash.step.7": "Preparando la cola de impresión…",
-  "splash.step.8": "Doctor Zebra a punto."
+  "splash.step.8": "Comandante Zebra a punto."
 }

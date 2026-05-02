@@ -1,4 +1,4 @@
-# PyInstaller spec for the Doctor Zebra desktop app.
+# PyInstaller spec for the Comandante Zebra desktop app.
 #
 # Build:
 #   pip install -r requirements.txt pyinstaller
@@ -7,7 +7,7 @@
 #   # Windows (Zebra USB / spooler support pulls in pywin32 from requirements):
 #   pyinstaller build_desktop.spec
 #
-# Output: dist/DoctorZebra.exe  (Windows)  or  dist/DoctorZebra.app  (macOS)
+# Output: dist/ComandanteZebra.exe  (Windows)  or  dist/ComandanteZebra.app  (macOS)
 #
 # Layout when frozen
 # ------------------
@@ -16,7 +16,7 @@
 #   - zebra/                      App package (auto-collected as Python modules)
 #   - seed_profiles/default/      Skeleton copied to the user dir on first run
 #
-# User-writable state lives in ``~/.doctor_zebra/`` (see desktop.py):
+# User-writable state lives in ``~/.comandante_zebra/`` (see desktop.py):
 #   - profiles/<name>/config.cfg, labels.db, templates_zpl/
 #   - app.log
 
@@ -92,7 +92,7 @@ exe = EXE(  # noqa: F821
     a.zipfiles,
     a.datas,
     [],
-    name='DoctorZebra',
+    name='ComandanteZebra',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -112,12 +112,12 @@ exe = EXE(  # noqa: F821
 if sys.platform == 'darwin':
     app = BUNDLE(  # noqa: F821
         exe,
-        name='DoctorZebra.app',
+        name='ComandanteZebra.app',
         icon=str(root / 'static' / 'icon.icns') if (root / 'static' / 'icon.icns').is_file() else None,
-        bundle_identifier='com.doctorzebra.app',
+        bundle_identifier='com.comandantezebra.app',
         info_plist={
-            'CFBundleName': 'Doctor Zebra',
-            'CFBundleDisplayName': 'Doctor Zebra',
+            'CFBundleName': 'Comandante Zebra',
+            'CFBundleDisplayName': 'Comandante Zebra',
             'CFBundleShortVersionString': APP_VERSION,
             'NSHighResolutionCapable': True,
             'LSBackgroundOnly': False,

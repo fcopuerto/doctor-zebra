@@ -1,4 +1,4 @@
-"""Native desktop wrapper for Doctor Zebra.
+"""Native desktop wrapper for Comandante Zebra.
 
 Starts Flask on a random localhost port in a background thread, then opens
 a pywebview window pointed at it. Closing the window terminates the process.
@@ -14,7 +14,7 @@ Data layout
 
 When frozen with PyInstaller the bundle contains the read-only app assets
 (templates/, static/, the ``zebra`` package, and a ``seed_profiles/``
-skeleton).  User-writable state lives in ``~/.doctor_zebra/``:
+skeleton).  User-writable state lives in ``~/.comandante_zebra/``:
 
 * ``profiles/<name>/config.cfg`` – per-profile settings (edited from the UI).
 * ``profiles/<name>/labels.db``  – per-profile SQLite history.
@@ -22,12 +22,12 @@ skeleton).  User-writable state lives in ``~/.doctor_zebra/``:
 * ``app.log`` – log file.
 
 On first run, ``seed_profiles/default/`` is copied into
-``~/.doctor_zebra/profiles/default/`` so the user starts with a working
+``~/.comandante_zebra/profiles/default/`` so the user starts with a working
 profile they can edit. Running from source keeps everything in the project
 directory.
 
 Migration: if a legacy ``~/.zebra_labels/`` directory exists from a previous
-build, it is renamed to ``~/.doctor_zebra/`` on first launch so user data
+build, it is renamed to ``~/.comandante_zebra/`` on first launch so user data
 follows the rebrand.
 """
 
@@ -53,7 +53,7 @@ SPLASH_DEFAULT_LANG = 'es'
 FROZEN = bool(getattr(sys, 'frozen', False))
 BUNDLE_DIR = Path(getattr(sys, '_MEIPASS', Path(__file__).resolve().parent))
 
-USER_DIR = Path.home() / '.doctor_zebra'
+USER_DIR = Path.home() / '.comandante_zebra'
 _LEGACY_DIR = Path.home() / '.zebra_labels'
 if _LEGACY_DIR.is_dir() and not USER_DIR.exists():
     # One-shot rename of the pre-rebrand data dir.
@@ -73,7 +73,7 @@ def _resolve_base_dir() -> Path:
 
     When running from source, that's the project root (so editing profiles
     from the UI updates the working tree). When frozen, it's
-    ``~/.doctor_zebra/`` so the user's data survives upgrades.
+    ``~/.comandante_zebra/`` so the user's data survives upgrades.
     """
     if not FROZEN:
         return Path(__file__).resolve().parent
@@ -127,7 +127,7 @@ def _pick_splash_lang() -> str:
     """Decide which catalog the splash should use.
 
     Priority:
-      1. ``~/.doctor_zebra/lang.txt`` written by /api/lang/<code>. This is
+      1. ``~/.comandante_zebra/lang.txt`` written by /api/lang/<code>. This is
          what the user explicitly chose in a previous session.
       2. The OS primary locale (so a Spanish-locale machine on first run
          already gets a Spanish splash, matching the Flask default).
@@ -190,7 +190,7 @@ def _splash_html(version: str) -> str:
     step_interval_ms = max(400, (SPLASH_MIN_MS - 400) // max(1, len(steps)))
 
     return f"""<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>Doctor Zebra</title>
+<html><head><meta charset="utf-8"><title>Comandante Zebra</title>
 <style>
   html, body {{ margin: 0; padding: 0; height: 100vh; overflow: hidden; }}
   body {{
@@ -247,7 +247,7 @@ def _splash_html(version: str) -> str:
 </head>
 <body>
   {img_tag}
-  <h1 class="splash__title">Doctor Zebra</h1>
+  <h1 class="splash__title">Comandante Zebra</h1>
   <p class="splash__tagline">{tagline}</p>
 
   <div class="splash__progress">
@@ -257,7 +257,7 @@ def _splash_html(version: str) -> str:
 
   <div class="splash__footer">
     <span>v{version}</span>
-    <span>doctor-zebra</span>
+    <span>comandante_zebra</span>
   </div>
 
 <script>
@@ -322,7 +322,7 @@ def main() -> int:
     # Splash window: small, frameless, on top. Replaced by the real app
     # window once Flask is ready (and after a minimum on-screen time).
     splash = webview.create_window(
-        'Doctor Zebra',
+        'Comandante Zebra',
         html=_splash_html(app_version),
         width=480,
         height=320,
@@ -351,7 +351,7 @@ def main() -> int:
         # this order avoids a flash of empty desktop on platforms that quit
         # the GUI loop when the last window dies.
         webview.create_window(
-            'Doctor Zebra',
+            'Comandante Zebra',
             url,
             width=1200,
             height=820,

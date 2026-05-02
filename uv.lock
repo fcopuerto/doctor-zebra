@@ -205,8 +205,8 @@ wheels = [
 ]
 
 [[package]]
-name = "doctor-zebra"
-version = "0.3.3"
+name = "comandante-zebra"
+version = "0.4.0"
 source = { virtual = "." }
 dependencies = [
     { name = "flask" },

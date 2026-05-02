@@ -1,4 +1,4 @@
-# Doctor Zebra — uv-managed project metadata.
+# Comandante Zebra — uv-managed project metadata.
 #
 # This file replaces requirements*.txt as the source of truth for
 # dependencies. The plain text files are kept around as a shim so
@@ -16,9 +16,9 @@
 # Keep `version` below in sync with zebra.__version__.
 
 [project]
-name = "doctor-zebra"
-version = "0.3.3"
-description = "Desktop app for printing labels on Zebra (ZPL) printers — templates, offline lookup cache, multi-profile."
+name = "comandante_zebra"
+version = "0.4.0"
+description = "Comandante Zebra — desktop app for printing labels on Zebra (ZPL) printers. Templates, offline lookup cache, multi-profile."
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.10"
@@ -49,9 +49,9 @@ mssql-pure = ["pymssql>=2.2"]
 mssql-odbc = ["pyodbc>=5.0"]
 
 [project.urls]
-Repository = "https://github.com/fcopuerto/doctor-zebra"
-Issues     = "https://github.com/fcopuerto/doctor-zebra/issues"
-Changelog  = "https://github.com/fcopuerto/doctor-zebra/blob/main/CHANGELOG.md"
+Repository = "https://github.com/fcopuerto/comandante_zebra"
+Issues     = "https://github.com/fcopuerto/comandante_zebra/issues"
+Changelog  = "https://github.com/fcopuerto/comandante_zebra/blob/main/CHANGELOG.md"
 
 # uv-specific groups for tasks the runtime doesn't need (CI / packaging).
 [dependency-groups]

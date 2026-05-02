@@ -1,4 +1,4 @@
-"""Generate the Doctor Zebra logo and platform icon files.
+"""Generate the Comandante Zebra logo and platform icon files.
 
 Outputs:
     static/icon.png   – 1024×1024 master PNG
@@ -23,11 +23,12 @@ STATIC = ROOT / 'static'
 STATIC.mkdir(exist_ok=True)
 
 # ---- Palette ---------------------------------------------------------------
-BG_NAVY = (13, 27, 42, 255)        # deep navy background
+# Homenaje al Norton Commander de los 80/90: el azul cobalto de DOS
+# (#0000AA) que era el fondo característico de su TUI de dos paneles.
+BG_NC_BLUE = (0, 0, 170, 255)        # classic Norton Commander DOS blue
+BAR_DARK  = (15, 23, 42, 255)        # near-black for the zebra bars
 LABEL_WHITE = (255, 255, 255, 255)
-BAR_DARK = (13, 27, 42, 255)        # zebra bars (same navy for cohesion)
-CROSS_RED = (220, 38, 38, 255)      # medical cross
-SHADOW = (0, 0, 0, 60)              # subtle drop shadow under the label
+SHADOW = (0, 0, 0, 80)               # subtle drop shadow under the label
 
 SIZE = 1024  # master canvas
 
@@ -36,21 +37,21 @@ def draw_master() -> Image.Image:
     img = Image.new('RGBA', (SIZE, SIZE), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
 
-    # Background: rounded square
+    # Background: rounded square in Norton Commander DOS blue.
     bg_radius = 200
     d.rounded_rectangle(
         [(0, 0), (SIZE, SIZE)],
         radius=bg_radius,
-        fill=BG_NAVY,
+        fill=BG_NC_BLUE,
     )
 
-    # White "label" centered, rotated slightly for character
+    # White "label" centered.
     label_margin = 130
     label_box = (label_margin, label_margin + 30,
                  SIZE - label_margin, SIZE - label_margin - 30)
     label_radius = 60
 
-    # Drop shadow (offset down-right)
+    # Drop shadow (offset down-right) so the label feels detached from the bg.
     shadow = Image.new('RGBA', (SIZE, SIZE), (0, 0, 0, 0))
     sd = ImageDraw.Draw(shadow)
     sd.rounded_rectangle(
@@ -62,54 +63,28 @@ def draw_master() -> Image.Image:
     img = Image.alpha_composite(img, shadow)
     d = ImageDraw.Draw(img)
 
-    # Label
+    # Label.
     d.rounded_rectangle(label_box, radius=label_radius, fill=LABEL_WHITE)
 
-    # ---- Zebra bars (barcode style) on the left half ---------------------
-    bar_left_pad = 60
-    bar_right_pad = 40
-    bar_area_left = label_box[0] + bar_left_pad
-    bar_area_top = label_box[1] + 90
-    bar_area_bottom = label_box[3] - 90
-    bar_area_right = label_box[0] + (label_box[2] - label_box[0]) // 2 - bar_right_pad
+    # ---- Zebra bars (barcode style) — now centered, no medical cross. ----
+    label_w = label_box[2] - label_box[0]
+    label_h = label_box[3] - label_box[1]
+    bar_top = label_box[1] + 90
+    bar_bottom = label_box[3] - 90
 
-    # Variable-width bars, mimicking a barcode
-    widths = [22, 10, 30, 14, 8, 36, 12, 18, 28]  # alternating bar/gap visually
-    gap = 14
-    x = bar_area_left
-    for i, w in enumerate(widths):
-        if x + w > bar_area_right:
-            break
-        # Skip every other for the "gap" feel
-        if i % 2 == 0:
-            d.rounded_rectangle(
-                [(x, bar_area_top), (x + w, bar_area_bottom)],
-                radius=4,
-                fill=BAR_DARK,
-            )
+    # Variable bar widths so it reads as a barcode rather than uniform stripes.
+    bar_widths = (28, 12, 60, 18, 36, 14, 50, 22, 40)
+    gap = 22
+    total_w = sum(bar_widths) + gap * (len(bar_widths) - 1)
+    x = label_box[0] + (label_w - total_w) // 2
+
+    for w in bar_widths:
+        d.rounded_rectangle(
+            [(x, bar_top), (x + w, bar_bottom)],
+            radius=4,
+            fill=BAR_DARK,
+        )
         x += w + gap
-
-    # ---- Medical cross on the right half ----------------------------------
-    cross_cx = label_box[0] + 3 * (label_box[2] - label_box[0]) // 4
-    cross_cy = (label_box[1] + label_box[3]) // 2
-    arm_len = 150
-    arm_thick = 56
-    arm_radius = 16
-
-    # Vertical bar
-    d.rounded_rectangle(
-        [(cross_cx - arm_thick // 2, cross_cy - arm_len),
-         (cross_cx + arm_thick // 2, cross_cy + arm_len)],
-        radius=arm_radius,
-        fill=CROSS_RED,
-    )
-    # Horizontal bar
-    d.rounded_rectangle(
-        [(cross_cx - arm_len, cross_cy - arm_thick // 2),
-         (cross_cx + arm_len, cross_cy + arm_thick // 2)],
-        radius=arm_radius,
-        fill=CROSS_RED,
-    )
 
     return img
 
@@ -164,30 +139,30 @@ def build_icns(master: Image.Image, out: Path, work: Path) -> bool:
     return True
 
 
-SVG_TEMPLATE = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="Doctor Zebra logo">
+SVG_TEMPLATE = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="Comandante Zebra logo">
   <defs>
     <clipPath id="bg-clip">
       <rect x="0" y="0" width="1024" height="1024" rx="200" ry="200"/>
     </clipPath>
   </defs>
   <g clip-path="url(#bg-clip)">
-    <rect width="1024" height="1024" fill="#0d1b2a"/>
+    <!-- Norton Commander DOS blue background -->
+    <rect width="1024" height="1024" fill="#0000AA"/>
     <!-- shadow -->
-    <rect x="144" y="182" width="754" height="682" rx="60" ry="60" fill="#000" opacity="0.18"/>
+    <rect x="144" y="182" width="754" height="682" rx="60" ry="60" fill="#000" opacity="0.20"/>
     <!-- label -->
     <rect x="130" y="160" width="754" height="682" rx="60" ry="60" fill="#ffffff"/>
-    <!-- zebra bars -->
-    <g fill="#0d1b2a">
-      <rect x="190" y="250" width="22" height="510" rx="4"/>
-      <rect x="246" y="250" width="30" height="510" rx="4"/>
-      <rect x="298" y="250" width="8"  height="510" rx="4"/>
-      <rect x="328" y="250" width="12" height="510" rx="4"/>
-      <rect x="362" y="250" width="28" height="510" rx="4"/>
-    </g>
-    <!-- medical cross -->
-    <g fill="#dc2626">
-      <rect x="676" y="351" width="56" height="300" rx="16"/>
-      <rect x="554" y="473" width="300" height="56" rx="16"/>
+    <!-- zebra bars (centered, no medical cross) -->
+    <g fill="#0F172A">
+      <rect x="232" y="250" width="28" height="524" rx="4"/>
+      <rect x="282" y="250" width="12" height="524" rx="4"/>
+      <rect x="316" y="250" width="60" height="524" rx="4"/>
+      <rect x="398" y="250" width="18" height="524" rx="4"/>
+      <rect x="438" y="250" width="36" height="524" rx="4"/>
+      <rect x="496" y="250" width="14" height="524" rx="4"/>
+      <rect x="532" y="250" width="50" height="524" rx="4"/>
+      <rect x="604" y="250" width="22" height="524" rx="4"/>
+      <rect x="648" y="250" width="40" height="524" rx="4"/>
     </g>
   </g>
 </svg>

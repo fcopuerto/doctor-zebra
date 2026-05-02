@@ -1,13 +1,40 @@
 # Changelog
 
-Todos los cambios relevantes de Doctor Zebra se documentan en este archivo.
+Todos los cambios relevantes de Comandante Zebra se documentan en este archivo.
 
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y
 el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-05-02
+
+Renombrado de **Doctor Zebra → Comandante Zebra** como homenaje al
+**Norton Commander** de los 80/90 (el icónico file manager de DOS con
+su TUI azul cobalto de dos paneles).
+
 ### Cambiado
+
+- **Marca**: nombre del proyecto, `.exe` (`ComandanteZebra.exe`), bundle
+  identifier macOS (`com.comandantezebra.app`), título de la ventana,
+  splash, sidebar, todos los `<title>`/topbar de las plantillas y los
+  catálogos i18n EN/ES/CA.
+- **Icono / logo**: nueva paleta **azul Norton Commander** (`#0000AA`,
+  el clásico DOS blue) con etiqueta blanca centrada y barras zebra en
+  lugar de la cruz médica roja anterior. Regenerado `static/icon.png`,
+  `icon.ico`, `icon.icns` y `logo.svg`.
+- **Cookie de idioma** renombrada a `comandante_zebra_lang`. Cookies
+  antiguas con el nombre `doctor_zebra_lang` simplemente caen en desuso
+  y se vuelve a evaluar el idioma con `Accept-Language` / locale.
+- **Directorio de datos** del usuario renombrado a `~/.comandante_zebra/`.
+  La migración suave existente desde `~/.zebra_labels/` sigue siendo
+  válida y cubre también el paso intermedio por `~/.doctor_zebra/` si
+  alguna instalación quedó ahí (se renombrará en el primer arranque).
+- **Repo en GitHub** renombrado a `comandante_zebra`. URLs antiguas
+  redirigen automáticamente, pero el remote local debe actualizarse:
+  `git remote set-url origin https://github.com/fcopuerto/comandante_zebra.git`.
+
+### Cambiado (DX)
 
 - **Gestión de dependencias migrada a [uv](https://docs.astral.sh/uv/).**
   Nuevo `pyproject.toml` con extras opcionales (`mssql-pure`, `mssql-odbc`)
@@ -26,13 +53,13 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
   en EN/ES/CA. Mensajes inventados pero con personalidad: _"Buscando
   impresoras Zebra…"_, _"Calibrando rodillos virtuales…"_,
   _"Sincronizando caché de artículos…"_, _"Calentando el motor de
-  previsualización…"_, etc. — terminan con _"Doctor Zebra a punto."_
+  previsualización…"_, etc. — terminan con _"Comandante Zebra a punto."_
 - Tiempo total del splash subido a ~6,5 s (antes 1,5 s) para que dé
   tiempo a leer los pasos. La ventana principal sigue arrancando en
   paralelo en background; si Flask termina antes, se queda esperando
   para no truncar la animación.
 - El idioma del splash se decide al arrancar leyendo
-  `~/.doctor_zebra/lang.txt` (escrito por `/api/lang/<code>` cuando el
+  `~/.comandante_zebra/lang.txt` (escrito por `/api/lang/<code>` cuando el
   usuario lo cambia) y, si no existe, cae al locale del sistema, y por
   último al default español.
 
@@ -41,7 +68,7 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 ### Añadido
 
 - **Pantalla de bienvenida (splash) al arranque** estilo años 90 (WordPerfect /
-  Word): ventana sin bordes 480×320 con el logo grande, "Doctor Zebra",
+  Word): ventana sin bordes 480×320 con el logo grande, "Comandante Zebra",
   tagline y versión sobre fondo navy con gradiente. Aparece al instante
   mientras Flask arranca en segundo plano y se queda visible un mínimo de
   1,5 s aunque el servidor esté listo antes — para que el branding registre.
@@ -79,7 +106,7 @@ Soporte multi-idioma — primera oleada (sidebar, topbar, dashboard, historial).
 
 - **i18n** con diccionarios JSON (`i18n/en.json`, `es.json`, `ca.json`).
 - Selector de idioma en la topbar (`EN · ES · CA`) con el activo destacado.
-- Resolución del idioma: cookie `doctor_zebra_lang` → `Accept-Language` →
+- Resolución del idioma: cookie `comandante_zebra_lang` → `Accept-Language` →
   **español por defecto**. Las claves no traducidas caen a inglés y, si
   tampoco existen ahí, se muestra la propia clave para que sean visibles.
 - Endpoint `POST /api/lang/<code>` que persiste el idioma en cookie de 1 año.
@@ -161,21 +188,21 @@ distribuye como `.exe` autónomo para Windows.
   plantillas paso a paso.
 - Tema claro/oscuro con detección automática del sistema.
 - Logo e iconos propios (`.ico` Windows, `.icns` macOS, SVG web).
-- Workflow de GitHub Actions que construye `DoctorZebra.exe` en cada push
+- Workflow de GitHub Actions que construye `ComandanteZebra.exe` en cada push
   a `main` y lo adjunta a un GitHub Release cuando se publica un tag `v*`.
 
 ### Notas de migración
 
-- El directorio de datos del usuario se llama ahora `~/.doctor_zebra/`.
+- El directorio de datos del usuario se llama ahora `~/.comandante_zebra/`.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/doctor-zebra/compare/v0.3.3...HEAD
-[0.3.3]: https://github.com/fcopuerto/doctor-zebra/compare/v0.3.2...v0.3.3
-[0.3.2]: https://github.com/fcopuerto/doctor-zebra/compare/v0.3.1...v0.3.2
-[0.3.1]: https://github.com/fcopuerto/doctor-zebra/compare/v0.3.0...v0.3.1
-[0.3.0]: https://github.com/fcopuerto/doctor-zebra/compare/v0.2.1...v0.3.0
-[0.2.1]: https://github.com/fcopuerto/doctor-zebra/compare/v0.2.0...v0.2.1
-[0.2.0]: https://github.com/fcopuerto/doctor-zebra/compare/v0.1.1...v0.2.0
-[0.1.1]: https://github.com/fcopuerto/doctor-zebra/compare/v0.1.0...v0.1.1
-[0.1.0]: https://github.com/fcopuerto/doctor-zebra/releases/tag/v0.1.0
+[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.3.3...HEAD
+[0.3.3]: https://github.com/fcopuerto/comandante_zebra/compare/v0.3.2...v0.3.3
+[0.3.2]: https://github.com/fcopuerto/comandante_zebra/compare/v0.3.1...v0.3.2
+[0.3.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.2.1...v0.3.0
+[0.2.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.2.0...v0.2.1
+[0.2.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.1.1...v0.2.0
+[0.1.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/fcopuerto/comandante_zebra/releases/tag/v0.1.0

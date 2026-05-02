@@ -1,14 +1,14 @@
 <div align="center">
-  <img src="static/logo.svg" alt="Doctor Zebra" width="120" height="120">
-  <h1>Doctor Zebra</h1>
+  <img src="static/logo.svg" alt="Comandante Zebra" width="120" height="120">
+  <h1>Comandante Zebra</h1>
   <p><strong>Imprime etiquetas en impresoras Zebra (ZPL) desde una app de escritorio</strong> con plantillas editables, búsqueda de datos contra fuentes externas con caché offline, y soporte multi-perfil.</p>
 
   <p>
-    <a href="https://github.com/fcopuerto/doctor-zebra/actions/workflows/build-windows.yml">
-      <img alt="Build Windows" src="https://github.com/fcopuerto/doctor-zebra/actions/workflows/build-windows.yml/badge.svg">
+    <a href="https://github.com/fcopuerto/comandante_zebra/actions/workflows/build-windows.yml">
+      <img alt="Build Windows" src="https://github.com/fcopuerto/comandante_zebra/actions/workflows/build-windows.yml/badge.svg">
     </a>
-    <a href="https://github.com/fcopuerto/doctor-zebra/releases/latest">
-      <img alt="Latest release" src="https://img.shields.io/github/v/release/fcopuerto/doctor-zebra?include_prereleases&sort=semver">
+    <a href="https://github.com/fcopuerto/comandante_zebra/releases/latest">
+      <img alt="Latest release" src="https://img.shields.io/github/v/release/fcopuerto/comandante_zebra?include_prereleases&sort=semver">
     </a>
     <img alt="Python" src="https://img.shields.io/badge/python-3.10%2B-blue">
     <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green"></a>
@@ -19,7 +19,7 @@
 
 ## Qué es
 
-Doctor Zebra es una pequeña aplicación de escritorio (Flask + pywebview) para tiendas y entornos industriales que necesitan **imprimir etiquetas Zebra (ZPL)** de forma cómoda, sin depender del software propietario de Zebra ni de una conexión constante a la base de datos.
+Comandante Zebra es una pequeña aplicación de escritorio (Flask + pywebview) para tiendas y entornos industriales que necesitan **imprimir etiquetas Zebra (ZPL)** de forma cómoda, sin depender del software propietario de Zebra ni de una conexión constante a la base de datos.
 
 Casos típicos:
 
@@ -45,11 +45,11 @@ Casos típicos:
 
 ### Windows (recomendado)
 
-1. Ve a [Releases](https://github.com/fcopuerto/doctor-zebra/releases/latest) y descarga `DoctorZebra.exe`.
-2. Ejecútalo. La primera vez creará `C:\Users\<tu-usuario>\.doctor_zebra\` con un perfil `default` vacío.
+1. Ve a [Releases](https://github.com/fcopuerto/comandante_zebra/releases/latest) y descarga `ComandanteZebra.exe`.
+2. Ejecútalo. La primera vez creará `C:\Users\<tu-usuario>\.comandante_zebra\` con un perfil `default` vacío.
 3. Lanza el asistente desde **Settings → Wizard** y configura tu impresora y conexión.
 
-> Si no hay un release publicado todavía, puedes bajar el último build de la pestaña **Actions** (artifact `DoctorZebra-windows`).
+> Si no hay un release publicado todavía, puedes bajar el último build de la pestaña **Actions** (artifact `ComandanteZebra-windows`).
 
 ### macOS / Linux
 
@@ -69,8 +69,8 @@ curl -LsSf https://astral.sh/uv/install.sh | sh    # macOS / Linux
 Después:
 
 ```bash
-git clone https://github.com/fcopuerto/doctor-zebra.git
-cd doctor-zebra
+git clone https://github.com/fcopuerto/comandante_zebra.git
+cd comandante_zebra
 
 # Runtime + driver SQL Server pure-Python (recomendado):
 uv sync --extra mssql-pure
@@ -112,8 +112,8 @@ Para construirlo manualmente en cualquier plataforma:
 uv sync --extra mssql-pure --group build
 uv run pyinstaller --noconfirm --clean build_desktop.spec
 # Salida:
-#   dist/DoctorZebra.exe   (Windows)
-#   dist/DoctorZebra.app   (macOS)
+#   dist/ComandanteZebra.exe   (Windows)
+#   dist/ComandanteZebra.app   (macOS)
 ```
 
 PyInstaller **no** hace cross-compile: para generar el `.exe` necesitas
@@ -143,7 +143,7 @@ build_desktop.spec    ← receta PyInstaller
 Cuando se ejecuta como `.exe`, los datos viven fuera del bundle para sobrevivir a actualizaciones:
 
 ```
-~/.doctor_zebra/
+~/.comandante_zebra/
 ├── profiles/
 │   ├── .active
 │   └── default/

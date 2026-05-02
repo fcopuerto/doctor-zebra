@@ -309,7 +309,7 @@ def set_lang(code):
     """Persist the user's language choice in a cookie + lang.txt.
 
     The cookie is what the running Flask process reads on every request.
-    lang.txt lives in BASE_DIR (~/.doctor_zebra/) so the splash screen —
+    lang.txt lives in BASE_DIR (~/.comandante_zebra/) so the splash screen —
     which renders before Flask is reachable — can pick the right
     catalogue at the next launch.
     """

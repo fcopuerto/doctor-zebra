@@ -79,7 +79,7 @@
   "form.lookup.starts_with_prefix": "Comença per… (usa * com a comodí) —",
 
   "settings.title": "Configuració",
-  "settings.intro": "Configura Doctor Zebra per temes. Cada secció és independent — pots tornar a qualsevol més tard.",
+  "settings.intro": "Configura Comandante Zebra per temes. Cada secció és independent — pots tornar a qualsevol més tard.",
   "settings.tabs.overview": "Resum",
   "settings.tabs.printers": "Impressores",
   "settings.tabs.templates": "Plantilles",
@@ -103,7 +103,7 @@
   "settings.running_on": "Executant-se a",
 
   "wizard.title": "Assistent de configuració",
-  "wizard.subtitle": "Deixa Doctor Zebra a punt per imprimir en pocs passos.",
+  "wizard.subtitle": "Deixa Comandante Zebra a punt per imprimir en pocs passos.",
   "wizard.step.connection": "Connecta't a la teva base de dades",
   "wizard.step.printer": "Tria la teva impressora",
   "wizard.step.template": "Tria o importa una plantilla",
@@ -173,5 +173,5 @@
   "splash.step.5": "Sincronitzant memòria cau d'articles…",
   "splash.step.6": "Escalfant el motor de previsualització…",
   "splash.step.7": "Preparant la cua d'impressió…",
-  "splash.step.8": "Doctor Zebra a punt."
+  "splash.step.8": "Comandante Zebra a punt."
 }
