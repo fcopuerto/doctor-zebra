@@ -325,6 +325,27 @@ def history():
     return render_template('history.html', records=records)
 
 
+@bp.route('/healthz')
+def healthz():
+    """Liveness/readiness probe.
+
+    Used by the splash window's _wait_until_ready loop and by anyone
+    monitoring the app from outside (e.g. a sibling Comandante Zebra
+    on the LAN that wants to know if we're up before talking to us).
+    """
+    import time
+    from zebra import __version__
+    started = current_app.config.get('STARTED_AT')
+    uptime = max(0, int(time.time() - started)) if started else 0
+    return jsonify({
+        'ok':       True,
+        'app':      'comandante_zebra',
+        'version':  __version__,
+        'profile':  current_app.config.get('PROFILE_NAME', ''),
+        'uptime_s': uptime,
+    })
+
+
 @bp.route('/api/lang/<code>', methods=['POST'])
 def set_lang(code):
     """Persist the user's language choice in a cookie + lang.txt.

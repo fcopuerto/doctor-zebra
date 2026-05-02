@@ -102,6 +102,12 @@ class Discovery:
         # filtered out of get_peers() so the local app doesn't show up
         # in its own list.
         self._self_name: str = ''
+        # Diagnostics: the most recent error from init/publish (or None
+        # on success). Used by /api/network/diagnostics so the UI can
+        # tell the user "your firewall is probably blocking 5353/UDP".
+        self._last_init_error: str | None = None
+        self._last_publish_error: str | None = None
+        self._published_port: int = 0
 
     # ------------------------------------------------------------------
     # Lifecycle
@@ -120,12 +126,18 @@ class Discovery:
         the announced port/profile/version stay current.
         """
         if not HAVE_ZEROCONF:
+            self._last_init_error = (
+                'zeroconf package not available — install it with '
+                '`uv sync` or `pip install zeroconf`'
+            )
             return
         self.stop()
         try:
             self._zc = Zeroconf(ip_version=IPVersion.V4Only)
+            self._last_init_error = None
         except Exception as e:  # noqa: BLE001
             logging.warning(f'Zeroconf init failed, discovery disabled: {e}')
+            self._last_init_error = str(e)
             self._zc = None
             return
 
@@ -163,10 +175,14 @@ class Discovery:
             self._zc.register_service(info, allow_name_change=True)
             self._info = info
             self._self_name = full_name
+            self._published_port = port
+            self._last_publish_error = None
             logging.info(f'mDNS published as {full_name} at {ip}:{port}')
         except Exception as e:  # noqa: BLE001
             logging.warning(f'mDNS publish failed: {e}')
             self._info = None
+            self._published_port = 0
+            self._last_publish_error = str(e)
 
     def stop(self) -> None:
         if self._zc is None:
@@ -231,6 +247,54 @@ class Discovery:
     def peers(self) -> list[Peer]:
         with self._lock:
             return sorted(self._peers.values(), key=lambda p: (p.name, p.address))
+
+    def diagnostics(self) -> dict:
+        """Return a status snapshot used by Settings → Network → Diagnostics.
+
+        Includes everything needed to render actionable advice when peer
+        discovery doesn't work — the typical culprits are firewall rules
+        on UDP/5353 (mDNS), Bonjour Service missing on Windows, or the
+        zeroconf package not being installed at all.
+        """
+        ip = _local_ip_or_loopback()
+        zc_alive = self._zc is not None
+        publishing = self._info is not None and self._published_port > 0
+        browsing = self._browser is not None
+        peer_count = 0
+        with self._lock:
+            peer_count = len(self._peers)
+
+        advice: list[str] = []
+        if not HAVE_ZEROCONF:
+            advice.append('zeroconf_missing')
+        elif self._last_init_error:
+            advice.append('zeroconf_init_failed')
+        elif self._last_publish_error:
+            # Common on Windows when Bonjour Service isn't installed,
+            # or when a firewall blocks UDP/5353 outbound.
+            advice.append('publish_failed')
+        else:
+            if not publishing and self._published_port == 0:
+                # Browser is up but we never tried to publish (no port).
+                advice.append('not_publishing')
+            if browsing and peer_count == 0:
+                # Listening but seeing nobody. Could be: alone on the LAN,
+                # firewall blocks inbound mDNS, or different subnet.
+                advice.append('no_peers_seen')
+            if ip in ('127.0.0.1', '0.0.0.0'):
+                advice.append('no_lan_ip')
+
+        return {
+            'zeroconf_available': HAVE_ZEROCONF,
+            'browser_active':    browsing,
+            'publisher_active':  publishing,
+            'published_port':    self._published_port,
+            'local_ip':          ip,
+            'init_error':        self._last_init_error,
+            'publish_error':     self._last_publish_error,
+            'peer_count':        peer_count,
+            'advice':            advice,
+        }
 
 
 # Module-level singleton — Flask only ever needs one instance.

@@ -7,6 +7,48 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-05-03
+
+Pulido general — diagnóstico de red, healthz, traducción del wizard
+y refuerzos de seguridad en el peer endpoint.
+
+### Añadido
+
+- **Diagnóstico de red** en Configuración → Red. Nueva sección que
+  muestra en vivo si zeroconf está disponible, si estamos escuchando,
+  si nos estamos anunciando, qué IP de LAN tenemos y cuántos peers
+  hemos visto. Cuando algo no va, muestra **consejos concretos**
+  traducidos en EN/ES/CA: firewall en Windows bloqueando UDP/5353,
+  Bonjour service no instalado, otra instancia en subred distinta,
+  zeroconf no instalado, etc. Endpoint nuevo `/api/network/diagnostics`.
+- **Endpoint `/healthz`** que devuelve `{ ok, version, profile, uptime_s }`.
+  Útil para que el splash sepa cuándo Flask responde y para integraciones
+  externas de monitorización.
+- **Wizard traducido al castellano y catalán** — todos los pasos,
+  hints, botones, opciones (USB / red / avanzado), revisión final.
+  Cierra el TODO que arrastrábamos desde 0.3.1.
+- **Sección Red en el README** con cómo funciona el descubrimiento,
+  PIN, qué se comparte y troubleshooting de firewall/Bonjour.
+
+### Cambiado
+
+- `discovery.py` captura el último error de init y de publish y los
+  expone en `diagnostics()` para que la UI pueda decir "tu firewall
+  está bloqueando 5353/UDP" en lugar de un genérico "no peers".
+
+### Seguridad
+
+- `pull_templates` rechaza nombres con `/`, `\` o `..` y exige sufijo
+  `.zpl`, así un peer malicioso no puede inducirnos a escribir fuera
+  del directorio de templates.
+- `peer_get_template` rechaza el mismo patrón antes de tocar disco
+  (la whitelist de templates ya era la defensa real, esto es solo
+  para fallar pronto).
+
+### Arreglado
+
+- Catálogos i18n crecen a 265 claves alineadas en EN/ES/CA.
+
 ## [0.6.1] - 2026-05-03
 
 ### Arreglado
@@ -333,7 +375,8 @@ distribuye como `.exe` autónomo para Windows.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.6.1...HEAD
+[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.5.0...v0.5.1

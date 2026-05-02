@@ -1,6 +1,7 @@
 """Application factory for Comandante Zebra."""
 
 import logging
+import time
 from pathlib import Path
 
 from flask import Flask, g, request
@@ -13,7 +14,7 @@ from zebra.settings import Settings
 
 LANG_COOKIE = 'comandante_zebra_lang'
 
-__version__ = '0.6.1'
+__version__ = '0.7.0'
 
 # Path to the package root (read-only assets when frozen with PyInstaller).
 PACKAGE_ROOT = Path(__file__).resolve().parent.parent
@@ -52,6 +53,7 @@ def create_app(
     settings = Settings(config_path or paths['config_path'])
     app.config['SETTINGS'] = settings
     app.config['DB_PATH'] = str(db_path or paths['db_path'])
+    app.config['STARTED_AT'] = time.time()
 
     init_db(app.config['DB_PATH'])
     init_cache(app.config['DB_PATH'])

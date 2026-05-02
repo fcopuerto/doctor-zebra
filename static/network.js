@@ -53,7 +53,54 @@
 
         // Auto-refresh peers every 5s — mDNS announcements arrive over time.
         setInterval(refreshPeers, 5000);
+
+        // Diagnostics: load on page open, reload on user click + every 10s.
+        const diagBtn = $('netDiagRefresh');
+        if (diagBtn) diagBtn.addEventListener('click', refreshDiagnostics);
+        refreshDiagnostics();
+        setInterval(refreshDiagnostics, 10000);
     });
+
+    async function refreshDiagnostics() {
+        try {
+            const r = await fetch('/api/network/diagnostics');
+            const d = await r.json();
+            paintDiagnostics(d);
+        } catch (e) { /* swallow */ }
+    }
+
+    function paintDiagnostics(d) {
+        const set = (key, val, isBoolGood) => {
+            const el = document.querySelector(`#netDiagGrid [data-key="${key}"]`);
+            if (!el) return;
+            if (typeof val === 'boolean') {
+                el.textContent = val ? '✓' : '✗';
+                el.className = 'net-diag__val ' + (val === isBoolGood ? 'ok' : 'warn');
+            } else {
+                el.textContent = (val === null || val === undefined) ? '—' : String(val);
+                el.className = 'net-diag__val';
+            }
+        };
+        set('zeroconf_available', d.zeroconf_available, true);
+        set('browser_active',     d.browser_active,     true);
+        set('publisher_active',   d.publisher_active,   true);
+        set('local_ip',           d.local_ip);
+        set('peer_count',         d.peer_count);
+
+        // Advice: render each code as a translated paragraph. We rely on
+        // pre-rendered translations injected as data attributes by Jinja
+        // (see below) so JS doesn't need its own catalog.
+        const cont = document.getElementById('netDiagAdvice');
+        cont.innerHTML = '';
+        (d.advice || []).forEach(code => {
+            const txt = window.NETWORK_ADVICE_I18N && window.NETWORK_ADVICE_I18N[code];
+            if (!txt) return;
+            const p = document.createElement('p');
+            p.className = 'net-diag__tip';
+            p.textContent = txt;
+            cont.appendChild(p);
+        });
+    }
 
     async function refreshPeers() {
         try {

@@ -59,6 +59,46 @@
 </div>
 
 <!-- ============================================================ -->
+<!-- Diagnostics                                                   -->
+<!-- ============================================================ -->
+<div class="card">
+    <div class="card__header">
+        <div>
+            <h1 class="card__title" style="font-size:18px;">{{ t('network.diag.title') }}</h1>
+            <p class="card__subtitle">{{ t('network.diag.subtitle') }}</p>
+        </div>
+        <button type="button" class="btn-ghost" id="netDiagRefresh">
+            <svg class="icon"><use href="#i-refresh" /></svg>
+            {{ t('network.diag.refresh') }}
+        </button>
+    </div>
+
+    <div class="net-diag" id="netDiagGrid">
+        <div class="net-diag__row">
+            <span>{{ t('network.diag.zeroconf_available') }}</span>
+            <span class="net-diag__val" data-key="zeroconf_available">…</span>
+        </div>
+        <div class="net-diag__row">
+            <span>{{ t('network.diag.browser_active') }}</span>
+            <span class="net-diag__val" data-key="browser_active">…</span>
+        </div>
+        <div class="net-diag__row">
+            <span>{{ t('network.diag.publisher_active') }}</span>
+            <span class="net-diag__val" data-key="publisher_active">…</span>
+        </div>
+        <div class="net-diag__row">
+            <span>{{ t('network.diag.local_ip') }}</span>
+            <code class="net-diag__val" data-key="local_ip">…</code>
+        </div>
+        <div class="net-diag__row">
+            <span>{{ t('network.diag.peer_count') }}</span>
+            <span class="net-diag__val" data-key="peer_count">…</span>
+        </div>
+    </div>
+    <div id="netDiagAdvice" class="net-diag__advice"></div>
+</div>
+
+<!-- ============================================================ -->
 <!-- Discovered peers                                              -->
 <!-- ============================================================ -->
 <div class="card">
@@ -129,5 +169,17 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+  // Pre-translated advice strings, keyed by the code that the backend
+  // emits in diagnostics.advice. JS picks these up — no client-side i18n.
+  window.NETWORK_ADVICE_I18N = {
+    'zeroconf_missing':     {{ t('network.diag.advice.zeroconf_missing')|tojson }},
+    'zeroconf_init_failed': {{ t('network.diag.advice.zeroconf_init_failed')|tojson }},
+    'publish_failed':       {{ t('network.diag.advice.publish_failed')|tojson }},
+    'no_peers_seen':        {{ t('network.diag.advice.no_peers_seen')|tojson }},
+    'no_lan_ip':            {{ t('network.diag.advice.no_lan_ip')|tojson }},
+    'not_publishing':       {{ t('network.diag.advice.not_publishing')|tojson }},
+  };
+</script>
 <script src="{{ url_for('static', filename='network.js') }}"></script>
 {% endblock %}

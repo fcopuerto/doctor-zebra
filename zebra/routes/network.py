@@ -78,6 +78,12 @@ def peers():
     return jsonify({'peers': [p.to_dict() for p in discovery.get_peers()]})
 
 
+@bp.route('/api/network/diagnostics')
+def diagnostics():
+    """Status snapshot used by the Network page to surface mDNS issues."""
+    return jsonify(discovery.get_discovery().diagnostics())
+
+
 # ---------------------------------------------------------------------------
 # Peer-facing endpoints (PIN-authenticated, called by other instances)
 # ---------------------------------------------------------------------------
@@ -133,6 +139,11 @@ def peer_get_template(name):
     if err is not None: return err
     if not network.shares_templates():
         return jsonify({'error': 'templates not shared'}), 403
+    # Reject anything that isn't a flat filename in our own list. The
+    # whitelist check below is the real defence; the early sanity check
+    # avoids touching the filesystem for obvious garbage.
+    if '/' in name or '\\' in name or '..' in name:
+        return jsonify({'error': 'invalid name'}), 400
     if name not in _template_files():
         return jsonify({'error': 'unknown template'}), 404
     s = _settings()
@@ -206,6 +217,14 @@ def pull_templates():
 
     imported, errors = [], []
     for fname in files:
+        # Defensive: only accept plain .zpl filenames. Stops a malicious
+        # peer from pushing "../../etc/passwd" or weird paths into us.
+        if not isinstance(fname, str) or '/' in fname or '\\' in fname or '..' in fname:
+            errors.append({'file': str(fname), 'error': 'invalid filename'})
+            continue
+        if not fname.lower().endswith('.zpl'):
+            errors.append({'file': fname, 'error': 'not a .zpl file'})
+            continue
         try:
             r = _r.get(
                 f'{peer_url}/api/peer/templates/{fname}',
@@ -215,11 +234,19 @@ def pull_templates():
                 errors.append({'file': fname, 'status': r.status_code})
                 continue
             data = r.json()
-            (target_dir / fname).write_text(data.get('zpl', ''), encoding='utf-8')
+            zpl_text = data.get('zpl', '')
+            if not isinstance(zpl_text, str):
+                errors.append({'file': fname, 'error': 'malformed payload'})
+                continue
+            (target_dir / fname).write_text(zpl_text, encoding='utf-8')
             sc = data.get('sidecar')
-            if sc:
+            if isinstance(sc, str):
                 (target_dir / (fname + '.json')).write_text(sc, encoding='utf-8')
             imported.append(fname)
+        except _r.RequestException as e:
+            errors.append({'file': fname, 'error': f'network: {e}'})
+        except OSError as e:
+            errors.append({'file': fname, 'error': f'disk: {e}'})
         except Exception as e:  # noqa: BLE001
             errors.append({'file': fname, 'error': str(e)})
 

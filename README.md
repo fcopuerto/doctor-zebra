@@ -139,6 +139,37 @@ uv run pyinstaller --noconfirm --clean build_desktop.spec
 PyInstaller **no** hace cross-compile: para generar el `.exe` necesitas
 ejecutarlo en Windows (o usar el workflow de Actions).
 
+## Red local: descubrimiento y compartir entre instancias
+
+Comandante Zebra detecta automáticamente otras instancias de la misma app
+en la red local (vía mDNS / Bonjour) y permite **descargar plantillas y
+definiciones de conexiones** entre ellas. Útil cuando varias tiendas o
+máquinas comparten el mismo catálogo de etiquetas.
+
+### Cómo funciona
+
+- Cada instancia se anuncia como `_comandante-zebra._tcp.local.` en su LAN.
+- En **Configuración → Red** ves tu propio identificador, IP, perfil y un
+  **PIN de 6 dígitos** generado al primer arranque.
+- Para descargar de un peer, abres su tarjeta, introduces su PIN y
+  seleccionas qué quieres importar.
+- Por defecto se comparten **plantillas** (.zpl + sidecar). Las
+  **conexiones** (servidor / base de datos) requieren un toggle aparte y
+  **siempre viajan sin contraseñas** — el receptor introduce sus propias
+  credenciales después de importar.
+
+### Si no aparecen otros equipos
+
+La pantalla **Configuración → Red → Diagnóstico** muestra el estado y
+te guía con consejos por cada problema detectado. Las causas habituales:
+
+- **Firewall** bloqueando UDP/5353. En Windows: permitir Comandante Zebra
+  (o `python.exe`) en Windows Defender Firewall — la red Privada basta.
+- **Bonjour Service** no instalado en Windows. Solución: instalar
+  "Bonjour Print Services" de Apple.
+- Otra instancia en una **subred distinta** — mDNS es link-local, no
+  cruza routers.
+
 ## Arquitectura
 
 ```
