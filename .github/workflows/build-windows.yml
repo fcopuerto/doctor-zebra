@@ -34,17 +34,17 @@ jobs:
       - name: Verify build output
         shell: pwsh
         run: |
-          if (-not (Test-Path "dist\ZebraLabels.exe")) {
-            Write-Error "dist\ZebraLabels.exe not found after build"
+          if (-not (Test-Path "dist\DoctorZebra.exe")) {
+            Write-Error "dist\DoctorZebra.exe not found after build"
             exit 1
           }
-          Get-Item "dist\ZebraLabels.exe" | Select-Object Name, Length, LastWriteTime
+          Get-Item "dist\DoctorZebra.exe" | Select-Object Name, Length, LastWriteTime
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ZebraLabels-windows
-          path: dist/ZebraLabels.exe
+          name: DoctorZebra-windows
+          path: dist/DoctorZebra.exe
           if-no-files-found: error
           retention-days: 30
 
@@ -52,4 +52,4 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/ZebraLabels.exe
+          files: dist/DoctorZebra.exe

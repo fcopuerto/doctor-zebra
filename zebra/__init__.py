@@ -27,7 +27,7 @@ def create_app(
     ``base_dir`` is the writable root that holds ``profiles/`` (and any other
     user-mutable state). When running from source it defaults to the project
     root; when frozen with PyInstaller, ``desktop.py`` passes
-    ``~/.zebra_labels/`` so user data persists outside the bundle.
+    ``~/.doctor_zebra/`` so user data persists outside the bundle.
     """
     base = Path(base_dir) if base_dir else BASE_DIR
 

@@ -230,6 +230,14 @@ code {
     box-shadow: var(--sh-md);
 }
 
+.sidebar__brand-logo {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--r-md);
+    box-shadow: var(--sh-md);
+    display: block;
+}
+
 .sidebar__nav {
     display: flex;
     flex-direction: column;

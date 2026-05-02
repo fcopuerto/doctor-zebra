@@ -1,4 +1,4 @@
-"""Native desktop wrapper for the Zebra label app.
+"""Native desktop wrapper for Doctor Zebra.
 
 Starts Flask on a random localhost port in a background thread, then opens
 a pywebview window pointed at it. Closing the window terminates the process.
@@ -14,7 +14,7 @@ Data layout
 
 When frozen with PyInstaller the bundle contains the read-only app assets
 (templates/, static/, the ``zebra`` package, and a ``seed_profiles/``
-skeleton).  User-writable state lives in ``~/.zebra_labels/``:
+skeleton).  User-writable state lives in ``~/.doctor_zebra/``:
 
 * ``profiles/<name>/config.cfg`` – per-profile settings (edited from the UI).
 * ``profiles/<name>/labels.db``  – per-profile SQLite history.
@@ -22,9 +22,13 @@ skeleton).  User-writable state lives in ``~/.zebra_labels/``:
 * ``app.log`` – log file.
 
 On first run, ``seed_profiles/default/`` is copied into
-``~/.zebra_labels/profiles/default/`` so the user starts with a working
+``~/.doctor_zebra/profiles/default/`` so the user starts with a working
 profile they can edit. Running from source keeps everything in the project
 directory.
+
+Migration: if a legacy ``~/.zebra_labels/`` directory exists from a previous
+build, it is renamed to ``~/.doctor_zebra/`` on first launch so user data
+follows the rebrand.
 """
 
 from __future__ import annotations
@@ -42,7 +46,12 @@ from urllib.error import URLError
 
 FROZEN = bool(getattr(sys, 'frozen', False))
 BUNDLE_DIR = Path(getattr(sys, '_MEIPASS', Path(__file__).resolve().parent))
-USER_DIR = Path.home() / '.zebra_labels'
+
+USER_DIR = Path.home() / '.doctor_zebra'
+_LEGACY_DIR = Path.home() / '.zebra_labels'
+if _LEGACY_DIR.is_dir() and not USER_DIR.exists():
+    # One-shot rename of the pre-rebrand data dir.
+    _LEGACY_DIR.rename(USER_DIR)
 USER_DIR.mkdir(parents=True, exist_ok=True)
 
 LOG_PATH = USER_DIR / 'app.log' if FROZEN else Path('zebra_app.log')
@@ -58,7 +67,7 @@ def _resolve_base_dir() -> Path:
 
     When running from source, that's the project root (so editing profiles
     from the UI updates the working tree). When frozen, it's
-    ``~/.zebra_labels/`` so the user's data survives upgrades.
+    ``~/.doctor_zebra/`` so the user's data survives upgrades.
     """
     if not FROZEN:
         return Path(__file__).resolve().parent
@@ -130,7 +139,7 @@ def main() -> int:
         return 2
 
     webview.create_window(
-        'Zebra Labels',
+        'Doctor Zebra',
         url,
         width=1200,
         height=820,

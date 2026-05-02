@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="Doctor Zebra logo">
+  <defs>
+    <clipPath id="bg-clip">
+      <rect x="0" y="0" width="1024" height="1024" rx="200" ry="200"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#bg-clip)">
+    <rect width="1024" height="1024" fill="#0d1b2a"/>
+    <!-- shadow -->
+    <rect x="144" y="182" width="754" height="682" rx="60" ry="60" fill="#000" opacity="0.18"/>
+    <!-- label -->
+    <rect x="130" y="160" width="754" height="682" rx="60" ry="60" fill="#ffffff"/>
+    <!-- zebra bars -->
+    <g fill="#0d1b2a">
+      <rect x="190" y="250" width="22" height="510" rx="4"/>
+      <rect x="246" y="250" width="30" height="510" rx="4"/>
+      <rect x="298" y="250" width="8"  height="510" rx="4"/>
+      <rect x="328" y="250" width="12" height="510" rx="4"/>
+      <rect x="362" y="250" width="28" height="510" rx="4"/>
+    </g>
+    <!-- medical cross -->
+    <g fill="#dc2626">
+      <rect x="676" y="351" width="56" height="300" rx="16"/>
+      <rect x="554" y="473" width="300" height="56" rx="16"/>
+    </g>
+  </g>
+</svg>
