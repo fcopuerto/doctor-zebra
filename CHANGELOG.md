@@ -7,6 +7,21 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-05-03
+
+### Cambiado
+
+- **Persistencia de idioma coherente entre Flask y splash.** Hasta ahora,
+  Flask solo leía la cookie `comandante_zebra_lang` y caía a
+  `Accept-Language` o español si no la encontraba. El splash sí leía
+  `~/.comandante_zebra/lang.txt` (que se escribía al cambiar el idioma),
+  pero Flask lo ignoraba — si borrabas cookies, perdías la elección.
+- Nueva cadena de resolución del idioma activo:
+  **cookie → `lang.txt` → `Accept-Language` → español por defecto.**
+  Si limpias cookies o cambias de navegador, la app recuerda el último
+  idioma elegido. Si nunca lo has cambiado, intenta el del SO. Si no
+  coincide con ninguno soportado, español.
+
 ## [0.4.0] - 2026-05-02
 
 Renombrado de **Doctor Zebra → Comandante Zebra** como homenaje al
@@ -197,7 +212,9 @@ distribuye como `.exe` autónomo para Windows.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.3.3...HEAD
+[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.4.0...v0.4.1
+[0.4.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.3.3...v0.4.0
 [0.3.3]: https://github.com/fcopuerto/comandante_zebra/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/fcopuerto/comandante_zebra/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.3.0...v0.3.1

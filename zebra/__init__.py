@@ -13,7 +13,7 @@ from zebra.settings import Settings
 
 LANG_COOKIE = 'comandante_zebra_lang'
 
-__version__ = '0.4.0'
+__version__ = '0.4.1'
 
 # Path to the package root (read-only assets when frozen with PyInstaller).
 PACKAGE_ROOT = Path(__file__).resolve().parent.parent
@@ -76,6 +76,7 @@ def create_app(
         g.lang = i18n.pick(
             request.cookies.get(LANG_COOKIE),
             request.headers.get('Accept-Language'),
+            base_dir=Path(app.config['BASE_DIR']),
         )
 
     @app.context_processor

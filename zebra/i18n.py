@@ -29,6 +29,12 @@ from pathlib import Path
 DEFAULT_LANG = 'es'
 FALLBACK_LANG = 'en'
 
+# File where the user's language choice is persisted across sessions.
+# Lives in the writable base dir (~/.comandante_zebra/ when frozen) so it
+# survives cookie purges and is shared between the splash (which has no
+# Flask process to read cookies from) and Flask itself.
+LANG_FILE = 'lang.txt'
+
 # Loaded once and treated as read-only.
 _CATALOGS: dict[str, dict[str, str]] = {}
 
@@ -101,10 +107,43 @@ def _from_accept_language(header: str | None) -> str | None:
     return None
 
 
-def pick(cookie: str | None, accept_language: str | None) -> str:
-    """Choose the best language: cookie → Accept-Language → DEFAULT_LANG."""
+def _from_lang_file(base_dir: Path | None) -> str | None:
+    """Read the persisted language hint from ``<base_dir>/lang.txt``."""
+    if base_dir is None:
+        return None
+    try:
+        f = Path(base_dir) / LANG_FILE
+        if f.is_file():
+            v = f.read_text(encoding='utf-8').strip().lower()
+            if is_supported(v):
+                return v
+    except OSError:
+        pass
+    return None
+
+
+def pick(
+    cookie: str | None,
+    accept_language: str | None,
+    base_dir: Path | None = None,
+) -> str:
+    """Choose the best language for this request.
+
+    Resolution order, first match wins:
+
+      1. ``cookie`` — set by /api/lang/<code>, scoped to the browser/profile.
+      2. ``<base_dir>/lang.txt`` — last explicit choice persisted to disk.
+         Survives cookie wipes, fresh installs that share the data dir,
+         and is the same source the splash window reads at boot.
+      3. ``Accept-Language`` from the browser (best-effort match against
+         supported languages).
+      4. ``DEFAULT_LANG`` — Spanish.
+    """
     if is_supported(cookie):
         return cookie.lower()  # type: ignore[union-attr]
+    persisted = _from_lang_file(base_dir)
+    if persisted:
+        return persisted
     accepted = _from_accept_language(accept_language)
     if accepted:
         return accepted
