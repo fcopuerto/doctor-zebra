@@ -7,6 +7,20 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-05-02
+
+### Añadido
+
+- **Pantalla de bienvenida (splash) al arranque** estilo años 90 (WordPerfect /
+  Word): ventana sin bordes 480×320 con el logo grande, "Doctor Zebra",
+  tagline y versión sobre fondo navy con gradiente. Aparece al instante
+  mientras Flask arranca en segundo plano y se queda visible un mínimo de
+  1,5 s aunque el servidor esté listo antes — para que el branding registre.
+- Cuando Flask responde, se abre la ventana principal de la app y el splash
+  se cierra (en este orden, para evitar parpadeos).
+- El logo viaja embebido en base64 dentro del HTML del splash, así no
+  necesita ningún recurso externo ni el servidor Flask para renderizarse.
+
 ## [0.3.1] - 2026-05-02
 
 ### Añadido
@@ -127,7 +141,8 @@ distribuye como `.exe` autónomo para Windows.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/doctor-zebra/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/fcopuerto/doctor-zebra/compare/v0.3.2...HEAD
+[0.3.2]: https://github.com/fcopuerto/doctor-zebra/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/fcopuerto/doctor-zebra/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/fcopuerto/doctor-zebra/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/fcopuerto/doctor-zebra/compare/v0.2.0...v0.2.1
