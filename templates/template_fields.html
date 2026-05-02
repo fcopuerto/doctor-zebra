@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Fields · {{ template_name }}{% endblock %}
-{% block topbar_title %}Edit fields — <code>{{ template_file }}</code>{% endblock %}
+{% block title %}{{ t('tmpl.fields.title') }} {{ template_name }}{% endblock %}
+{% block topbar_title %}{{ t('tmpl.fields.title') }} <code>{{ template_file }}</code>{% endblock %}
 
 {% block content %}
 <nav class="breadcrumb" aria-label="Breadcrumb">

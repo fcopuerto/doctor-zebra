@@ -7,6 +7,27 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-05-02
+
+### Añadido
+
+- Cobertura de traducciones EN/ES/CA ampliada al **formulario de impresión**,
+  pestañas de Settings, **hub de Settings**, listado de plantillas, conexiones
+  a base de datos, perfiles, y títulos del asistente y de las pantallas de
+  edición de plantillas.
+- Catálogo crece a 151 claves por idioma, con paridad verificada (los tres
+  archivos exponen exactamente las mismas claves).
+- Bloque común reutilizable: `common.save / cancel / delete / edit / create`,
+  etc., para mantener consistencia entre páginas.
+
+### Pendiente
+
+- Traducir los párrafos descriptivos paso a paso del **wizard** (welcome,
+  configuración, prueba, all set) — el título y la entrada en sidebar ya
+  están traducidos; los pasos detallados quedan como TODO claro.
+- Mensajes flash y errores de servidor (no aparecen en HTML estático sino
+  vía `flash()` / `jsonify({'message': ...})`).
+
 ## [0.3.0] - 2026-05-02
 
 Soporte multi-idioma — primera oleada (sidebar, topbar, dashboard, historial).
@@ -106,7 +127,8 @@ distribuye como `.exe` autónomo para Windows.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/doctor-zebra/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/fcopuerto/doctor-zebra/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/fcopuerto/doctor-zebra/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/fcopuerto/doctor-zebra/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/fcopuerto/doctor-zebra/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/fcopuerto/doctor-zebra/compare/v0.1.1...v0.2.0

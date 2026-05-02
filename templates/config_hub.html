@@ -1,20 +1,17 @@
 {% extends "base.html" %}
-{% block title %}Settings · Doctor Zebra{% endblock %}
-{% block topbar_title %}Settings{% endblock %}
+{% block title %}{{ t('settings.title') }} · Doctor Zebra{% endblock %}
+{% block topbar_title %}{{ t('settings.title') }}{% endblock %}
 
 {% block content %}
 {% include "_settings_tabs.html" %}
 
-<p class="hub-intro">
-    Configure Doctor Zebra by topic. Each section is independent — you can come back
-    to any of them later.
-</p>
+<p class="hub-intro">{{ t('settings.intro') }}</p>
 
 <a class="hub-cta" href="{{ url_for('config.wizard') }}">
     <svg class="icon"><use href="#i-wand" /></svg>
     <div>
-        <strong>Setup Wizard</strong>
-        <span class="muted">Guided walkthrough — connection, printer, first template.</span>
+        <strong>{{ t('settings.wizard.cta.title') }}</strong>
+        <span class="muted">{{ t('settings.wizard.cta.subtitle') }}</span>
     </div>
     <svg class="icon hub-cta__chev"><use href="#i-chevron-right" /></svg>
 </a>
@@ -24,19 +21,17 @@
         <div class="hub-tile__icon">
             <svg class="icon"><use href="#i-printer" /></svg>
         </div>
-        <h2 class="hub-tile__title">Printers</h2>
-        <p class="hub-tile__desc">
-            Default printer for all templates and per-template overrides.
-        </p>
+        <h2 class="hub-tile__title">{{ t('settings.tile.printers.title') }}</h2>
+        <p class="hub-tile__desc">{{ t('settings.tile.printers.desc') }}</p>
         <div class="hub-tile__meta">
             <span class="status-dot {{ status_color }}"></span>
             {% if default_target %}
             <code>{{ default_target }}</code>
             {% else %}
-            <span class="muted">not set</span>
+            <span class="muted">{{ t('settings.tile.printers.not_set') }}</span>
             {% endif %}
             {% if overrides_count %}
-            <span>· {{ overrides_count }} override{{ '' if overrides_count == 1 else 's' }}</span>
+            <span>· {% if overrides_count == 1 %}{{ t('settings.tile.printers.overrides_one') }}{% else %}{{ t('settings.tile.printers.overrides_many').replace('{n}', overrides_count|string) }}{% endif %}</span>
             {% endif %}
         </div>
     </a>
@@ -45,12 +40,10 @@
         <div class="hub-tile__icon">
             <svg class="icon"><use href="#i-wand" /></svg>
         </div>
-        <h2 class="hub-tile__title">Templates &amp; fields</h2>
-        <p class="hub-tile__desc">
-            Import <code>.zpl</code> files and configure the form fields users fill in to print them.
-        </p>
+        <h2 class="hub-tile__title">{{ t('settings.tile.templates.title') }}</h2>
+        <p class="hub-tile__desc">{{ t('settings.tile.templates.desc') }}</p>
         <div class="hub-tile__meta">
-            {{ templates_count }} template{{ '' if templates_count == 1 else 's' }}
+            {% if templates_count == 1 %}{{ t('settings.tile.templates.count_one') }}{% else %}{{ t('settings.tile.templates.count_many').replace('{n}', templates_count|string) }}{% endif %}
         </div>
     </a>
 
@@ -58,17 +51,15 @@
         <div class="hub-tile__icon">
             <svg class="icon"><use href="#i-settings" /></svg>
         </div>
-        <h2 class="hub-tile__title">Database connections</h2>
-        <p class="hub-tile__desc">
-            Servers used by <em>database fields</em> to pull values from real tables (products, customers…).
-        </p>
+        <h2 class="hub-tile__title">{{ t('settings.tile.connections.title') }}</h2>
+        <p class="hub-tile__desc">{{ t('settings.tile.connections.desc') }}</p>
         <div class="hub-tile__meta">
-            {{ connections_count }} connection{{ '' if connections_count == 1 else 's' }}
+            {% if connections_count == 1 %}{{ t('settings.tile.connections.count_one') }}{% else %}{{ t('settings.tile.connections.count_many').replace('{n}', connections_count|string) }}{% endif %}
         </div>
     </a>
 </div>
 
 <p class="hub-footer muted">
-    Running on <strong>{{ os_label }}</strong>.
+    {{ t('settings.running_on') }} <strong>{{ os_label }}</strong>.
 </p>
 {% endblock %}

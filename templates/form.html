@@ -1,22 +1,20 @@
 {% extends "base.html" %}
-{% block title %}Print label · Doctor Zebra{% endblock %}
-{% block topbar_title %}Print label{% endblock %}
+{% block title %}{{ t('form.topbar_title') }} · Doctor Zebra{% endblock %}
+{% block topbar_title %}{{ t('form.topbar_title') }}{% endblock %}
 
 {% block content %}
 <div class="main-flex">
     <div class="card">
-        <h1>New label</h1>
-        <p class="hint">
-            Pick a template, fill in the fields and preview before printing.
-        </p>
+        <h1>{{ t('form.title') }}</h1>
+        <p class="hint">{{ t('form.subtitle') }}</p>
 
         <form id="previewForm" action="{{ url_for('labels.preview_label') }}" method="post"
             data-fields-api="/api/fields/">
             <div class="field-row">
-                <label for="template_file">Template</label>
+                <label for="template_file">{{ t('form.template') }}</label>
                 <select id="template_file" name="template_file" required>
-                    {% for t in templates %}
-                    <option value="{{ t }}" {% if t==template_file %}selected{% endif %}>{{ t }}</option>
+                    {% for tmpl in templates %}
+                    <option value="{{ tmpl }}" {% if tmpl==template_file %}selected{% endif %}>{{ tmpl }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -24,7 +22,7 @@
             <div id="fieldsContainer" data-template="{{ template_file }}">
                 {% if template_fields %}
                 {% for f in template_fields %}
-                {% set lookup_placeholder = f.placeholder or ('Starts with… (use * for any) — ' ~ (f.search_columns | join(', ')) if f.type == 'lookup' and f.search_columns else f.placeholder) %}
+                {% set lookup_placeholder = f.placeholder or (t('form.lookup.starts_with_prefix') ~ ' ' ~ (f.search_columns | join(', ')) if f.type == 'lookup' and f.search_columns else f.placeholder) %}
                 <div class="field-row {% if f.type == 'lookup' %}has-lookup{% endif %}"
                     data-field-key="{{ f.key }}" data-field-type="{{ f.type or 'text' }}"
                     {% if f.type == 'lookup' %}data-search-columns="{{ f.search_columns | join(',') }}"{% endif %}>
@@ -40,7 +38,7 @@
                         <svg class="lookup-input__icon" aria-hidden="true"><use href="#i-search" /></svg>
                         <input type="text" id="field_{{ f.key }}" name="{{ f.key }}"
                             value="{{ field_values.get(f.key, '') }}"
-                            placeholder="{{ lookup_placeholder or 'Type to search the database…' }}"
+                            placeholder="{{ lookup_placeholder or t('form.lookup.placeholder') }}"
                             autocomplete="off"
                             {% if f.required %}required{% endif %}>
                         <div class="lookup-results" hidden></div>
@@ -53,14 +51,12 @@
                 </div>
                 {% endfor %}
                 {% else %}
-                <p class="muted" id="noFieldsHint">
-                    This template has no editable fields. Press Print to send it as-is.
-                </p>
+                <p class="muted" id="noFieldsHint">{{ t('form.no_fields_hint') }}</p>
                 {% endif %}
             </div>
 
             <div class="button-row">
-                <button type="submit" id="previewBtn" class="btn-secondary">Preview</button>
+                <button type="submit" id="previewBtn" class="btn-secondary">{{ t('form.preview_btn') }}</button>
             </div>
         </form>
 
@@ -73,21 +69,21 @@
             </div>
             <div class="field-row" style="display:flex; align-items:flex-end; gap:var(--s-3); margin-top:var(--s-5);">
                 <div>
-                    <label for="copies">Copies</label>
+                    <label for="copies">{{ t('form.copies') }}</label>
                     <input type="number" id="copies" name="copies" value="1" min="1" max="100">
                 </div>
                 <button type="submit" id="printBtn">
                     <svg class="icon">
                         <use href="#i-printer" />
                     </svg>
-                    Print label
+                    {{ t('form.print_btn') }}
                 </button>
             </div>
         </form>
     </div>
 
     <div class="card label-preview">
-        <h2 style="margin-top:0;">Preview</h2>
+        <h2 style="margin-top:0;">{{ t('form.preview.title') }}</h2>
         <div class="label-box">
             <div id="previewValues">
                 {% for f in template_fields %}
@@ -98,14 +94,14 @@
                 {% endfor %}
             </div>
             <div style="margin-top:var(--s-4); font-size:12px; color:var(--text-subtle);">
-                Template: <span id="preview_template">{{ template_file }}</span>
+                {{ t('form.preview.template_label') }}: <span id="preview_template">{{ template_file }}</span>
             </div>
         </div>
         <div id="preview_image_holder">
             {% if image_url %}
             <img src="{{ image_url }}" alt="Label Preview" class="label-preview-img">
             {% else %}
-            <p class="muted">Press <em>Preview</em> to render the label via Labelary.</p>
+            <p class="muted">{{ t('form.preview.help')|safe }}</p>
             {% endif %}
         </div>
     </div>

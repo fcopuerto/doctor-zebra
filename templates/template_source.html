@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}ZPL source · {{ template_name }}{% endblock %}
-{% block topbar_title %}ZPL source — <code>{{ template_file }}</code>{% endblock %}
+{% block title %}{{ t('tmpl.source.title') }} {{ template_name }}{% endblock %}
+{% block topbar_title %}{{ t('tmpl.source.title') }} <code>{{ template_file }}</code>{% endblock %}
 
 {% block content %}
 <nav class="breadcrumb" aria-label="Breadcrumb">

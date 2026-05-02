@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Templates · Settings{% endblock %}
-{% block topbar_title %}Templates{% endblock %}
+{% block title %}{{ t('templates_list.title') }} · {{ t('settings.title') }}{% endblock %}
+{% block topbar_title %}{{ t('templates_list.title') }}{% endblock %}
 
 {% block content %}
 {% include "_settings_tabs.html" %}
@@ -8,35 +8,31 @@
 <div class="card">
     <div class="card__header">
         <div>
-            <h1 class="card__title" style="font-size:18px;">Templates &amp; fields</h1>
-            <p class="card__subtitle">
-                Each template imports a <code>.zpl</code> file and exposes a list of
-                fields that the user fills in to print. Click <em>Edit fields</em> to
-                configure what those fields are.
-            </p>
+            <h1 class="card__title" style="font-size:18px;">{{ t('settings.tile.templates.title') }}</h1>
+            <p class="card__subtitle">{{ t('templates_list.subtitle') }}</p>
         </div>
         <a href="{{ url_for('tmpl.new') }}" class="btn">
             <svg class="icon"><use href="#i-wand" /></svg>
-            New / import template
+            {{ t('templates_list.action.new') }}
         </a>
     </div>
 
     <table>
         <thead>
             <tr>
-                <th>Template</th>
-                <th>Fields</th>
+                <th>{{ t('templates_list.col.file') }}</th>
+                <th>{{ t('templates_list.col.fields') }}</th>
                 <th>Sidecar</th>
                 <th style="width:240px;"></th>
             </tr>
         </thead>
         <tbody>
-            {% for t in templates_available %}
-            {% set specs = fields_by_template.get(t, []) %}
+            {% for tmpl in templates_available %}
+            {% set specs = fields_by_template.get(tmpl, []) %}
             {% set lookup_count = specs|selectattr('type', 'equalto', 'lookup')|list|length %}
             {% set text_count  = specs|length - lookup_count %}
             <tr>
-                <td><code>{{ t }}</code></td>
+                <td><code>{{ tmpl }}</code></td>
                 <td>
                     {% if specs %}
                     {% if text_count %}
@@ -46,30 +42,29 @@
                     <span class="chip chip--db">{{ lookup_count }} database</span>
                     {% endif %}
                     {% else %}
-                    <span class="muted">none</span>
+                    <span class="muted">—</span>
                     {% endif %}
                 </td>
                 <td>
-                    {% if sidecar_status.get(t) %}
+                    {% if sidecar_status.get(tmpl) %}
                     <span class="badge">customised</span>
                     {% else %}
                     <span class="muted">auto</span>
                     {% endif %}
                 </td>
                 <td style="white-space:nowrap;">
-                    <a href="{{ url_for('tmpl.fields', name=t) }}" class="btn">Edit fields</a>
-                    <a href="{{ url_for('tmpl.source', name=t) }}" class="btn btn-ghost"
-                       title="Edit the raw ZPL with live preview">Source</a>
-                    <form action="{{ url_for('tmpl.delete', name=t) }}" method="post"
+                    <a href="{{ url_for('tmpl.fields', name=tmpl) }}" class="btn">{{ t('templates_list.action.fields') }}</a>
+                    <a href="{{ url_for('tmpl.source', name=tmpl) }}" class="btn btn-ghost">{{ t('templates_list.action.source') }}</a>
+                    <form action="{{ url_for('tmpl.delete', name=tmpl) }}" method="post"
                         class="inline-form"
-                        onsubmit="return confirm('Delete {{ t }}? This removes the ZPL and its sidecar.');">
-                        <button type="submit" class="btn-danger">Delete</button>
+                        onsubmit="return confirm('Delete {{ tmpl }}?');">
+                        <button type="submit" class="btn-danger">{{ t('common.delete') }}</button>
                     </form>
                 </td>
             </tr>
             {% else %}
             <tr>
-                <td colspan="4" class="muted">No templates yet — click <em>New / import template</em> above to create one.</td>
+                <td colspan="4" class="muted">{{ t('templates_list.empty') }}</td>
             </tr>
             {% endfor %}
         </tbody>

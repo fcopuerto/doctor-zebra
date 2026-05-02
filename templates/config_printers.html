@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Printers · Settings{% endblock %}
-{% block topbar_title %}Printers{% endblock %}
+{% block title %}{{ t('printers.title') }} · {{ t('settings.title') }}{% endblock %}
+{% block topbar_title %}{{ t('printers.title') }}{% endblock %}
 
 {% block content %}
 {% include "_settings_tabs.html" %}
@@ -11,15 +11,15 @@
 <div class="card">
     <div class="card__header">
         <div>
-            <h1 class="card__title" style="font-size:18px;">Default printer</h1>
+            <h1 class="card__title" style="font-size:18px;">{{ t('printers.section.default') }}</h1>
             <p class="card__subtitle">
-                Used by every template unless an override below says otherwise.
-                Running on <strong>{{ os_label }}</strong>.
+                {{ t('printers.subtitle') }}
+                {{ t('settings.running_on') }} <strong>{{ os_label }}</strong>.
             </p>
         </div>
         <div class="card__status">
             <span class="status-dot {{ status_color }}"></span>
-            <code>{{ default_target or 'not set' }}</code>
+            <code>{{ default_target or t('settings.tile.printers.not_set') }}</code>
             <span class="muted">{{ printer_status }}</span>
         </div>
     </div>
@@ -49,16 +49,15 @@
 <div class="card">
     <div class="card__header">
         <div>
-            <h1 class="card__title" style="font-size:18px;">Per-template overrides</h1>
-            <p class="card__subtitle">Route specific templates to a different printer.</p>
+            <h1 class="card__title" style="font-size:18px;">{{ t('printers.section.overrides') }}</h1>
         </div>
     </div>
 
     <table>
         <thead>
             <tr>
-                <th>Template</th>
-                <th>Target</th>
+                <th>{{ t('printers.field.template') }}</th>
+                <th>{{ t('printers.field.target') }}</th>
                 <th>Backend</th>
                 <th style="width:90px;"></th>
             </tr>
@@ -74,13 +73,13 @@
                         onsubmit="return confirm('Delete override for {{ item.template }}?');">
                         <input type="hidden" name="action" value="delete_label">
                         <input type="hidden" name="zpl_template_path" value="{{ item.template }}">
-                        <button type="submit" class="btn-danger">Delete</button>
+                        <button type="submit" class="btn-danger">{{ t('common.delete') }}</button>
                     </form>
                 </td>
             </tr>
             {% else %}
             <tr>
-                <td colspan="4" class="muted">No per-template overrides configured.</td>
+                <td colspan="4" class="muted">{{ t('printers.empty.overrides') }}</td>
             </tr>
             {% endfor %}
         </tbody>

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Profiles · Settings{% endblock %}
-{% block topbar_title %}Profiles{% endblock %}
+{% block title %}{{ t('profiles.title') }} · {{ t('settings.title') }}{% endblock %}
+{% block topbar_title %}{{ t('profiles.title') }}{% endblock %}
 
 {% block content %}
 {% include "_settings_tabs.html" %}
@@ -8,11 +8,10 @@
 <div class="card">
     <div class="card__header">
         <div>
-            <h1 class="card__title" style="font-size:18px;">Profiles</h1>
+            <h1 class="card__title" style="font-size:18px;">{{ t('profiles.title') }}</h1>
             <p class="card__subtitle">
-                Each profile keeps its own templates, database connections, default
-                printer and label history. Switching profile <strong>requires a
-                restart</strong> — the app rebinds all data paths at boot.
+                {{ t('profiles.subtitle') }}
+                <strong>{{ t('profiles.restart_required') }}</strong>
             </p>
         </div>
     </div>
@@ -20,10 +19,10 @@
     <table>
         <thead>
             <tr>
-                <th>Profile</th>
-                <th>Templates</th>
+                <th>{{ t('profiles.title') }}</th>
+                <th>{{ t('templates_list.title') }}</th>
                 <th>Size</th>
-                <th>Status</th>
+                <th>{{ t('common.required') if false else 'Status' }}</th>
                 <th style="width:240px;"></th>
             </tr>
         </thead>
@@ -36,22 +35,22 @@
                 <td>
                     {% if p.is_active %}
                     <span class="badge" style="background: var(--success-soft); color: var(--success); border-color: transparent;">
-                        active
+                        {{ t('profiles.active') }}
                     </span>
                     {% else %}
-                    <span class="muted">inactive</span>
+                    <span class="muted">—</span>
                     {% endif %}
                 </td>
                 <td style="white-space:nowrap;">
                     {% if not p.is_active %}
                     <button type="button" class="btn" data-action="switch" data-name="{{ p.name }}">
-                        Switch to this
+                        {{ t('profiles.action.switch') }}
                     </button>
                     <button type="button" class="btn-danger" data-action="delete" data-name="{{ p.name }}">
-                        Delete
+                        {{ t('profiles.action.delete') }}
                     </button>
                     {% else %}
-                    <span class="muted">currently in use</span>
+                    <span class="muted">{{ t('profiles.active') }}</span>
                     {% endif %}
                 </td>
             </tr>
@@ -59,26 +58,17 @@
         </tbody>
     </table>
 
-    <h3 style="margin-top:var(--s-6);">Create a new profile</h3>
-    <p class="hint">
-        New profiles start empty: no templates, no connections, default printer not
-        set. You can copy a template <code>.zpl</code> into the new profile's
-        folder manually, or import it again from the new profile's
-        <a href="{{ url_for('config.templates_list') }}">Templates</a> tab.
-    </p>
+    <h3 style="margin-top:var(--s-6);">{{ t('profiles.action.create') }}</h3>
     <form id="newProfileForm" class="printer-form">
         <div class="two-col">
             <div>
-                <label for="profile_name">Name</label>
+                <label for="profile_name">{{ t('connections.col.name') }}</label>
                 <input type="text" id="profile_name" name="name" required
                     pattern="[a-zA-Z][a-zA-Z0-9_\-]{0,30}"
                     placeholder="cliente_x">
-                <p class="hint" style="margin-top:4px;">
-                    Letters, digits, underscore or dash. Starts with a letter.
-                </p>
             </div>
             <div style="align-self:end;">
-                <button type="submit" class="btn">+ Create profile</button>
+                <button type="submit" class="btn">+ {{ t('profiles.action.create') }}</button>
             </div>
         </div>
         <p class="test-result" id="newProfileResult" aria-live="polite"></p>
@@ -87,10 +77,10 @@
 
 <div id="restartBanner" class="restart-banner" hidden>
     <div>
-        <strong>Restart required</strong>
-        <p id="restartMessage">Active profile changed. Restart the app for the new profile to take effect.</p>
+        <strong>{{ t('profiles.restart_required') }}</strong>
+        <p id="restartMessage"></p>
     </div>
-    <button type="button" class="btn-ghost" id="restartDismiss">Dismiss</button>
+    <button type="button" class="btn-ghost" id="restartDismiss">{{ t('common.cancel') }}</button>
 </div>
 {% endblock %}
 
