@@ -57,42 +57,67 @@ Por ahora solo se publican binarios de Windows. En macOS puedes correrlo desde f
 
 ## Ejecutar desde fuente
 
+El proyecto se gestiona con [**uv**](https://docs.astral.sh/uv/) (rápido,
+con lockfile, reproducible). Si no lo tienes:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh    # macOS / Linux
+# Windows (PowerShell):
+#   powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Después:
+
 ```bash
 git clone https://github.com/fcopuerto/doctor-zebra.git
 cd doctor-zebra
 
-python -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
+# Runtime + driver SQL Server pure-Python (recomendado):
+uv sync --extra mssql-pure
 
-pip install -r requirements.txt
-# Opcional (si vas a usar SQL Server con ODBC):
-pip install -r requirements-mssql-odbc.txt
-
-python desktop.py
+# Lanzar la app de escritorio:
+uv run python desktop.py
 ```
 
-Esto abre la ventana de la app apuntando a un servidor Flask local en `127.0.0.1:<puerto-libre>`.
+Esto crea automáticamente un `.venv/` con la versión correcta de Python e
+instala las dependencias del lockfile (`uv.lock`).
 
-Si solo quieres el servidor web (sin ventana nativa, p. ej. para desarrollo en navegador):
+Solo el servidor web (sin ventana nativa, útil para desarrollo en navegador):
 
 ```bash
-python app.py
+uv run python app.py
 # luego abre http://127.0.0.1:5000
 ```
 
+### Extras opcionales
+
+| Para…                                    | Comando                                |
+|------------------------------------------|----------------------------------------|
+| SQL Server pure-Python (sin drivers MS)  | `uv sync --extra mssql-pure`           |
+| SQL Server con Microsoft ODBC Driver 18  | `uv sync --extra mssql-odbc`           |
+| Empaquetar con PyInstaller               | `uv sync --group build`                |
+| Todo lo anterior                         | `uv sync --extra mssql-pure --group build` |
+
+> **Si prefieres pip clásico:** los archivos `requirements.txt`,
+> `requirements-mssql-pure.txt` y `requirements-mssql-odbc.txt` siguen
+> funcionando como antes.
+
 ## Construir el ejecutable
 
-El `.exe` de Windows se construye automáticamente en GitHub Actions con cada push a `main` (workflow [`build-windows.yml`](.github/workflows/build-windows.yml)). Para construirlo manualmente en cualquier plataforma:
+El `.exe` de Windows se construye automáticamente en GitHub Actions con cada
+push a `main` (workflow [`build-windows.yml`](.github/workflows/build-windows.yml)).
+Para construirlo manualmente en cualquier plataforma:
 
 ```bash
-pip install pyinstaller
-pyinstaller --noconfirm --clean build_desktop.spec
+uv sync --extra mssql-pure --group build
+uv run pyinstaller --noconfirm --clean build_desktop.spec
 # Salida:
 #   dist/DoctorZebra.exe   (Windows)
 #   dist/DoctorZebra.app   (macOS)
 ```
 
-PyInstaller **no** hace cross-compile: para generar el `.exe` necesitas ejecutarlo en Windows (o usar el workflow de Actions).
+PyInstaller **no** hace cross-compile: para generar el `.exe` necesitas
+ejecutarlo en Windows (o usar el workflow de Actions).
 
 ## Arquitectura
 

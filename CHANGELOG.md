@@ -7,6 +7,16 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Cambiado
+
+- **Gestión de dependencias migrada a [uv](https://docs.astral.sh/uv/).**
+  Nuevo `pyproject.toml` con extras opcionales (`mssql-pure`, `mssql-odbc`)
+  y un grupo `build` para PyInstaller, más `uv.lock` para reproducibilidad
+  exacta. El workflow de Windows usa `astral-sh/setup-uv` con cache, lo
+  que reduce el tiempo de instalación de dependencias de ~50 s a un par
+  de segundos en runs sucesivos. Los `requirements*.txt` se mantienen
+  como compat para quien prefiera pip clásico.
+
 ## [0.3.3] - 2026-05-02
 
 ### Cambiado

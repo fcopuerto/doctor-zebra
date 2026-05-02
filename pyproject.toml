@@ -1,0 +1,64 @@
+# Doctor Zebra — uv-managed project metadata.
+#
+# This file replaces requirements*.txt as the source of truth for
+# dependencies. The plain text files are kept around as a shim so
+# anyone allergic to uv can still `pip install -r requirements.txt`.
+#
+# Common workflows:
+#
+#   uv sync                          install runtime deps into .venv/
+#   uv sync --extra mssql-pure       …plus pymssql (pure-Python driver)
+#   uv sync --group build            …plus pyinstaller for packaging
+#   uv run python desktop.py         launch the desktop app
+#   uv run pyinstaller build_desktop.spec
+#                                    build the .exe / .app
+#
+# Keep `version` below in sync with zebra.__version__.
+
+[project]
+name = "doctor-zebra"
+version = "0.3.3"
+description = "Desktop app for printing labels on Zebra (ZPL) printers — templates, offline lookup cache, multi-profile."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+authors = [{ name = "Fran Puerto", email = "fcopuerto@gmail.com" }]
+keywords = ["zebra", "zpl", "labels", "printing", "flask", "pywebview"]
+
+dependencies = [
+    "Flask>=3.0",
+    "requests>=2.31",
+    # Native desktop window. Pulls platform-specific backends:
+    #   - macOS: WebKit (bundled with the OS)
+    #   - Windows: Edge WebView2 (ships with Windows 10/11)
+    #   - Linux: GTK WebKit — needs python3-gi + gir1.2-webkit2-4.1 from apt
+    "pywebview>=5.0",
+    # Windows-only: lets the printer module reach USB / driver-installed
+    # printers via the Windows print spooler.
+    "pywin32>=306; sys_platform == 'win32'",
+]
+
+[project.optional-dependencies]
+# Pure-Python SQL Server driver. Multiplatform, no Microsoft drivers
+# required. Trade-off: doesn't support Windows / AD authentication.
+mssql-pure = ["pymssql>=2.2"]
+
+# pyodbc-based driver. Recommended on Windows because the Microsoft ODBC
+# Driver 18 ships with Windows Update and supports Windows / AD auth.
+# On macOS/Linux you still need msodbcsql18 installed at the OS level.
+mssql-odbc = ["pyodbc>=5.0"]
+
+[project.urls]
+Repository = "https://github.com/fcopuerto/doctor-zebra"
+Issues     = "https://github.com/fcopuerto/doctor-zebra/issues"
+Changelog  = "https://github.com/fcopuerto/doctor-zebra/blob/main/CHANGELOG.md"
+
+# uv-specific groups for tasks the runtime doesn't need (CI / packaging).
+[dependency-groups]
+build = ["pyinstaller>=6.0"]
+
+[tool.uv]
+# Treat the project as an application, not a library: no build backend, no
+# editable install of the local package. Dependencies still get a venv +
+# lockfile, which is all we need.
+package = false
