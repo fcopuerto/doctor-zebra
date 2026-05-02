@@ -306,14 +306,30 @@ def history():
 
 @bp.route('/api/lang/<code>', methods=['POST'])
 def set_lang(code):
-    """Persist the user's language choice in a cookie. Idempotent."""
+    """Persist the user's language choice in a cookie + lang.txt.
+
+    The cookie is what the running Flask process reads on every request.
+    lang.txt lives in BASE_DIR (~/.doctor_zebra/) so the splash screen —
+    which renders before Flask is reachable — can pick the right
+    catalogue at the next launch.
+    """
     if not i18n.is_supported(code):
         return jsonify({'ok': False, 'error': 'unsupported language'}), 400
-    resp = jsonify({'ok': True, 'lang': code.lower()})
-    # 1-year cookie, available across the whole app, not exposed to JS by
-    # accident on third-party origins. Marked as session-persistent.
+    code = code.lower()
+
+    # Best-effort write of the persistent language hint. We deliberately
+    # swallow OSError (read-only volumes, antivirus interference, etc.) —
+    # the cookie still works for the running session.
+    try:
+        (Path(current_app.config['BASE_DIR']) / 'lang.txt').write_text(
+            code + '\n', encoding='utf-8',
+        )
+    except OSError as e:
+        logging.warning(f'Could not persist lang.txt: {e}')
+
+    resp = jsonify({'ok': True, 'lang': code})
     resp.set_cookie(
-        LANG_COOKIE, code.lower(),
+        LANG_COOKIE, code,
         max_age=60 * 60 * 24 * 365,
         samesite='Lax',
         httponly=False,

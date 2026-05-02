@@ -162,5 +162,16 @@
   "tmpl.fields.title": "Fields for",
   "tmpl.fields.subtitle": "Decide what users see and which values feed each ZPL field.",
   "tmpl.source.title": "ZPL source for",
-  "tmpl.source.subtitle": "Edit the raw ZPL. Be careful — this is what's sent to the printer."
+  "tmpl.source.subtitle": "Edit the raw ZPL. Be careful — this is what's sent to the printer.",
+
+  "splash.tagline": "ZPL printing, made simple.",
+  "splash.loading": "loading…",
+  "splash.step.1": "Looking for Zebra printers…",
+  "splash.step.2": "Verifying ZPL drivers…",
+  "splash.step.3": "Loading font catalogue…",
+  "splash.step.4": "Calibrating virtual rollers…",
+  "splash.step.5": "Syncing item cache…",
+  "splash.step.6": "Warming up the preview engine…",
+  "splash.step.7": "Priming the print queue…",
+  "splash.step.8": "Doctor Zebra is ready."
 }

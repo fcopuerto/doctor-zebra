@@ -7,6 +7,25 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-05-02
+
+### Cambiado
+
+- **Splash con teatro al estilo años 90**: 8 mensajes de carga rotando
+  con barra de progreso animada (de 0 a 100% en ~6 segundos), traducidos
+  en EN/ES/CA. Mensajes inventados pero con personalidad: _"Buscando
+  impresoras Zebra…"_, _"Calibrando rodillos virtuales…"_,
+  _"Sincronizando caché de artículos…"_, _"Calentando el motor de
+  previsualización…"_, etc. — terminan con _"Doctor Zebra a punto."_
+- Tiempo total del splash subido a ~6,5 s (antes 1,5 s) para que dé
+  tiempo a leer los pasos. La ventana principal sigue arrancando en
+  paralelo en background; si Flask termina antes, se queda esperando
+  para no truncar la animación.
+- El idioma del splash se decide al arrancar leyendo
+  `~/.doctor_zebra/lang.txt` (escrito por `/api/lang/<code>` cuando el
+  usuario lo cambia) y, si no existe, cae al locale del sistema, y por
+  último al default español.
+
 ## [0.3.2] - 2026-05-02
 
 ### Añadido
@@ -141,7 +160,8 @@ distribuye como `.exe` autónomo para Windows.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/doctor-zebra/compare/v0.3.2...HEAD
+[Unreleased]: https://github.com/fcopuerto/doctor-zebra/compare/v0.3.3...HEAD
+[0.3.3]: https://github.com/fcopuerto/doctor-zebra/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/fcopuerto/doctor-zebra/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/fcopuerto/doctor-zebra/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/fcopuerto/doctor-zebra/compare/v0.2.1...v0.3.0

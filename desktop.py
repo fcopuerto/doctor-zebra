@@ -34,6 +34,8 @@ follows the rebrand.
 from __future__ import annotations
 
 import base64
+import json
+import locale
 import logging
 import os
 import shutil
@@ -44,6 +46,9 @@ import time
 from pathlib import Path
 from urllib.request import urlopen
 from urllib.error import URLError
+
+SUPPORTED_LANGS = ('en', 'es', 'ca')
+SPLASH_DEFAULT_LANG = 'es'
 
 FROZEN = bool(getattr(sys, 'frozen', False))
 BUNDLE_DIR = Path(getattr(sys, '_MEIPASS', Path(__file__).resolve().parent))
@@ -111,26 +116,78 @@ def _run_flask(host: str, port: int, base_dir: Path) -> None:
     app.run(host=host, port=port, debug=False, use_reloader=False, threaded=True)
 
 
-# Minimum time the splash stays visible even when Flask is already up — long
-# enough to register as a brand moment, short enough to not feel sluggish.
-SPLASH_MIN_MS = 1500
+# How long the splash holds the screen *at minimum*, even when Flask comes
+# up faster. Long enough for the seven loading steps to play out and for
+# the brand to register — short enough to not feel like a punishment.
+SPLASH_MIN_MS = 6500
+SPLASH_STEP_COUNT = 8
+
+
+def _pick_splash_lang() -> str:
+    """Decide which catalog the splash should use.
+
+    Priority:
+      1. ``~/.doctor_zebra/lang.txt`` written by /api/lang/<code>. This is
+         what the user explicitly chose in a previous session.
+      2. The OS primary locale (so a Spanish-locale machine on first run
+         already gets a Spanish splash, matching the Flask default).
+      3. SPLASH_DEFAULT_LANG.
+    """
+    try:
+        f = USER_DIR / 'lang.txt'
+        if f.is_file():
+            v = f.read_text(encoding='utf-8').strip().lower()
+            if v in SUPPORTED_LANGS:
+                return v
+    except OSError:
+        pass
+    try:
+        sys_lang = (locale.getdefaultlocale()[0] or '').split('_')[0].lower()
+        if sys_lang in SUPPORTED_LANGS:
+            return sys_lang
+    except Exception:  # noqa: BLE001
+        pass
+    return SPLASH_DEFAULT_LANG
+
+
+def _load_catalog(lang: str) -> dict:
+    """Read i18n/<lang>.json from the bundle. Falls back to default."""
+    for code in (lang, SPLASH_DEFAULT_LANG, 'en'):
+        p = BUNDLE_DIR / 'i18n' / f'{code}.json'
+        if p.is_file():
+            try:
+                return json.loads(p.read_text(encoding='utf-8'))
+            except (OSError, ValueError):
+                continue
+    return {}
 
 
 def _splash_html(version: str) -> str:
     """Return a self-contained HTML page for the splash window.
 
-    The logo is embedded as base64 so the splash needs no network or local
-    web server to render — it shows the instant the window appears.
+    Renders instantly: the logo is embedded as base64 inline and the
+    loading steps are baked into a tiny inline script. No network, no
+    Flask, no external assets needed.
     """
     logo_path = BUNDLE_DIR / 'static' / 'icon.png'
     logo_b64 = ''
     if logo_path.is_file():
         logo_b64 = base64.b64encode(logo_path.read_bytes()).decode('ascii')
-
     img_tag = (
         f'<img class="splash__logo" src="data:image/png;base64,{logo_b64}" alt="">'
         if logo_b64 else ''
     )
+
+    cat = _load_catalog(_pick_splash_lang())
+    tagline = cat.get('splash.tagline', 'ZPL printing, made simple.')
+    steps = [cat.get(f'splash.step.{i}', '') for i in range(1, SPLASH_STEP_COUNT + 1)]
+    steps = [s for s in steps if s]
+    steps_json = json.dumps(steps, ensure_ascii=False)
+
+    # Each step is on screen for roughly the same slice of SPLASH_MIN_MS.
+    # Subtract ~400ms head-room so the bar reaches 100% slightly before the
+    # window is swapped out — feels intentional rather than abrupt.
+    step_interval_ms = max(400, (SPLASH_MIN_MS - 400) // max(1, len(steps)))
 
     return f"""<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>Doctor Zebra</title>
@@ -148,37 +205,89 @@ def _splash_html(version: str) -> str:
     user-select: none;
   }}
   .splash__logo {{
-    width: 140px; height: 140px; margin-bottom: 22px;
+    width: 130px; height: 130px; margin-bottom: 18px;
     filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.35));
   }}
   .splash__title {{
-    font-size: 34px; font-weight: 700; letter-spacing: -0.02em; margin: 0;
+    font-size: 32px; font-weight: 700; letter-spacing: -0.02em; margin: 0;
   }}
   .splash__tagline {{
-    font-size: 13px; color: rgba(255, 255, 255, 0.65); margin: 6px 0 0;
-    letter-spacing: 0.01em;
+    font-size: 13px; color: rgba(255, 255, 255, 0.65);
+    margin: 6px 0 26px; letter-spacing: 0.01em;
   }}
+
+  /* Progress bar */
+  .splash__progress {{
+    width: 280px; height: 4px;
+    background: rgba(255, 255, 255, 0.10);
+    border-radius: 999px; overflow: hidden;
+  }}
+  .splash__progress-fill {{
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, #38bdf8, #fff);
+    border-radius: 999px;
+    transition: width 0.45s ease-out;
+  }}
+  .splash__step {{
+    margin-top: 12px; min-height: 16px;
+    font-size: 12px; color: rgba(255, 255, 255, 0.75);
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    letter-spacing: 0.01em;
+    transition: opacity 0.18s ease-in-out;
+  }}
+  .splash__step.is-fading {{ opacity: 0; }}
+
   .splash__footer {{
     position: fixed; bottom: 14px; left: 0; right: 0;
     display: flex; justify-content: space-between;
-    padding: 0 22px; font-size: 11px; color: rgba(255, 255, 255, 0.5);
+    padding: 0 22px; font-size: 11px; color: rgba(255, 255, 255, 0.45);
     font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   }}
-  @keyframes pulse {{
-    0%, 100% {{ opacity: 0.35; }}
-    50%      {{ opacity: 1.0;  }}
-  }}
-  .splash__loading {{ animation: pulse 1.4s ease-in-out infinite; }}
 </style>
 </head>
 <body>
   {img_tag}
   <h1 class="splash__title">Doctor Zebra</h1>
-  <p class="splash__tagline">ZPL printing, made simple.</p>
+  <p class="splash__tagline">{tagline}</p>
+
+  <div class="splash__progress">
+    <div class="splash__progress-fill" id="bar"></div>
+  </div>
+  <p class="splash__step" id="step">&nbsp;</p>
+
   <div class="splash__footer">
     <span>v{version}</span>
-    <span class="splash__loading">loading…</span>
+    <span>doctor-zebra</span>
   </div>
+
+<script>
+  (function () {{
+    const steps = {steps_json};
+    const interval = {step_interval_ms};
+    const bar = document.getElementById('bar');
+    const step = document.getElementById('step');
+    const total = steps.length;
+    let i = 0;
+
+    function show(idx) {{
+      step.classList.add('is-fading');
+      setTimeout(function () {{
+        step.textContent = steps[idx];
+        step.classList.remove('is-fading');
+      }}, 160);
+      bar.style.width = ((idx + 1) / total * 100) + '%';
+    }}
+
+    if (total > 0) {{
+      show(0);
+      const iv = setInterval(function () {{
+        i++;
+        if (i >= total) {{ clearInterval(iv); return; }}
+        show(i);
+      }}, interval);
+    }}
+  }})();
+</script>
 </body></html>
 """
 

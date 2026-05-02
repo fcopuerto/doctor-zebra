@@ -162,5 +162,16 @@
   "tmpl.fields.title": "Campos de",
   "tmpl.fields.subtitle": "Decide qué ven los usuarios y qué valores alimentan cada campo del ZPL.",
   "tmpl.source.title": "Código ZPL de",
-  "tmpl.source.subtitle": "Edita el ZPL en bruto. Cuidado — esto es lo que se envía a la impresora."
+  "tmpl.source.subtitle": "Edita el ZPL en bruto. Cuidado — esto es lo que se envía a la impresora.",
+
+  "splash.tagline": "Impresión ZPL, sencilla.",
+  "splash.loading": "cargando…",
+  "splash.step.1": "Buscando impresoras Zebra…",
+  "splash.step.2": "Verificando drivers ZPL…",
+  "splash.step.3": "Cargando catálogo de fuentes…",
+  "splash.step.4": "Calibrando rodillos virtuales…",
+  "splash.step.5": "Sincronizando caché de artículos…",
+  "splash.step.6": "Calentando el motor de previsualización…",
+  "splash.step.7": "Preparando la cola de impresión…",
+  "splash.step.8": "Doctor Zebra a punto."
 }

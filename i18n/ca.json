@@ -162,5 +162,16 @@
   "tmpl.fields.title": "Camps de",
   "tmpl.fields.subtitle": "Decideix què veuen els usuaris i quins valors alimenten cada camp del ZPL.",
   "tmpl.source.title": "Codi ZPL de",
-  "tmpl.source.subtitle": "Edita el ZPL en brut. Compte — això és el que s'envia a la impressora."
+  "tmpl.source.subtitle": "Edita el ZPL en brut. Compte — això és el que s'envia a la impressora.",
+
+  "splash.tagline": "Impressió ZPL, senzilla.",
+  "splash.loading": "carregant…",
+  "splash.step.1": "Buscant impressores Zebra…",
+  "splash.step.2": "Verificant drivers ZPL…",
+  "splash.step.3": "Carregant catàleg de fonts…",
+  "splash.step.4": "Calibrant rodets virtuals…",
+  "splash.step.5": "Sincronitzant memòria cau d'articles…",
+  "splash.step.6": "Escalfant el motor de previsualització…",
+  "splash.step.7": "Preparant la cua d'impressió…",
+  "splash.step.8": "Doctor Zebra a punt."
 }
