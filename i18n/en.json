@@ -77,6 +77,9 @@
   "form.no_fields_hint": "This template has no editable fields. Press Print to send it as-is.",
   "form.lookup.placeholder": "Type to search the database…",
   "form.lookup.starts_with_prefix": "Starts with… (use * for any) —",
+  "form.tabs.aria_label": "Open print jobs",
+  "form.tabs.new": "New tab",
+  "form.tabs.close": "Close tab",
 
   "settings.title": "Settings",
   "settings.intro": "Configure Comandante Zebra by topic. Each section is independent — you can come back to any of them later.",
@@ -163,6 +166,18 @@
   "tmpl.fields.subtitle": "Decide what users see and which values feed each ZPL field.",
   "tmpl.source.title": "ZPL source for",
   "tmpl.source.subtitle": "Edit the raw ZPL. Be careful — this is what's sent to the printer.",
+
+  "tmpl.print.section": "Print settings",
+  "tmpl.print.section_desc": "Per-template overrides for the printer. Leave any control on the default to inherit whatever the template/printer already has.",
+  "tmpl.print.media_type": "Media type",
+  "tmpl.print.use_template_default": "Use template default",
+  "tmpl.print.thermal": "Direct thermal (no ribbon)",
+  "tmpl.print.ribbon": "Thermal transfer (with ribbon)",
+  "tmpl.print.speed": "Print speed",
+  "tmpl.print.speed_unit": "(ips)",
+  "tmpl.print.speed_hint": "Inches per second. 0 = inherit. Typical Zebra range: 1-14.",
+  "tmpl.print.darkness": "Darkness / temperature",
+  "tmpl.print.darkness_hint": "0-30 for the burn intensity. -1 = inherit. Higher = darker print.",
 
   "splash.tagline": "ZPL printing, made simple.",
   "splash.loading": "loading…",

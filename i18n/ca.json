@@ -77,6 +77,9 @@
   "form.no_fields_hint": "Aquesta plantilla no té camps editables. Prem Imprimir per enviar-la tal com està.",
   "form.lookup.placeholder": "Escriu per cercar a la base de dades…",
   "form.lookup.starts_with_prefix": "Comença per… (usa * com a comodí) —",
+  "form.tabs.aria_label": "Treballs d'impressió oberts",
+  "form.tabs.new": "Nova pestanya",
+  "form.tabs.close": "Tancar pestanya",
 
   "settings.title": "Configuració",
   "settings.intro": "Configura Comandante Zebra per temes. Cada secció és independent — pots tornar a qualsevol més tard.",
@@ -163,6 +166,18 @@
   "tmpl.fields.subtitle": "Decideix què veuen els usuaris i quins valors alimenten cada camp del ZPL.",
   "tmpl.source.title": "Codi ZPL de",
   "tmpl.source.subtitle": "Edita el ZPL en brut. Compte — això és el que s'envia a la impressora.",
+
+  "tmpl.print.section": "Ajustos d'impressió",
+  "tmpl.print.section_desc": "Sobreescriptures d'impressora per a aquesta plantilla. Qualsevol control al valor per defecte hereta el que ja tingui la plantilla o la impressora.",
+  "tmpl.print.media_type": "Tipus de material",
+  "tmpl.print.use_template_default": "Utilitzar valor de la plantilla",
+  "tmpl.print.thermal": "Tèrmica directa (sense ribbon)",
+  "tmpl.print.ribbon": "Transferència tèrmica (amb ribbon)",
+  "tmpl.print.speed": "Velocitat d'impressió",
+  "tmpl.print.speed_unit": "(ips)",
+  "tmpl.print.speed_hint": "Polzades per segon. 0 = heretar. Rang típic Zebra: 1-14.",
+  "tmpl.print.darkness": "Qualitat / temperatura",
+  "tmpl.print.darkness_hint": "0-30 d'intensitat de cremat. -1 = heretar. Més alt = impressió més fosca.",
 
   "splash.tagline": "Impressió ZPL, senzilla.",
   "splash.loading": "carregant…",

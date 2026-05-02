@@ -151,13 +151,35 @@ def load_sidecar(template_path: Path) -> list[FieldSpec] | None:
         return None
 
 
-def save_sidecar(template_path: Path, specs: list[FieldSpec]) -> None:
-    """Persist field specs to the sidecar JSON next to the template."""
-    payload = {'fields': [s.to_dict() for s in specs]}
+def _read_sidecar_data(template_path: Path) -> dict:
+    """Return the raw sidecar dict ({} if missing/invalid)."""
+    p = sidecar_path(template_path)
+    if not p.is_file():
+        return {}
+    try:
+        data = json.loads(p.read_text())
+        return data if isinstance(data, dict) else {}
+    except (OSError, ValueError, TypeError) as e:
+        logging.warning(f"Ignoring invalid sidecar {p.name}: {e}")
+        return {}
+
+
+def _write_sidecar_data(template_path: Path, data: dict) -> None:
+    """Write the sidecar dict back as pretty JSON."""
     sidecar_path(template_path).write_text(
-        json.dumps(payload, indent=2, ensure_ascii=False) + '\n',
+        json.dumps(data, indent=2, ensure_ascii=False) + '\n',
         encoding='utf-8',
     )
+
+
+def save_sidecar(template_path: Path, specs: list[FieldSpec]) -> None:
+    """Persist field specs to the sidecar JSON next to the template.
+
+    Other top-level keys (e.g. ``print_settings``) are preserved.
+    """
+    data = _read_sidecar_data(template_path)
+    data['fields'] = [s.to_dict() for s in specs]
+    _write_sidecar_data(template_path, data)
 
 
 def remove_sidecar(template_path: Path) -> bool:
@@ -167,6 +189,72 @@ def remove_sidecar(template_path: Path) -> bool:
         p.unlink()
         return True
     return False
+
+
+# ---------------------------------------------------------------------------
+# Print settings (media type, speed, darkness)
+# ---------------------------------------------------------------------------
+#
+# Per-template overrides for the printer hardware. They live in the sidecar
+# next to ``fields`` so the same JSON keeps everything about a template.
+#
+# Sentinel values mean "don't override, leave whatever the printer/template
+# already has":
+#
+#   media_type: ''             (empty)
+#   speed_ips:  0              (zero, valid range is 1-14)
+#   darkness:   -1             (negative, valid range is 0-30)
+
+PRINT_SETTINGS_DEFAULTS: dict = {
+    'media_type': '',   # '' | 'thermal' | 'ribbon'
+    'speed_ips':  0,    # 0 = inherit; otherwise 1..14
+    'darkness':   -1,   # -1 = inherit; otherwise 0..30
+}
+
+
+def _coerce_print_settings(raw: dict | None) -> dict:
+    """Normalise a print_settings dict, dropping unknown keys."""
+    out = dict(PRINT_SETTINGS_DEFAULTS)
+    if not isinstance(raw, dict):
+        return out
+    mt = str(raw.get('media_type') or '').strip().lower()
+    if mt in ('thermal', 'ribbon'):
+        out['media_type'] = mt
+    try:
+        speed = int(raw.get('speed_ips') or 0)
+        out['speed_ips'] = speed if 1 <= speed <= 14 else 0
+    except (TypeError, ValueError):
+        out['speed_ips'] = 0
+    try:
+        darkness = int(raw.get('darkness'))
+        out['darkness'] = darkness if 0 <= darkness <= 30 else -1
+    except (TypeError, ValueError):
+        out['darkness'] = -1
+    return out
+
+
+def load_print_settings(template_path: Path) -> dict:
+    """Return the print_settings dict for a template (defaults if absent)."""
+    return _coerce_print_settings(_read_sidecar_data(template_path).get('print_settings'))
+
+
+def save_print_settings(template_path: Path, settings: dict) -> None:
+    """Persist ``settings`` to the sidecar, preserving other keys.
+
+    If every value is the inherit sentinel, the key is removed entirely so
+    the sidecar stays tidy.
+    """
+    cleaned = _coerce_print_settings(settings)
+    data = _read_sidecar_data(template_path)
+    if cleaned == PRINT_SETTINGS_DEFAULTS:
+        data.pop('print_settings', None)
+    else:
+        data['print_settings'] = cleaned
+    if data:
+        _write_sidecar_data(template_path, data)
+    else:
+        # Avoid leaving an empty {} sidecar on disk
+        remove_sidecar(template_path)
 
 
 def load_fields(template_path: Path) -> list[FieldSpec]:

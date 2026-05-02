@@ -255,6 +255,7 @@ def generate_zpl():
         return jsonify({'message': f'Missing required fields: {", ".join(missing)}'}), 400
 
     rendered = zpl.render(path, values)
+    rendered = zpl.inject_print_settings(rendered, fields_mod.load_print_settings(path))
     printer_name = _settings().printer_for_template(template_file)
     width_mm, height_mm = zpl.label_dimensions_mm(rendered)
     profile_name = current_app.config.get('PROFILE_NAME')

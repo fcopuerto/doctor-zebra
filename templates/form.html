@@ -3,6 +3,10 @@
 {% block topbar_title %}{{ t('form.topbar_title') }}{% endblock %}
 
 {% block content %}
+<!-- Tabs row: each tab is an in-flight print job (template + values + copies)
+     persisted in sessionStorage via static/print-tabs.js -->
+<div class="print-tabs" id="printTabs" role="tablist" aria-label="{{ t('form.tabs.aria_label') }}"></div>
+
 <div class="main-flex">
     <div class="card">
         <h1>{{ t('form.title') }}</h1>
@@ -110,4 +114,5 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='app.js') }}"></script>
+<script src="{{ url_for('static', filename='print-tabs.js') }}"></script>
 {% endblock %}

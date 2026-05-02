@@ -7,6 +7,38 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-05-03
+
+### Añadido
+
+- **Pestañas en la pantalla Imprimir.** Puedes tener varios trabajos
+  abiertos en paralelo, cada uno con su plantilla, valores de campos
+  y número de copias independientes. La barra de pestañas vive sobre
+  el formulario al estilo de un navegador, con `+` para abrir nuevas
+  (hasta 12) y `×` para cerrar (siempre queda al menos una). El estado
+  se guarda en `sessionStorage`, así que un refresh no pierde tu
+  trabajo en curso. Implementado todo en cliente (`static/print-tabs.js`),
+  el backend sigue viendo un único formulario al enviar.
+- **Ajustes de impresión por plantilla** en _Settings → Templates → Edit
+  fields_:
+  - **Tipo de material**: Térmica directa / Transferencia térmica (con
+    ribbon) / Heredar el de la plantilla. Inyecta `^MTD` / `^MTT` al
+    ZPL al imprimir.
+  - **Velocidad de impresión** (1-14 ips). Inyecta `^PRn`.
+  - **Calidad / temperatura** (0-30). Inyecta `~SDnn`. `-1` = heredar.
+  - Se guardan en el sidecar JSON junto a los campos. Si los tres
+    quedan en "heredar", la sección se borra del sidecar para no
+    ensuciar el archivo.
+
+### Cambiado
+
+- `static/app.js` emite ahora un evento `fields:rendered` en
+  `#fieldsContainer` después de re-renderizar los campos al cambiar de
+  plantilla. Lo aprovecha `print-tabs.js` para restaurar los valores
+  del tab que pasa a estar activo, una vez que los inputs nuevos están
+  en el DOM. Cualquier otro módulo que necesite engancharse al ciclo
+  puede usar el mismo evento.
+
 ## [0.4.1] - 2026-05-03
 
 ### Cambiado
@@ -212,7 +244,8 @@ distribuye como `.exe` autónomo para Windows.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.3.3...v0.4.0
 [0.3.3]: https://github.com/fcopuerto/comandante_zebra/compare/v0.3.2...v0.3.3

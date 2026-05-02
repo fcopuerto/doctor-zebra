@@ -77,6 +77,9 @@
   "form.no_fields_hint": "Esta plantilla no tiene campos editables. Pulsa Imprimir para enviarla tal cual.",
   "form.lookup.placeholder": "Escribe para buscar en la base de datos…",
   "form.lookup.starts_with_prefix": "Empieza por… (usa * como comodín) —",
+  "form.tabs.aria_label": "Trabajos de impresión abiertos",
+  "form.tabs.new": "Nueva pestaña",
+  "form.tabs.close": "Cerrar pestaña",
 
   "settings.title": "Configuración",
   "settings.intro": "Configura Comandante Zebra por temas. Cada sección es independiente — puedes volver a cualquiera más tarde.",
@@ -163,6 +166,18 @@
   "tmpl.fields.subtitle": "Decide qué ven los usuarios y qué valores alimentan cada campo del ZPL.",
   "tmpl.source.title": "Código ZPL de",
   "tmpl.source.subtitle": "Edita el ZPL en bruto. Cuidado — esto es lo que se envía a la impresora.",
+
+  "tmpl.print.section": "Ajustes de impresión",
+  "tmpl.print.section_desc": "Sobreescrituras de impresora para esta plantilla. Cualquier control en el valor por defecto hereda lo que ya tenga la plantilla o la impresora.",
+  "tmpl.print.media_type": "Tipo de material",
+  "tmpl.print.use_template_default": "Usar valor de la plantilla",
+  "tmpl.print.thermal": "Térmica directa (sin ribbon)",
+  "tmpl.print.ribbon": "Transferencia térmica (con ribbon)",
+  "tmpl.print.speed": "Velocidad de impresión",
+  "tmpl.print.speed_unit": "(ips)",
+  "tmpl.print.speed_hint": "Pulgadas por segundo. 0 = heredar. Rango típico Zebra: 1-14.",
+  "tmpl.print.darkness": "Calidad / temperatura",
+  "tmpl.print.darkness_hint": "0-30 de intensidad de quemado. -1 = heredar. Más alto = impresión más oscura.",
 
   "splash.tagline": "Impresión ZPL, sencilla.",
   "splash.loading": "cargando…",

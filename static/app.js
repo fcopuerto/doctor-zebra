@@ -153,6 +153,12 @@
         });
         syncMirrorAndPreview();
         attachLookups();
+        // Let other modules (e.g. print-tabs.js) know the form has been
+        // rebuilt, so they can restore per-tab state into the new inputs.
+        c.dispatchEvent(new CustomEvent('fields:rendered', {
+            bubbles: true,
+            detail: { template: templateFile || '' },
+        }));
     }
 
     async function onTemplateChange() {

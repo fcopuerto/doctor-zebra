@@ -17,6 +17,59 @@ _PW_RE = re.compile(r'\^PW(\d+)', re.IGNORECASE)
 _LL_RE = re.compile(r'\^LL(\d+)', re.IGNORECASE)
 
 
+def inject_print_settings(zpl: str, settings: dict | None) -> str:
+    """Prepend/insert printer-control commands into a rendered ZPL block.
+
+    Three knobs are supported, each with an "inherit" sentinel that skips
+    the command (so the printer's default or whatever the template already
+    has stays in place):
+
+      ``media_type``: ``'thermal'`` → ``^MTD`` (direct thermal),
+                      ``'ribbon'``  → ``^MTT`` (thermal transfer),
+                      ``''`` → no override.
+      ``speed_ips``:  1..14 → ``^PRn`` (ips); 0 → no override.
+      ``darkness``:   0..30 → ``~SDnn``; -1 → no override.
+
+    ``~SD`` is a ``~`` system command — has to live before ``^XA``.
+    ``^MT`` and ``^PR`` are format commands — go right after ``^XA``.
+    """
+    if not settings:
+        return zpl
+
+    pre_xa: list[str] = []
+    post_xa: list[str] = []
+
+    mt = (settings.get('media_type') or '').strip().lower()
+    if mt == 'thermal':
+        post_xa.append('^MTD')
+    elif mt == 'ribbon':
+        post_xa.append('^MTT')
+
+    try:
+        speed = int(settings.get('speed_ips') or 0)
+    except (TypeError, ValueError):
+        speed = 0
+    if 1 <= speed <= 14:
+        post_xa.append(f'^PR{speed}')
+
+    try:
+        darkness = int(settings.get('darkness'))
+    except (TypeError, ValueError):
+        darkness = -1
+    if 0 <= darkness <= 30:
+        pre_xa.append(f'~SD{darkness:02d}')
+
+    if not pre_xa and not post_xa:
+        return zpl
+
+    result = zpl
+    if post_xa and '^XA' in result:
+        result = result.replace('^XA', '^XA\n' + '\n'.join(post_xa), 1)
+    if pre_xa:
+        result = '\n'.join(pre_xa) + '\n' + result
+    return result
+
+
 def label_dimensions_mm(
     zpl_text: str, dpi: int = _DEFAULT_DPI
 ) -> tuple[float | None, float | None]:

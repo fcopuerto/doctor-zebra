@@ -2326,3 +2326,134 @@ tbody tr:hover {
     box-shadow: var(--sh-sm, 0 1px 2px rgba(0, 0, 0, 0.04));
     cursor: default;
 }
+
+/* ========================================================================
+   Per-template print settings (media type / speed / darkness)
+   ======================================================================== */
+.print-settings__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--s-5);
+    align-items: start;
+}
+.print-settings__group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-2);
+    padding: var(--s-3) var(--s-4);
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: var(--r-md);
+    background: var(--surface-2, transparent);
+}
+.print-settings__group legend {
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: var(--s-2);
+    padding: 0;
+}
+.print-settings__group label.radio {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    font-size: 13px;
+    cursor: pointer;
+}
+.print-settings__group label.radio input { margin: 0; }
+.print-settings__group .hint {
+    margin: 0;
+    font-size: 11px;
+    color: var(--text-subtle);
+}
+.print-settings__group input[type="number"],
+.print-settings__group input[type="range"] {
+    width: 100%;
+}
+
+/* ========================================================================
+   Print tabs (multi-job, browser-tab style)
+   ======================================================================== */
+.print-tabs {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    margin-bottom: -1px;       /* sits on top of the next card's border */
+    padding: 0 4px;
+    flex-wrap: wrap;
+}
+.print-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px 7px;
+    background: var(--surface-2, rgba(0, 0, 0, 0.04));
+    border: 1px solid var(--border, #e5e7eb);
+    border-bottom: 1px solid transparent;
+    border-radius: 8px 8px 0 0;
+    font-size: 13px;
+    color: var(--text-subtle);
+    max-width: 220px;
+    transition: background 0.12s, color 0.12s;
+}
+.print-tab:hover { color: var(--text); }
+.print-tab.active {
+    background: var(--surface, #fff);
+    color: var(--text);
+    border-color: var(--border, #e5e7eb);
+    border-bottom-color: var(--surface, #fff);
+    font-weight: 600;
+    z-index: 1;
+}
+.print-tab__label {
+    appearance: none;
+    background: none;
+    border: 0;
+    color: inherit;
+    font: inherit;
+    padding: 0;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 180px;
+}
+.print-tab__close {
+    appearance: none;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    color: var(--text-subtle);
+    font-size: 16px;
+    line-height: 1;
+    width: 18px;
+    height: 18px;
+    display: grid;
+    place-items: center;
+    border-radius: 4px;
+    padding: 0;
+}
+.print-tab__close:hover {
+    background: rgba(0, 0, 0, 0.08);
+    color: var(--text);
+}
+.print-tab__add {
+    appearance: none;
+    background: none;
+    border: 1px dashed var(--border, #cbd5e1);
+    color: var(--text-subtle);
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    margin-left: 4px;
+    display: grid;
+    place-items: center;
+    border-radius: 6px;
+    font-size: 16px;
+    line-height: 1;
+    align-self: center;
+}
+.print-tab__add:hover:not(:disabled) {
+    color: var(--text);
+    border-color: var(--text-subtle);
+    background: rgba(0, 0, 0, 0.03);
+}
+.print-tab__add:disabled { opacity: 0.4; cursor: not-allowed; }

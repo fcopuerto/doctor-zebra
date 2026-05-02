@@ -131,6 +131,7 @@ def fields(name):
     specs = fields_mod.load_fields(path)
     has_sidecar = fields_mod.sidecar_path(path).is_file()
     connections = [c.to_dict() for c in datasources.list_connections(settings)]
+    print_settings = fields_mod.load_print_settings(path)
 
     return render_template(
         'template_fields.html',
@@ -139,7 +140,22 @@ def fields(name):
         fields=[s.to_dict() for s in specs],
         has_sidecar=has_sidecar,
         connections=connections,
+        print_settings=print_settings,
     )
+
+
+@bp.route('/templates/<path:name>/print_settings', methods=['POST'])
+def save_template_print_settings(name):
+    """Persist per-template printer overrides (media type, speed, darkness)."""
+    path = _template_path(name)
+    if path is None or not path.is_file():
+        return redirect(url_for('config.config_page'))
+    fields_mod.save_print_settings(path, {
+        'media_type': request.form.get('media_type', ''),
+        'speed_ips':  request.form.get('speed_ips', 0),
+        'darkness':   request.form.get('darkness', -1),
+    })
+    return redirect(url_for('tmpl.fields', name=name))
 
 
 @bp.route('/templates/<path:name>/source', methods=['GET', 'POST'])
