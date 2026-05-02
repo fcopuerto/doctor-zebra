@@ -80,6 +80,8 @@
   "form.tabs.aria_label": "Trabajos de impresión abiertos",
   "form.tabs.new": "Nueva pestaña",
   "form.tabs.close": "Cerrar pestaña",
+  "form.print_overrides.title": "Ajustes de impresión (avanzado)",
+  "form.print_overrides.hint": "Sobreescribe el tipo de material, velocidad y calidad solo para este trabajo. Los valores por defecto vienen de la plantilla; puedes cambiarlos de forma permanente en Configuración → Plantillas → Editar.",
 
   "settings.title": "Configuración",
   "settings.intro": "Configura Comandante Zebra por temas. Cada sección es independiente — puedes volver a cualquiera más tarde.",
@@ -131,7 +133,7 @@
   "templates_list.title": "Plantillas",
   "templates_list.subtitle": "Cada plantilla es un archivo .zpl. Configura sus campos para que el formulario de impresión sepa qué pedir.",
   "templates_list.action.new": "Nueva plantilla",
-  "templates_list.action.fields": "Campos",
+  "templates_list.action.fields": "Editar",
   "templates_list.action.source": "Código ZPL",
   "templates_list.empty": "Aún no hay plantillas — importa tu primer archivo .zpl para empezar.",
   "templates_list.col.file": "Archivo",
@@ -162,8 +164,10 @@
 
   "tmpl.new.title": "Nueva plantilla",
   "tmpl.new.subtitle": "Pega tu ZPL o sube un archivo .zpl. Lo analizaremos y te dejaremos configurar cada campo.",
-  "tmpl.fields.title": "Campos de",
-  "tmpl.fields.subtitle": "Decide qué ven los usuarios y qué valores alimentan cada campo del ZPL.",
+  "tmpl.fields.title": "Editar plantilla",
+  "tmpl.fields.subtitle": "Ajustes de impresión y campos del formulario de esta etiqueta.",
+  "tmpl.fields.section_fields": "Campos del formulario",
+  "tmpl.fields.section_fields_desc": "Decide qué ven los usuarios y qué valores alimentan cada campo del ZPL.",
   "tmpl.source.title": "Código ZPL de",
   "tmpl.source.subtitle": "Edita el ZPL en bruto. Cuidado — esto es lo que se envía a la impresora.",
 

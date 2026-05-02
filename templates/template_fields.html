@@ -1,27 +1,97 @@
 {% extends "base.html" %}
-{% block title %}{{ t('tmpl.fields.title') }} {{ template_name }}{% endblock %}
+{% block title %}{{ t('tmpl.fields.title') }} · {{ template_name }}{% endblock %}
 {% block topbar_title %}{{ t('tmpl.fields.title') }} <code>{{ template_file }}</code>{% endblock %}
 
 {% block content %}
 <nav class="breadcrumb" aria-label="Breadcrumb">
-    <a href="{{ url_for('config.config_page') }}">Settings</a>
+    <a href="{{ url_for('config.config_page') }}">{{ t('settings.title') }}</a>
     <svg class="icon"><use href="#i-chevron-right" /></svg>
-    <a href="{{ url_for('config.templates_list') }}">Templates</a>
+    <a href="{{ url_for('config.templates_list') }}">{{ t('templates_list.title') }}</a>
     <svg class="icon"><use href="#i-chevron-right" /></svg>
     <strong>{{ template_name }}</strong>
 </nav>
 
+<!-- ============================================================ -->
+<!-- Print settings (general — apply to every print of this label) -->
+<!-- ============================================================ -->
 <div class="card">
     <div class="card__header">
         <div>
-            <h1 class="card__title" style="font-size:18px;">Fields</h1>
-            <p class="card__subtitle" id="fieldsSummary">
-                Define what users fill in when printing this label.
-            </p>
+            <h1 class="card__title" style="font-size:18px;">{{ t('tmpl.print.section') }}</h1>
+            <p class="card__subtitle">{{ t('tmpl.print.section_desc') }}</p>
         </div>
         <a href="{{ url_for('tmpl.source', name=template_name) }}" class="btn btn-ghost">
-            Edit ZPL source
+            {{ t('templates_list.action.source') }}
         </a>
+    </div>
+
+    <form method="post" action="{{ url_for('tmpl.save_template_print_settings', name=template_name) }}"
+          class="print-settings">
+        <div class="print-settings__grid">
+
+            <fieldset class="print-settings__group">
+                <legend>{{ t('tmpl.print.media_type') }}</legend>
+                <label class="radio">
+                    <input type="radio" name="media_type" value=""
+                        {% if not print_settings.media_type %}checked{% endif %}>
+                    <span>{{ t('tmpl.print.use_template_default') }}</span>
+                </label>
+                <label class="radio">
+                    <input type="radio" name="media_type" value="thermal"
+                        {% if print_settings.media_type == 'thermal' %}checked{% endif %}>
+                    <span>{{ t('tmpl.print.thermal') }}</span>
+                </label>
+                <label class="radio">
+                    <input type="radio" name="media_type" value="ribbon"
+                        {% if print_settings.media_type == 'ribbon' %}checked{% endif %}>
+                    <span>{{ t('tmpl.print.ribbon') }}</span>
+                </label>
+            </fieldset>
+
+            <div class="print-settings__group">
+                <label for="ps_speed">
+                    {{ t('tmpl.print.speed') }}
+                    <span class="muted">{{ t('tmpl.print.speed_unit') }}</span>
+                </label>
+                <input type="number" id="ps_speed" name="speed_ips"
+                    min="0" max="14" step="1"
+                    value="{{ print_settings.speed_ips or 0 }}">
+                <p class="hint">{{ t('tmpl.print.speed_hint') }}</p>
+            </div>
+
+            <div class="print-settings__group">
+                <label for="ps_darkness">
+                    {{ t('tmpl.print.darkness') }}
+                    <span class="muted" id="ps_darkness_value">
+                        {% if print_settings.darkness < 0 %}—{% else %}{{ print_settings.darkness }}{% endif %}
+                    </span>
+                </label>
+                <input type="range" id="ps_darkness" name="darkness"
+                    min="-1" max="30" step="1"
+                    value="{{ print_settings.darkness }}"
+                    oninput="document.getElementById('ps_darkness_value').textContent = this.value < 0 ? '—' : this.value;">
+                <p class="hint">{{ t('tmpl.print.darkness_hint') }}</p>
+            </div>
+
+        </div>
+
+        <div class="button-row" style="margin-top: var(--s-5);">
+            <button type="submit">{{ t('common.save') }}</button>
+        </div>
+    </form>
+</div>
+
+<!-- ============================================================ -->
+<!-- Form fields (per-print values)                                -->
+<!-- ============================================================ -->
+<div class="card">
+    <div class="card__header">
+        <div>
+            <h1 class="card__title" style="font-size:18px;">{{ t('tmpl.fields.section_fields') }}</h1>
+            <p class="card__subtitle" id="fieldsSummary">
+                {{ t('tmpl.fields.section_fields_desc') }}
+            </p>
+        </div>
     </div>
 
     <div id="fieldsEditor"
@@ -113,73 +183,6 @@
         </div>
         <p class="test-result" id="fieldsResult" aria-live="polite"></p>
     </div>
-</div>
-
-<!-- ============================================================ -->
-<!-- Print settings (media type / speed / darkness)               -->
-<!-- ============================================================ -->
-<div class="card">
-    <div class="card__header">
-        <div>
-            <h1 class="card__title" style="font-size:18px;">{{ t('tmpl.print.section') }}</h1>
-            <p class="card__subtitle">{{ t('tmpl.print.section_desc') }}</p>
-        </div>
-    </div>
-
-    <form method="post" action="{{ url_for('tmpl.save_template_print_settings', name=template_name) }}"
-          class="print-settings">
-        <div class="print-settings__grid">
-
-            <fieldset class="print-settings__group">
-                <legend>{{ t('tmpl.print.media_type') }}</legend>
-                <label class="radio">
-                    <input type="radio" name="media_type" value=""
-                        {% if not print_settings.media_type %}checked{% endif %}>
-                    <span>{{ t('tmpl.print.use_template_default') }}</span>
-                </label>
-                <label class="radio">
-                    <input type="radio" name="media_type" value="thermal"
-                        {% if print_settings.media_type == 'thermal' %}checked{% endif %}>
-                    <span>{{ t('tmpl.print.thermal') }}</span>
-                </label>
-                <label class="radio">
-                    <input type="radio" name="media_type" value="ribbon"
-                        {% if print_settings.media_type == 'ribbon' %}checked{% endif %}>
-                    <span>{{ t('tmpl.print.ribbon') }}</span>
-                </label>
-            </fieldset>
-
-            <div class="print-settings__group">
-                <label for="ps_speed">
-                    {{ t('tmpl.print.speed') }}
-                    <span class="muted">{{ t('tmpl.print.speed_unit') }}</span>
-                </label>
-                <input type="number" id="ps_speed" name="speed_ips"
-                    min="0" max="14" step="1"
-                    value="{{ print_settings.speed_ips or 0 }}">
-                <p class="hint">{{ t('tmpl.print.speed_hint') }}</p>
-            </div>
-
-            <div class="print-settings__group">
-                <label for="ps_darkness">
-                    {{ t('tmpl.print.darkness') }}
-                    <span class="muted" id="ps_darkness_value">
-                        {% if print_settings.darkness < 0 %}—{% else %}{{ print_settings.darkness }}{% endif %}
-                    </span>
-                </label>
-                <input type="range" id="ps_darkness" name="darkness"
-                    min="-1" max="30" step="1"
-                    value="{{ print_settings.darkness }}"
-                    oninput="document.getElementById('ps_darkness_value').textContent = this.value < 0 ? '—' : this.value;">
-                <p class="hint">{{ t('tmpl.print.darkness_hint') }}</p>
-            </div>
-
-        </div>
-
-        <div class="button-row" style="margin-top: var(--s-5);">
-            <button type="submit">{{ t('common.save') }}</button>
-        </div>
-    </form>
 </div>
 {% endblock %}
 

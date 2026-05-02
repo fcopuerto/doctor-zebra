@@ -169,8 +169,31 @@
             if (!res.ok) { showToast('Could not load template fields', true); return; }
             const data = await res.json();
             renderFields(data.fields || [], tpl.value);
+            // Pre-fill the per-job overrides with the template's stored
+            // defaults so the user sees what would be sent if they don't
+            // touch anything (and so per-tab restoration has a sane baseline).
+            applyPrintSettings(data.print_settings || {});
         } catch (err) {
             showToast('Failed to fetch fields: ' + err, true);
+        }
+    }
+
+    function applyPrintSettings(ps) {
+        // Media type
+        const mt = (ps.media_type || '').toLowerCase();
+        document.querySelectorAll('input[name="media_type"]').forEach((r) => {
+            r.checked = (r.value === mt) || (mt === '' && r.value === '');
+        });
+        // Speed
+        const sp = document.getElementById('job_speed');
+        if (sp) sp.value = parseInt(ps.speed_ips, 10) || 0;
+        // Darkness
+        const dk = document.getElementById('job_darkness');
+        if (dk) {
+            const v = (ps.darkness === undefined || ps.darkness === null) ? -1 : parseInt(ps.darkness, 10);
+            dk.value = isNaN(v) ? -1 : v;
+            const lbl = document.getElementById('job_darkness_value');
+            if (lbl) lbl.textContent = dk.value < 0 ? '—' : dk.value;
         }
     }
 

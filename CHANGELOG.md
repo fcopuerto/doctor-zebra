@@ -7,6 +7,34 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-05-03
+
+### Añadido
+
+- **Ajustes de impresión también en la pantalla Imprimir** (no solo
+  en la edición de plantilla). Sección colapsable _"Ajustes de impresión
+  (avanzado)"_ con los mismos tres controles (tipo de material,
+  velocidad, calidad). Permite hacer un override **solo para este
+  trabajo** sin tocar los defaults del template.
+- Cada **pestaña** de Print guarda su propio override por separado en
+  `sessionStorage`, así que dos trabajos abiertos pueden imprimir con
+  ajustes distintos.
+- `/api/fields/<template>` ahora devuelve `print_settings` además de
+  `fields`. La pantalla de impresión los precarga al cambiar de
+  plantilla, así el usuario ve qué ajustes salen por defecto.
+
+### Cambiado
+
+- **"Edit fields" → "Editar plantilla"** (`Edit` en el listado, _"Editar
+  plantilla"_ como título de la página). El nombre anterior sugería que
+  solo se editaban campos, pero ahora la pantalla cubre también los
+  ajustes de impresión genéricos del template.
+- **Reordenación de la página Editar plantilla**: los _Ajustes de
+  impresión_ (genéricos) van arriba; los _Campos del formulario_
+  (específicos) debajo.
+- El bloque "Editar código ZPL" ahora vive como botón en la cabecera
+  de Ajustes de impresión, no en la cabecera de los campos.
+
 ## [0.5.0] - 2026-05-03
 
 ### Añadido
@@ -244,7 +272,8 @@ distribuye como `.exe` autónomo para Windows.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.3.3...v0.4.0

@@ -80,6 +80,8 @@
   "form.tabs.aria_label": "Open print jobs",
   "form.tabs.new": "New tab",
   "form.tabs.close": "Close tab",
+  "form.print_overrides.title": "Print settings (advanced)",
+  "form.print_overrides.hint": "Override media type, speed and darkness for this job only. Defaults come from the template; you can change them permanently in Settings → Templates → Edit.",
 
   "settings.title": "Settings",
   "settings.intro": "Configure Comandante Zebra by topic. Each section is independent — you can come back to any of them later.",
@@ -131,7 +133,7 @@
   "templates_list.title": "Templates",
   "templates_list.subtitle": "Each template is a .zpl file. Configure its fields so the print form knows what to ask for.",
   "templates_list.action.new": "New template",
-  "templates_list.action.fields": "Fields",
+  "templates_list.action.fields": "Edit",
   "templates_list.action.source": "ZPL source",
   "templates_list.empty": "No templates yet — import your first .zpl to get started.",
   "templates_list.col.file": "File",
@@ -162,8 +164,10 @@
 
   "tmpl.new.title": "New template",
   "tmpl.new.subtitle": "Paste your ZPL or upload a .zpl file. We'll parse it and let you configure each field.",
-  "tmpl.fields.title": "Fields for",
-  "tmpl.fields.subtitle": "Decide what users see and which values feed each ZPL field.",
+  "tmpl.fields.title": "Edit template",
+  "tmpl.fields.subtitle": "Print settings and form fields for this label.",
+  "tmpl.fields.section_fields": "Form fields",
+  "tmpl.fields.section_fields_desc": "Decide what users see and which values feed each ZPL field.",
   "tmpl.source.title": "ZPL source for",
   "tmpl.source.subtitle": "Edit the raw ZPL. Be careful — this is what's sent to the printer.",
 

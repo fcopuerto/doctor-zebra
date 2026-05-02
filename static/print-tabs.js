@@ -74,6 +74,7 @@
             });
         }
         tab.values = vals;
+        tab.overrides = readOverrides();
     }
 
     /** Restore the given tab's values into the currently rendered fields. */
@@ -90,6 +91,35 @@
         });
         const c = copiesIn();
         if (c && tab.copies) c.value = tab.copies;
+        if (tab.overrides) applyOverrides(tab.overrides);
+    }
+
+    /** Snapshot the per-job print overrides currently in the form. */
+    function readOverrides() {
+        const out = {};
+        const mt = document.querySelector('input[name="media_type"]:checked');
+        if (mt) out.media_type = mt.value;
+        const sp = document.getElementById('job_speed');
+        if (sp) out.speed_ips = sp.value;
+        const dk = document.getElementById('job_darkness');
+        if (dk) out.darkness = dk.value;
+        return out;
+    }
+
+    /** Push a saved override snapshot back into the form controls. */
+    function applyOverrides(ov) {
+        const mt = (ov.media_type || '');
+        document.querySelectorAll('input[name="media_type"]').forEach((r) => {
+            r.checked = r.value === mt;
+        });
+        const sp = document.getElementById('job_speed');
+        if (sp && ov.speed_ips !== undefined) sp.value = ov.speed_ips;
+        const dk = document.getElementById('job_darkness');
+        if (dk && ov.darkness !== undefined) {
+            dk.value = ov.darkness;
+            const lbl = document.getElementById('job_darkness_value');
+            if (lbl) lbl.textContent = dk.value < 0 ? '—' : dk.value;
+        }
     }
 
     /**

@@ -71,6 +71,49 @@
                 <input type="hidden" name="{{ f.key }}" value="{{ field_values.get(f.key, '') }}">
                 {% endfor %}
             </div>
+            <details class="print-overrides" id="printOverrides">
+                <summary>{{ t('form.print_overrides.title') }}</summary>
+                <div class="print-settings__grid" style="margin-top: var(--s-3);">
+                    <fieldset class="print-settings__group">
+                        <legend>{{ t('tmpl.print.media_type') }}</legend>
+                        <label class="radio">
+                            <input type="radio" name="media_type" value="" checked>
+                            <span>{{ t('tmpl.print.use_template_default') }}</span>
+                        </label>
+                        <label class="radio">
+                            <input type="radio" name="media_type" value="thermal">
+                            <span>{{ t('tmpl.print.thermal') }}</span>
+                        </label>
+                        <label class="radio">
+                            <input type="radio" name="media_type" value="ribbon">
+                            <span>{{ t('tmpl.print.ribbon') }}</span>
+                        </label>
+                    </fieldset>
+                    <div class="print-settings__group">
+                        <label for="job_speed">
+                            {{ t('tmpl.print.speed') }}
+                            <span class="muted">{{ t('tmpl.print.speed_unit') }}</span>
+                        </label>
+                        <input type="number" id="job_speed" name="speed_ips"
+                            min="0" max="14" step="1" value="0">
+                        <p class="hint">{{ t('tmpl.print.speed_hint') }}</p>
+                    </div>
+                    <div class="print-settings__group">
+                        <label for="job_darkness">
+                            {{ t('tmpl.print.darkness') }}
+                            <span class="muted" id="job_darkness_value">—</span>
+                        </label>
+                        <input type="range" id="job_darkness" name="darkness"
+                            min="-1" max="30" step="1" value="-1"
+                            oninput="document.getElementById('job_darkness_value').textContent = this.value < 0 ? '—' : this.value;">
+                        <p class="hint">{{ t('tmpl.print.darkness_hint') }}</p>
+                    </div>
+                </div>
+                <p class="hint" style="margin-top: var(--s-3);">
+                    {{ t('form.print_overrides.hint') }}
+                </p>
+            </details>
+
             <div class="field-row" style="display:flex; align-items:flex-end; gap:var(--s-3); margin-top:var(--s-5);">
                 <div>
                     <label for="copies">{{ t('form.copies') }}</label>

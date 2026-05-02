@@ -179,7 +179,12 @@ def _safe(v):
 
 @bp.route('/api/fields/<path:template_file>')
 def api_fields(template_file):
-    """Return the field spec for a template (for dynamic form rendering)."""
+    """Return the field spec + print settings for a template.
+
+    The print_settings block is the template's stored defaults. Each
+    print job can override them in the form before pressing Print
+    (handled in /generate below).
+    """
     path = _resolve(template_file)
     if path is None:
         return jsonify({'error': 'Invalid template'}), 404
@@ -187,6 +192,7 @@ def api_fields(template_file):
     return jsonify({
         'template_file': template_file,
         'fields': [s.to_dict() for s in specs],
+        'print_settings': fields_mod.load_print_settings(path),
     })
 
 
@@ -255,7 +261,21 @@ def generate_zpl():
         return jsonify({'message': f'Missing required fields: {", ".join(missing)}'}), 400
 
     rendered = zpl.render(path, values)
-    rendered = zpl.inject_print_settings(rendered, fields_mod.load_print_settings(path))
+
+    # Print settings: form overrides win over sidecar defaults. If the form
+    # didn't include them at all we keep the template's defaults.
+    template_ps = fields_mod.load_print_settings(path)
+    has_form_ps = any(k in request.form for k in ('media_type', 'speed_ips', 'darkness'))
+    if has_form_ps:
+        ps = {
+            'media_type': request.form.get('media_type', template_ps.get('media_type', '')),
+            'speed_ips':  request.form.get('speed_ips',  template_ps.get('speed_ips',  0)),
+            'darkness':   request.form.get('darkness',   template_ps.get('darkness',   -1)),
+        }
+    else:
+        ps = template_ps
+    rendered = zpl.inject_print_settings(rendered, ps)
+
     printer_name = _settings().printer_for_template(template_file)
     width_mm, height_mm = zpl.label_dimensions_mm(rendered)
     profile_name = current_app.config.get('PROFILE_NAME')

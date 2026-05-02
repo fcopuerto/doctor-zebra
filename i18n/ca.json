@@ -80,6 +80,8 @@
   "form.tabs.aria_label": "Treballs d'impressió oberts",
   "form.tabs.new": "Nova pestanya",
   "form.tabs.close": "Tancar pestanya",
+  "form.print_overrides.title": "Ajustos d'impressió (avançat)",
+  "form.print_overrides.hint": "Sobreescriu el tipus de material, velocitat i qualitat només per a aquest treball. Els valors per defecte vénen de la plantilla; pots canviar-los de manera permanent a Configuració → Plantilles → Editar.",
 
   "settings.title": "Configuració",
   "settings.intro": "Configura Comandante Zebra per temes. Cada secció és independent — pots tornar a qualsevol més tard.",
@@ -131,7 +133,7 @@
   "templates_list.title": "Plantilles",
   "templates_list.subtitle": "Cada plantilla és un fitxer .zpl. Configura els seus camps perquè el formulari d'impressió sàpiga què demanar.",
   "templates_list.action.new": "Nova plantilla",
-  "templates_list.action.fields": "Camps",
+  "templates_list.action.fields": "Editar",
   "templates_list.action.source": "Codi ZPL",
   "templates_list.empty": "Encara no hi ha plantilles — importa el teu primer fitxer .zpl per començar.",
   "templates_list.col.file": "Fitxer",
@@ -162,8 +164,10 @@
 
   "tmpl.new.title": "Nova plantilla",
   "tmpl.new.subtitle": "Enganxa el teu ZPL o puja un fitxer .zpl. L'analitzarem i et deixarem configurar cada camp.",
-  "tmpl.fields.title": "Camps de",
-  "tmpl.fields.subtitle": "Decideix què veuen els usuaris i quins valors alimenten cada camp del ZPL.",
+  "tmpl.fields.title": "Editar plantilla",
+  "tmpl.fields.subtitle": "Ajustos d'impressió i camps del formulari d'aquesta etiqueta.",
+  "tmpl.fields.section_fields": "Camps del formulari",
+  "tmpl.fields.section_fields_desc": "Decideix què veuen els usuaris i quins valors alimenten cada camp del ZPL.",
   "tmpl.source.title": "Codi ZPL de",
   "tmpl.source.subtitle": "Edita el ZPL en brut. Compte — això és el que s'envia a la impressora.",
 
