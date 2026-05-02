@@ -5,7 +5,7 @@ from pathlib import Path
 
 from flask import Flask, g, request
 
-from zebra import i18n, printer, profiles
+from zebra import discovery, i18n, network, printer, profiles
 from zebra.cache_scheduler import start_scheduler
 from zebra.db import init_db
 from zebra.lookup_cache import init_cache
@@ -13,7 +13,7 @@ from zebra.settings import Settings
 
 LANG_COOKIE = 'comandante_zebra_lang'
 
-__version__ = '0.5.1'
+__version__ = '0.6.0'
 
 # Path to the package root (read-only assets when frozen with PyInstaller).
 PACKAGE_ROOT = Path(__file__).resolve().parent.parent
@@ -56,15 +56,32 @@ def create_app(
     init_db(app.config['DB_PATH'])
     init_cache(app.config['DB_PATH'])
     i18n.load_all(PACKAGE_ROOT / 'i18n')
+    network.init(base)
+
+    # Start mDNS discovery. The browser is always on so we can list
+    # other peers on the LAN; we only publish ourselves once desktop.py
+    # tells us which port Flask is listening on (via DISCOVERY_PORT).
+    try:
+        port = int(app.config.get('DISCOVERY_PORT') or 0)
+    except (TypeError, ValueError):
+        port = 0
+    discovery.get_discovery().start(
+        peer_name=network.peer_name(),
+        version=__version__,
+        profile=app.config.get('PROFILE_NAME', ''),
+        port=port,
+    )
 
     if app.config.get('AUTO_SYNC_CACHE', True):
         start_scheduler(app)
 
     from zebra.routes.config import bp as config_bp
     from zebra.routes.labels import bp as labels_bp
+    from zebra.routes.network import bp as network_bp
     from zebra.routes.tmpl import bp as tmpl_bp
     app.register_blueprint(labels_bp)
     app.register_blueprint(config_bp)
+    app.register_blueprint(network_bp)
     app.register_blueprint(tmpl_bp)
 
     # Needed for flash() messages.

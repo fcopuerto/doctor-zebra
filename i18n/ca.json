@@ -90,6 +90,7 @@
   "settings.tabs.templates": "Plantilles",
   "settings.tabs.connections": "Connexions",
   "settings.tabs.profiles": "Perfils",
+  "settings.tabs.network": "Xarxa",
   "settings.wizard.cta.title": "Assistent de configuració",
   "settings.wizard.cta.subtitle": "Guia pas a pas — connexió, impressora, primera plantilla.",
   "settings.tile.printers.title": "Impressores",
@@ -192,5 +193,33 @@
   "splash.step.5": "Sincronitzant memòria cau d'articles…",
   "splash.step.6": "Escalfant el motor de previsualització…",
   "splash.step.7": "Preparant la cua d'impressió…",
-  "splash.step.8": "Comandante Zebra a punt."
+  "splash.step.8": "Comandante Zebra a punt.",
+
+  "network.title": "Xarxa",
+  "network.me.title": "Aquesta instància",
+  "network.me.subtitle": "Com et veuen els altres a la xarxa local. Edita i desa per anunciar el canvi.",
+  "network.me.peer_name": "Nom",
+  "network.me.address": "Adreça",
+  "network.me.profile": "Perfil",
+  "network.me.pin": "PIN per compartir",
+  "network.me.pin_hint": "Altres instàncies necessiten aquest PIN de 6 dígits per descarregar les teves plantilles o connexions.",
+  "network.me.pin_regenerate": "Regenerar PIN",
+  "network.me.shares": "Què comparteixo",
+  "network.me.share_templates": "Compartir les meves plantilles",
+  "network.me.share_connections": "Compartir les meves definicions de connexions",
+  "network.me.share_connections_hint": "Servidor/base de dades/usuari només — mai contrasenyes.",
+
+  "network.peers.title": "Equips descoberts",
+  "network.peers.subtitle": "Altres instàncies de Comandante Zebra vistes en aquesta LAN via mDNS.",
+  "network.peers.refresh": "Actualitzar",
+  "network.peers.empty": "Encara no s'ha descobert cap equip.",
+  "network.peers.browse": "Explorar",
+
+  "network.pull.title": "Explorar equip",
+  "network.pull.pin_prompt": "Introdueix el PIN de 6 dígits que apareix a la pàgina Xarxa de l'altre equip:",
+  "network.pull.templates_title": "Plantilles",
+  "network.pull.connections_title": "Connexions",
+  "network.pull.empty_templates": "L'altre equip no comparteix plantilles.",
+  "network.pull.empty_connections": "L'altre equip no comparteix connexions.",
+  "network.pull.import": "Importar selecció"
 }

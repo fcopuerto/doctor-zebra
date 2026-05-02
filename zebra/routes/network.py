@@ -1,0 +1,338 @@
+"""HTTP routes for LAN peer discovery and template/connection sharing.
+
+Two surfaces live here:
+
+  /api/network/*   — used by *this* instance's UI (Settings → Network).
+  /api/peer/*      — used by *other* instances pulling from us.
+                     Authenticated with the share PIN.
+
+The PIN check is intentionally simple: ``?pin=NNNNNN`` query param vs
+the value in :mod:`zebra.network`. We're on the LAN over plain HTTP, so
+sophisticated auth would be theatre. The point of the PIN is to stop a
+random colleague on the same wifi from silently scraping your templates.
+"""
+
+from __future__ import annotations
+
+import logging
+from pathlib import Path
+
+from flask import (
+    Blueprint, current_app, jsonify, render_template, request, url_for,
+)
+
+from zebra import datasources, discovery, fields as fields_mod, network
+from zebra.routes.config import _settings
+
+
+bp = Blueprint('network', __name__)
+
+
+# ---------------------------------------------------------------------------
+# Local-UI endpoints (no auth — same machine)
+# ---------------------------------------------------------------------------
+
+@bp.route('/api/network/me')
+def me():
+    """Return this instance's identity + share prefs (PIN included)."""
+    snap = network.snapshot()
+    snap['address'] = discovery.local_ip()
+    snap['port'] = int(current_app.config.get('DISCOVERY_PORT') or 0)
+    snap['profile'] = current_app.config.get('PROFILE_NAME', '')
+    return jsonify(snap)
+
+
+@bp.route('/api/network/me', methods=['POST'])
+def update_me():
+    """Update peer name / share toggles. Restarts mDNS publisher if the
+    name changed so peers see the new label immediately."""
+    body = request.get_json(silent=True) or request.form.to_dict()
+    old_name = network.peer_name()
+    snap = network.update({
+        k: body[k] for k in ('peer_name', 'share_templates', 'share_connections')
+        if k in body
+    })
+    if snap.get('peer_name') != old_name:
+        from zebra import __version__
+        port = int(current_app.config.get('DISCOVERY_PORT') or 0)
+        discovery.get_discovery().start(
+            peer_name=snap['peer_name'],
+            version=__version__,
+            profile=current_app.config.get('PROFILE_NAME', ''),
+            port=port,
+        )
+    snap['address'] = discovery.local_ip()
+    snap['port'] = int(current_app.config.get('DISCOVERY_PORT') or 0)
+    return jsonify(snap)
+
+
+@bp.route('/api/network/pin/regenerate', methods=['POST'])
+def regen_pin():
+    """Roll a new 6-digit PIN. Existing peers will have to re-enter it."""
+    return jsonify({'pin': network.regenerate_pin()})
+
+
+@bp.route('/api/network/peers')
+def peers():
+    """Snapshot of peers currently visible on the LAN."""
+    return jsonify({'peers': [p.to_dict() for p in discovery.get_peers()]})
+
+
+# ---------------------------------------------------------------------------
+# Peer-facing endpoints (PIN-authenticated, called by other instances)
+# ---------------------------------------------------------------------------
+
+@bp.route('/api/peer/info')
+def peer_info():
+    """Public info — no PIN required.
+
+    Lets a calling client see what this peer is willing to share before
+    asking for the PIN. We don't expose the PIN here; the client supplies
+    it on follow-up requests.
+    """
+    snap = network.snapshot()
+    return jsonify({
+        'peer_name':         snap.get('peer_name', ''),
+        'profile':           current_app.config.get('PROFILE_NAME', ''),
+        'share_templates':   snap.get('share_templates', True),
+        'share_connections': snap.get('share_connections', False),
+    })
+
+
+def _check_pin_or_403():
+    if not network.check_pin(request.args.get('pin') or request.headers.get('X-Peer-Pin')):
+        return jsonify({'error': 'invalid PIN'}), 403
+    return None
+
+
+@bp.route('/api/peer/templates')
+def peer_list_templates():
+    """List shareable templates. Requires PIN. Empty if sharing is off."""
+    err = _check_pin_or_403()
+    if err is not None: return err
+    if not network.shares_templates():
+        return jsonify({'templates': []})
+    s = _settings()
+    s.reload()
+    out: list[dict] = []
+    for fname in sorted(_template_files()):
+        path = s.templates_dir / fname
+        sidecar = fields_mod.sidecar_path(path)
+        out.append({
+            'file':         fname,
+            'has_sidecar':  sidecar.is_file(),
+            'size_bytes':   path.stat().st_size if path.is_file() else 0,
+        })
+    return jsonify({'templates': out})
+
+
+@bp.route('/api/peer/templates/<path:name>')
+def peer_get_template(name):
+    """Return the .zpl content + sidecar JSON for one template."""
+    err = _check_pin_or_403()
+    if err is not None: return err
+    if not network.shares_templates():
+        return jsonify({'error': 'templates not shared'}), 403
+    if name not in _template_files():
+        return jsonify({'error': 'unknown template'}), 404
+    s = _settings()
+    s.reload()
+    path = s.templates_dir / name
+    payload = {
+        'file': name,
+        'zpl':  path.read_text(encoding='utf-8'),
+    }
+    sc = fields_mod.sidecar_path(path)
+    if sc.is_file():
+        try:
+            payload['sidecar'] = sc.read_text(encoding='utf-8')
+        except OSError:
+            pass
+    return jsonify(payload)
+
+
+@bp.route('/api/peer/connections')
+def peer_list_connections():
+    """List shareable connections (sans secrets). Requires PIN."""
+    err = _check_pin_or_403()
+    if err is not None: return err
+    if not network.shares_connections():
+        return jsonify({'connections': []})
+    s = _settings()
+    s.reload()
+    return jsonify({
+        'connections': [
+            _scrub(c.to_dict()) for c in datasources.list_connections(s)
+        ]
+    })
+
+
+@bp.route('/api/peer/connections/<path:name>')
+def peer_get_connection(name):
+    err = _check_pin_or_403()
+    if err is not None: return err
+    if not network.shares_connections():
+        return jsonify({'error': 'connections not shared'}), 403
+    s = _settings()
+    s.reload()
+    for c in datasources.list_connections(s):
+        if c.name == name:
+            return jsonify(_scrub(c.to_dict()))
+    return jsonify({'error': 'unknown connection'}), 404
+
+
+# ---------------------------------------------------------------------------
+# Pull endpoints — called by *our* UI to import from a peer
+# ---------------------------------------------------------------------------
+
+@bp.route('/api/network/pull/templates', methods=['POST'])
+def pull_templates():
+    """Download selected templates from a peer and write them locally.
+
+    Body: { peer_url, pin, files: [...] }
+    """
+    import requests as _r
+    body = request.get_json(silent=True) or {}
+    peer_url = (body.get('peer_url') or '').rstrip('/')
+    pin = body.get('pin') or ''
+    files = body.get('files') or []
+    if not peer_url or not pin or not isinstance(files, list):
+        return jsonify({'error': 'peer_url, pin and files[] required'}), 400
+
+    s = _settings()
+    s.reload()
+    target_dir: Path = s.templates_dir
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    imported, errors = [], []
+    for fname in files:
+        try:
+            r = _r.get(
+                f'{peer_url}/api/peer/templates/{fname}',
+                params={'pin': pin}, timeout=8,
+            )
+            if r.status_code != 200:
+                errors.append({'file': fname, 'status': r.status_code})
+                continue
+            data = r.json()
+            (target_dir / fname).write_text(data.get('zpl', ''), encoding='utf-8')
+            sc = data.get('sidecar')
+            if sc:
+                (target_dir / (fname + '.json')).write_text(sc, encoding='utf-8')
+            imported.append(fname)
+        except Exception as e:  # noqa: BLE001
+            errors.append({'file': fname, 'error': str(e)})
+
+    return jsonify({'imported': imported, 'errors': errors})
+
+
+@bp.route('/api/network/pull/connections', methods=['POST'])
+def pull_connections():
+    """Download selected connection definitions from a peer (no passwords).
+
+    Body: { peer_url, pin, names: [...] }
+    """
+    import requests as _r
+    body = request.get_json(silent=True) or {}
+    peer_url = (body.get('peer_url') or '').rstrip('/')
+    pin = body.get('pin') or ''
+    names = body.get('names') or []
+    if not peer_url or not pin or not isinstance(names, list):
+        return jsonify({'error': 'peer_url, pin and names[] required'}), 400
+
+    s = _settings()
+    s.reload()
+    imported, errors = [], []
+    for n in names:
+        try:
+            r = _r.get(
+                f'{peer_url}/api/peer/connections/{n}',
+                params={'pin': pin}, timeout=8,
+            )
+            if r.status_code != 200:
+                errors.append({'name': n, 'status': r.status_code})
+                continue
+            data = r.json()
+            cfg = datasources.ConnectionConfig(
+                name=str(data.get('name', n)),
+                type=str(data.get('type', '')),
+                options=dict(data.get('options') or {}),
+            )
+            # password=None: receiver supplies their own credentials in
+            # Settings → Connections after import. We never ship secrets
+            # over the wire (and _scrub on the sender side enforces it).
+            datasources.upsert_connection(s, cfg, password=None)
+            imported.append(n)
+        except Exception as e:  # noqa: BLE001
+            errors.append({'name': n, 'error': str(e)})
+    return jsonify({'imported': imported, 'errors': errors})
+
+
+@bp.route('/api/network/peer/<path:peer_url_b64>/list', methods=['POST'])
+def peer_remote_list(peer_url_b64):
+    """Proxy: ask a peer for its templates+connections lists with a PIN."""
+    import base64, requests as _r
+    try:
+        peer_url = base64.urlsafe_b64decode(peer_url_b64.encode()).decode().rstrip('/')
+    except Exception:  # noqa: BLE001
+        return jsonify({'error': 'bad peer_url'}), 400
+    body = request.get_json(silent=True) or {}
+    pin = body.get('pin') or ''
+    out: dict = {'templates': [], 'connections': [], 'error': None}
+    try:
+        info = _r.get(f'{peer_url}/api/peer/info', timeout=5).json()
+        out['info'] = info
+        if info.get('share_templates'):
+            r = _r.get(f'{peer_url}/api/peer/templates', params={'pin': pin}, timeout=5)
+            if r.status_code == 200:
+                out['templates'] = r.json().get('templates', [])
+            elif r.status_code == 403:
+                out['error'] = 'invalid_pin'
+        if info.get('share_connections'):
+            r = _r.get(f'{peer_url}/api/peer/connections', params={'pin': pin}, timeout=5)
+            if r.status_code == 200:
+                out['connections'] = r.json().get('connections', [])
+    except Exception as e:  # noqa: BLE001
+        out['error'] = str(e)
+    return jsonify(out)
+
+
+# ---------------------------------------------------------------------------
+# Page
+# ---------------------------------------------------------------------------
+
+@bp.route('/config/network')
+def network_page():
+    snap = network.snapshot()
+    snap['address'] = discovery.local_ip()
+    snap['port'] = int(current_app.config.get('DISCOVERY_PORT') or 0)
+    return render_template(
+        'config_network.html',
+        me=snap,
+        peers=[p.to_dict() for p in discovery.get_peers()],
+    )
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _template_files() -> list[str]:
+    """Return current .zpl filenames in the active profile."""
+    s = _settings()
+    s.reload()
+    d = s.templates_dir
+    if not d.is_dir():
+        return []
+    return [p.name for p in d.iterdir() if p.suffix == '.zpl']
+
+
+def _scrub(conn: dict) -> dict:
+    """Drop fields that look like secrets before sending a connection over."""
+    out = dict(conn)
+    opts = dict(out.get('options') or {})
+    for k in list(opts.keys()):
+        if k.lower() in ('password', 'pwd', 'secret', 'token', 'api_key'):
+            opts.pop(k, None)
+    out['options'] = opts
+    return out

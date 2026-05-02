@@ -7,6 +7,43 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-05-03
+
+### Añadido
+
+- **Descubrimiento P2P en la red local + intercambio de plantillas y
+  conexiones entre instancias.** Nueva pestaña **Configuración → Red**.
+  - mDNS / Bonjour: cada instancia se anuncia como
+    `_comandante-zebra._tcp.local.` y descubre a las demás
+    automáticamente al estar en la misma LAN. Funciona en macOS, Windows
+    y Linux sin tocar el router.
+  - Cada instancia muestra su nombre, IP, perfil activo y un **PIN de
+    6 dígitos** generado al primer arranque. El nombre y los toggles de
+    "qué comparto" son editables; el PIN se puede regenerar en cualquier
+    momento.
+  - **Pull-only con auth**: para descargar de un peer hay que introducir
+    su PIN. Sin PIN no se ve nada.
+  - **Por defecto se comparten plantillas** (inocuas, ZPL puro). Las
+    **conexiones a base de datos** llevan un toggle aparte y, cuando se
+    comparten, **viajan sin contraseñas** (el receptor introduce sus
+    propias credenciales después de importar).
+  - Modal de import: muestra qué tiene el peer, checkbox por item,
+    "Importar selección" y resumen del resultado.
+- Nuevas dependencias: `zeroconf>=0.130` (con `ifaddr`).
+- Nuevo icono `i-network` en el sprite SVG.
+
+### Detalles técnicos
+
+- `zebra/discovery.py` — Singleton con publisher + browser. Se reinicia
+  on demand cuando cambia el nombre del peer.
+- `zebra/network.py` — Identidad persistida en `<base_dir>/network.json`.
+  PIN sacado de `secrets.randbelow` y comparado con `compare_digest`.
+- `zebra/routes/network.py` — Endpoints `/api/network/*` (UI local) y
+  `/api/peer/*` (autenticados con PIN).
+- `desktop.py` ahora notifica el puerto real de Flask al discovery vía
+  `app.config['DISCOVERY_PORT']`, así el announcement mDNS lleva una
+  dirección directamente accesible.
+
 ## [0.5.1] - 2026-05-03
 
 ### Añadido
@@ -272,7 +309,8 @@ distribuye como `.exe` autónomo para Windows.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.4.0...v0.4.1

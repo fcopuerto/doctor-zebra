@@ -113,6 +113,21 @@ def _run_flask(host: str, port: int, base_dir: Path) -> None:
     from zebra import create_app
 
     app = create_app(base_dir=base_dir)
+    # Tell create_app which port we'll be reachable on so the mDNS
+    # publisher announces a working address.
+    app.config['DISCOVERY_PORT'] = port
+    # Re-trigger discovery now that the port is known (create_app may
+    # have started it with port=0 — we just refresh).
+    try:
+        from zebra import discovery, network, __version__
+        discovery.get_discovery().start(
+            peer_name=network.peer_name(),
+            version=__version__,
+            profile=app.config.get('PROFILE_NAME', ''),
+            port=port,
+        )
+    except Exception as e:  # noqa: BLE001
+        logging.warning(f'Could not start mDNS discovery: {e}')
     app.run(host=host, port=port, debug=False, use_reloader=False, threaded=True)
 
 

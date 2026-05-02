@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}{{ t('network.title') }} · {{ t('settings.title') }}{% endblock %}
+{% block topbar_title %}{{ t('network.title') }}{% endblock %}
+
+{% block content %}
+{% include "_settings_tabs.html" %}
+
+<!-- ============================================================ -->
+<!-- This instance                                                 -->
+<!-- ============================================================ -->
+<div class="card" id="meCard">
+    <div class="card__header">
+        <div>
+            <h1 class="card__title" style="font-size:18px;">{{ t('network.me.title') }}</h1>
+            <p class="card__subtitle">{{ t('network.me.subtitle') }}</p>
+        </div>
+    </div>
+
+    <div class="net-me">
+        <label class="net-field">
+            <span>{{ t('network.me.peer_name') }}</span>
+            <input type="text" id="netPeerName" value="{{ me.peer_name }}" maxlength="48">
+        </label>
+        <div class="net-field">
+            <span>{{ t('network.me.address') }}</span>
+            <code class="net-readonly">{{ me.address }}{% if me.port %}:{{ me.port }}{% endif %}</code>
+        </div>
+        <div class="net-field">
+            <span>{{ t('network.me.profile') }}</span>
+            <code class="net-readonly">{{ me.profile }}</code>
+        </div>
+        <div class="net-field">
+            <span>{{ t('network.me.pin') }}</span>
+            <div class="net-pin">
+                <code class="net-pin__value" id="netPin">{{ me.pin }}</code>
+                <button type="button" class="btn-ghost" id="netPinRegen" title="{{ t('network.me.pin_regenerate') }}">↻</button>
+            </div>
+            <p class="hint">{{ t('network.me.pin_hint') }}</p>
+        </div>
+    </div>
+
+    <fieldset class="net-shares">
+        <legend>{{ t('network.me.shares') }}</legend>
+        <label class="checkbox">
+            <input type="checkbox" id="netShareTemplates" {% if me.share_templates %}checked{% endif %}>
+            <span>{{ t('network.me.share_templates') }}</span>
+        </label>
+        <label class="checkbox">
+            <input type="checkbox" id="netShareConnections" {% if me.share_connections %}checked{% endif %}>
+            <span>{{ t('network.me.share_connections') }}</span>
+            <span class="muted hint" style="margin-left:6px;">{{ t('network.me.share_connections_hint') }}</span>
+        </label>
+    </fieldset>
+
+    <div class="button-row">
+        <button type="button" id="netSaveMe">{{ t('common.save') }}</button>
+        <span class="test-result" id="netSaveResult" aria-live="polite"></span>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Discovered peers                                              -->
+<!-- ============================================================ -->
+<div class="card">
+    <div class="card__header">
+        <div>
+            <h1 class="card__title" style="font-size:18px;">{{ t('network.peers.title') }}</h1>
+            <p class="card__subtitle">{{ t('network.peers.subtitle') }}</p>
+        </div>
+        <button type="button" class="btn-ghost" id="netRefreshPeers">
+            <svg class="icon"><use href="#i-refresh" /></svg>
+            {{ t('network.peers.refresh') }}
+        </button>
+    </div>
+
+    <div id="netPeersList" class="net-peers" data-empty="{{ t('network.peers.empty') }}">
+        {% for p in peers %}
+        <article class="net-peer" data-peer='{{ p|tojson }}'>
+            <div class="net-peer__main">
+                <div class="net-peer__name">{{ p.name }}</div>
+                <div class="net-peer__meta">
+                    <code>{{ p.address }}:{{ p.port }}</code>
+                    {% if p.profile %}<span>· {{ p.profile }}</span>{% endif %}
+                    {% if p.version %}<span>· v{{ p.version }}</span>{% endif %}
+                </div>
+            </div>
+            <button type="button" class="btn" data-action="browse">
+                {{ t('network.peers.browse') }} →
+            </button>
+        </article>
+        {% else %}
+        <p class="muted dashboard__empty">{{ t('network.peers.empty') }}</p>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Pull dialog (rendered hidden, populated by JS)                -->
+<!-- ============================================================ -->
+<dialog id="netPullDialog" class="net-dialog">
+    <header class="net-dialog__head">
+        <h2 id="netPullTitle">{{ t('network.pull.title') }}</h2>
+        <button type="button" class="btn-ghost" id="netPullClose" aria-label="Close">×</button>
+    </header>
+    <div class="net-dialog__body">
+        <div id="netPullPin">
+            <p>{{ t('network.pull.pin_prompt') }}</p>
+            <input type="text" id="netPullPinInput" inputmode="numeric" pattern="\d{6}" maxlength="6"
+                placeholder="000000" autocomplete="off">
+            <button type="button" id="netPullPinSubmit">{{ t('common.next') }}</button>
+            <p class="test-result" id="netPullPinError" aria-live="polite"></p>
+        </div>
+
+        <div id="netPullList" hidden>
+            <h3>{{ t('network.pull.templates_title') }}</h3>
+            <ul id="netPullTemplates" class="net-pull-list" data-empty="{{ t('network.pull.empty_templates') }}"></ul>
+
+            <h3>{{ t('network.pull.connections_title') }}</h3>
+            <ul id="netPullConnections" class="net-pull-list" data-empty="{{ t('network.pull.empty_connections') }}"></ul>
+
+            <div class="button-row" style="margin-top: var(--s-4);">
+                <button type="button" class="btn-ghost" id="netPullCancel">{{ t('common.cancel') }}</button>
+                <button type="button" id="netPullImport">{{ t('network.pull.import') }}</button>
+            </div>
+            <p class="test-result" id="netPullResult" aria-live="polite"></p>
+        </div>
+    </div>
+</dialog>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='network.js') }}"></script>
+{% endblock %}

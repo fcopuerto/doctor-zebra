@@ -90,6 +90,7 @@
   "settings.tabs.templates": "Templates",
   "settings.tabs.connections": "Connections",
   "settings.tabs.profiles": "Profiles",
+  "settings.tabs.network": "Network",
   "settings.wizard.cta.title": "Setup Wizard",
   "settings.wizard.cta.subtitle": "Guided walkthrough — connection, printer, first template.",
   "settings.tile.printers.title": "Printers",
@@ -192,5 +193,33 @@
   "splash.step.5": "Syncing item cache…",
   "splash.step.6": "Warming up the preview engine…",
   "splash.step.7": "Priming the print queue…",
-  "splash.step.8": "Comandante Zebra is ready."
+  "splash.step.8": "Comandante Zebra is ready.",
+
+  "network.title": "Network",
+  "network.me.title": "This instance",
+  "network.me.subtitle": "How others see you on the local network. Edit and save to broadcast the change.",
+  "network.me.peer_name": "Name",
+  "network.me.address": "Address",
+  "network.me.profile": "Profile",
+  "network.me.pin": "Share PIN",
+  "network.me.pin_hint": "Other instances need this 6-digit PIN to pull templates or connections from you.",
+  "network.me.pin_regenerate": "Regenerate PIN",
+  "network.me.shares": "What I share",
+  "network.me.share_templates": "Share my templates",
+  "network.me.share_connections": "Share my connection definitions",
+  "network.me.share_connections_hint": "Server/database/user only — never passwords.",
+
+  "network.peers.title": "Discovered peers",
+  "network.peers.subtitle": "Other Comandante Zebra instances seen on this LAN via mDNS.",
+  "network.peers.refresh": "Refresh",
+  "network.peers.empty": "No peers discovered yet.",
+  "network.peers.browse": "Browse",
+
+  "network.pull.title": "Browse peer",
+  "network.pull.pin_prompt": "Enter the 6-digit PIN displayed on that peer's Network page:",
+  "network.pull.templates_title": "Templates",
+  "network.pull.connections_title": "Connections",
+  "network.pull.empty_templates": "Peer is not sharing templates.",
+  "network.pull.empty_connections": "Peer is not sharing connections.",
+  "network.pull.import": "Import selected"
 }

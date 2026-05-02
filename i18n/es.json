@@ -90,6 +90,7 @@
   "settings.tabs.templates": "Plantillas",
   "settings.tabs.connections": "Conexiones",
   "settings.tabs.profiles": "Perfiles",
+  "settings.tabs.network": "Red",
   "settings.wizard.cta.title": "Asistente de configuración",
   "settings.wizard.cta.subtitle": "Guía paso a paso — conexión, impresora, primera plantilla.",
   "settings.tile.printers.title": "Impresoras",
@@ -192,5 +193,33 @@
   "splash.step.5": "Sincronizando caché de artículos…",
   "splash.step.6": "Calentando el motor de previsualización…",
   "splash.step.7": "Preparando la cola de impresión…",
-  "splash.step.8": "Comandante Zebra a punto."
+  "splash.step.8": "Comandante Zebra a punto.",
+
+  "network.title": "Red",
+  "network.me.title": "Esta instancia",
+  "network.me.subtitle": "Cómo te ven los demás en la red local. Edita y guarda para anunciar el cambio.",
+  "network.me.peer_name": "Nombre",
+  "network.me.address": "Dirección",
+  "network.me.profile": "Perfil",
+  "network.me.pin": "PIN para compartir",
+  "network.me.pin_hint": "Otras instancias necesitan este PIN de 6 dígitos para descargar tus plantillas o conexiones.",
+  "network.me.pin_regenerate": "Regenerar PIN",
+  "network.me.shares": "Qué comparto",
+  "network.me.share_templates": "Compartir mis plantillas",
+  "network.me.share_connections": "Compartir mis definiciones de conexiones",
+  "network.me.share_connections_hint": "Servidor/base de datos/usuario únicamente — nunca contraseñas.",
+
+  "network.peers.title": "Equipos descubiertos",
+  "network.peers.subtitle": "Otras instancias de Comandante Zebra vistas en esta LAN vía mDNS.",
+  "network.peers.refresh": "Actualizar",
+  "network.peers.empty": "Aún no se ha descubierto ningún equipo.",
+  "network.peers.browse": "Explorar",
+
+  "network.pull.title": "Explorar equipo",
+  "network.pull.pin_prompt": "Introduce el PIN de 6 dígitos que aparece en la página Red del otro equipo:",
+  "network.pull.templates_title": "Plantillas",
+  "network.pull.connections_title": "Conexiones",
+  "network.pull.empty_templates": "El otro equipo no comparte plantillas.",
+  "network.pull.empty_connections": "El otro equipo no comparte conexiones.",
+  "network.pull.import": "Importar selección"
 }

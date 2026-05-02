@@ -2457,3 +2457,143 @@ tbody tr:hover {
     background: rgba(0, 0, 0, 0.03);
 }
 .print-tab__add:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ========================================================================
+   Settings → Network
+   ======================================================================== */
+.net-me {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--s-4);
+    margin-bottom: var(--s-4);
+}
+.net-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+}
+.net-field span:first-child {
+    color: var(--text-subtle);
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.net-readonly {
+    background: var(--surface-2, rgba(0,0,0,0.04));
+    padding: 6px 8px;
+    border-radius: var(--r-md);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+}
+.net-pin {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+}
+.net-pin__value {
+    background: var(--primary-soft, rgba(0,0,170,0.08));
+    color: var(--primary, #0000aa);
+    padding: 6px 10px;
+    border-radius: var(--r-md);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 0.18em;
+}
+.net-shares {
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: var(--r-md);
+    padding: var(--s-3) var(--s-4);
+    margin-bottom: var(--s-4);
+}
+.net-shares legend {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-subtle);
+    font-weight: 700;
+    padding: 0 6px;
+}
+.net-shares .checkbox {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    font-size: 13px;
+    margin: 6px 0;
+}
+
+.net-peers {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-2);
+}
+.net-peer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-3);
+    padding: var(--s-3) var(--s-4);
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: var(--r-md);
+}
+.net-peer__name { font-weight: 600; font-size: 14px; }
+.net-peer__meta {
+    font-size: 12px;
+    color: var(--text-subtle);
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 2px;
+}
+
+/* Pull dialog */
+.net-dialog {
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: var(--r-lg);
+    padding: 0;
+    width: min(520px, 92vw);
+    max-height: 80vh;
+    background: var(--surface, #fff);
+    color: var(--text);
+    box-shadow: var(--sh-md, 0 10px 30px rgba(0, 0, 0, 0.18));
+}
+.net-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.45);
+}
+.net-dialog__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--s-3) var(--s-4);
+    border-bottom: 1px solid var(--border, #e5e7eb);
+}
+.net-dialog__head h2 { margin: 0; font-size: 16px; }
+.net-dialog__body {
+    padding: var(--s-4);
+    overflow-y: auto;
+    max-height: 60vh;
+}
+.net-pull-list {
+    list-style: none;
+    margin: 0 0 var(--s-3);
+    padding: 0;
+}
+.net-pull-list li {
+    padding: 4px 0;
+    font-size: 13px;
+}
+.net-pull-list .checkbox {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+#netPullPinInput {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 18px;
+    letter-spacing: 0.2em;
+    text-align: center;
+    width: 160px;
+    margin-right: var(--s-2);
+}
