@@ -1,0 +1,34 @@
+{
+  "name": "Ejemplo",
+  "printer": {
+    "host": "192.168.1.100",
+    "port": 9100
+  },
+  "template": "etiqueta_producto",
+  "fields": [
+    {
+      "name": "codigo",
+      "label": "Código",
+      "type": "text",
+      "required": true,
+      "lookup": "productos",
+      "lookup_value_field": "code",
+      "lookup_label_field": "name",
+      "autofill": [
+        {"from": "name", "to": "nombre"},
+        {"from": "price", "to": "precio"}
+      ]
+    },
+    {
+      "name": "nombre",
+      "label": "Nombre",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "precio",
+      "label": "Precio",
+      "type": "text"
+    }
+  ]
+}

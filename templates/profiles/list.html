@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Perfiles – Doctor Zebra{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0"><i class="bi bi-person-badge-fill me-2"></i>Perfiles</h4>
+  <a href="{{ url_for('profile_new') }}" class="btn btn-warning">
+    <i class="bi bi-plus-circle-fill me-1"></i>Nuevo perfil
+  </a>
+</div>
+
+{% if profiles %}
+  <div class="row g-3">
+    {% for p in profiles %}
+      <div class="col-md-6 col-xl-4">
+        <div class="card h-100 shadow-sm">
+          <div class="card-body">
+            <h6 class="card-title fw-bold">{{ p }}</h6>
+          </div>
+          <div class="card-footer d-flex gap-2">
+            <a href="{{ url_for('index', profile=p) }}" class="btn btn-sm btn-warning flex-fill">
+              <i class="bi bi-printer-fill me-1"></i>Imprimir
+            </a>
+            <a href="{{ url_for('profile_edit', name=p) }}" class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-pencil-fill"></i>
+            </a>
+            <form method="post" action="{{ url_for('profile_delete', name=p) }}"
+                  onsubmit="return confirm('¿Eliminar perfil {{ p }}?')">
+              <button class="btn btn-sm btn-outline-danger" type="submit">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="alert alert-info">
+    No hay perfiles.
+    <a href="{{ url_for('profile_new') }}" class="alert-link">Crear el primero</a>.
+  </div>
+{% endif %}
+{% endblock %}

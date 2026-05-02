@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Doctor Zebra{% endblock %}</title>
+
+  <!-- Bootstrap 5 (local vendor copy) -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}">
+  <!-- Bootstrap Icons (local vendor copy) -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap-icons/font/bootstrap-icons.min.css') }}">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-md navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('index') }}">
+      <i class="bi bi-printer-fill text-warning fs-4"></i>
+      <span class="fw-bold">Doctor Zebra</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            data-bs-target="#navbarMain">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarMain">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}"
+             href="{{ url_for('index') }}">
+            <i class="bi bi-house-fill me-1"></i>Imprimir
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if 'profile' in request.endpoint %}active{% endif %}"
+             href="{{ url_for('profiles_list') }}">
+            <i class="bi bi-person-badge-fill me-1"></i>Perfiles
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if 'template' in request.endpoint %}active{% endif %}"
+             href="{{ url_for('templates_list') }}">
+            <i class="bi bi-file-code-fill me-1"></i>Plantillas ZPL
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if 'cache' in request.endpoint %}active{% endif %}"
+             href="{{ url_for('cache_list') }}">
+            <i class="bi bi-database-fill me-1"></i>Caché Offline
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Flash messages -->
+<div class="container-fluid mt-2">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+</div>
+
+<!-- Page content -->
+<main class="container-fluid py-3">
+  {% block content %}{% endblock %}
+</main>
+
+<script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

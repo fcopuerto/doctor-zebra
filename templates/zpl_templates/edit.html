@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}{% if name %}Editar plantilla {{ name }}{% else %}Nueva plantilla{% endif %} – Doctor Zebra{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-3 gap-2">
+  <a href="{{ url_for('templates_list') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <h4 class="mb-0">
+    {% if name %}Editar plantilla <code>{{ name }}</code>{% else %}Nueva plantilla{% endif %}
+  </h4>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <form method="post">
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Nombre (ID) <span class="text-danger">*</span></label>
+            <input type="text" class="form-control font-monospace" name="name"
+                   value="{{ name or '' }}"
+                   pattern="[A-Za-z0-9_\-]+"
+                   title="Solo letras, números, guiones y guiones bajos"
+                   {% if name %}readonly{% endif %} required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Contenido ZPL <span class="text-danger">*</span></label>
+            <textarea class="form-control font-monospace zpl-editor"
+                      name="content" id="zplContent"
+                      rows="18" spellcheck="false" required
+                      oninput="updateVarBadges(this.value)">{{ content }}</textarea>
+            <div class="form-text">
+              Usa <code>{nombre_variable}</code> para insertar valores dinámicos.
+            </div>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-warning">
+              <i class="bi bi-floppy-fill me-1"></i>Guardar
+            </button>
+            <a href="{{ url_for('templates_list') }}" class="btn btn-outline-secondary">Cancelar</a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+
+    <!-- Live variables panel -->
+    <div class="card shadow-sm mb-3">
+      <div class="card-header"><i class="bi bi-braces me-1"></i>Variables detectadas</div>
+      <div class="card-body" id="varBadges">
+        {% for v in variables %}
+          <span class="badge bg-secondary font-monospace me-1">{{ '{' }}{{ v }}{{ '}' }}</span>
+        {% endfor %}
+        {% if not variables %}<span class="text-muted small">Ninguna</span>{% endif %}
+      </div>
+    </div>
+
+    <!-- ZPL reference -->
+    <div class="card shadow-sm">
+      <div class="card-header"><i class="bi bi-book me-1"></i>Referencia rápida ZPL</div>
+      <div class="card-body p-2">
+        <table class="table table-sm table-borderless mb-0 small">
+          <tbody>
+            <tr><td class="font-monospace">^XA … ^XZ</td><td>Inicio / fin etiqueta</td></tr>
+            <tr><td class="font-monospace">^FO x,y</td><td>Posición del campo</td></tr>
+            <tr><td class="font-monospace">^A0N,h,w</td><td>Fuente escalable</td></tr>
+            <tr><td class="font-monospace">^FD … ^FS</td><td>Datos del campo</td></tr>
+            <tr><td class="font-monospace">^BCN,h,Y,N,N</td><td>Código de barras 128</td></tr>
+            <tr><td class="font-monospace">^BQN,2,6</td><td>Código QR</td></tr>
+            <tr><td class="font-monospace">^PQ n</td><td>Imprimir n copias</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Example template -->
+    <div class="card shadow-sm mt-3">
+      <div class="card-header"><i class="bi bi-clipboard2-fill me-1"></i>Plantilla de ejemplo</div>
+      <div class="card-body p-2">
+        <pre class="small m-0 user-select-all" style="font-size:0.72rem;">^XA
+^FO40,30^A0N,28,28^FD{nombre}^FS
+^FO40,65^A0N,20,20^FD{descripcion}^FS
+^FO40,100^BY2^BCN,80,Y,N,N^FD{codigo}^FS
+^XZ</pre>
+        <button class="btn btn-sm btn-outline-secondary mt-2 w-100"
+                onclick="loadExample()">
+          <i class="bi bi-arrow-down-circle me-1"></i>Cargar ejemplo
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const EXAMPLE_ZPL = `^XA\n^FO40,30^A0N,28,28^FD{nombre}^FS\n^FO40,65^A0N,20,20^FD{descripcion}^FS\n^FO40,100^BY2^BCN,80,Y,N,N^FD{codigo}^FS\n^XZ`;
+
+function loadExample() {
+  document.getElementById('zplContent').value = EXAMPLE_ZPL;
+  updateVarBadges(EXAMPLE_ZPL);
+}
+
+function updateVarBadges(zpl) {
+  const vars = [...new Set(Array.from(zpl.matchAll(/\{(\w+)\}/g), m => m[1]))].sort();
+  const container = document.getElementById('varBadges');
+  if (vars.length === 0) {
+    container.innerHTML = '<span class="text-muted small">Ninguna</span>';
+  } else {
+    container.innerHTML = vars.map(v =>
+      `<span class="badge bg-secondary font-monospace me-1">{${v}}</span>`
+    ).join('');
+  }
+}
+</script>
+{% endblock %}

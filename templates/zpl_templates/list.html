@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Plantillas ZPL – Doctor Zebra{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0"><i class="bi bi-file-code-fill me-2"></i>Plantillas ZPL</h4>
+  <a href="{{ url_for('template_new') }}" class="btn btn-warning">
+    <i class="bi bi-plus-circle-fill me-1"></i>Nueva plantilla
+  </a>
+</div>
+
+{% if templates %}
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>Nombre</th>
+          <th>Variables</th>
+          <th>Vista previa</th>
+          <th class="text-end">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in templates %}
+          <tr>
+            <td class="font-monospace fw-semibold">{{ t.name }}</td>
+            <td>
+              {% for v in t.variables %}
+                <span class="badge bg-secondary font-monospace">{{ '{' }}{{ v }}{{ '}' }}</span>
+              {% endfor %}
+              {% if not t.variables %}
+                <span class="text-muted small">— sin variables —</span>
+              {% endif %}
+            </td>
+            <td>
+              <code class="small text-muted" style="word-break:break-all;">
+                {{ t.preview }}{% if t.preview | length >= 120 %}…{% endif %}
+              </code>
+            </td>
+            <td class="text-end">
+              <div class="d-flex gap-1 justify-content-end">
+                <a href="{{ url_for('template_edit', name=t.name) }}"
+                   class="btn btn-sm btn-outline-secondary">
+                  <i class="bi bi-pencil-fill"></i>
+                </a>
+                <form method="post" action="{{ url_for('template_delete', name=t.name) }}"
+                      onsubmit="return confirm('¿Eliminar plantilla {{ t.name }}?')">
+                  <button type="submit" class="btn btn-sm btn-outline-danger">
+                    <i class="bi bi-trash-fill"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="alert alert-info">
+    No hay plantillas ZPL.
+    <a href="{{ url_for('template_new') }}" class="alert-link">Crear la primera</a>.
+  </div>
+{% endif %}
+{% endblock %}

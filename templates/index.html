@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% block title %}Imprimir – Doctor Zebra{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+
+  <!-- Left column: print form -->
+  <div class="col-lg-7">
+    <div class="card shadow-sm">
+      <div class="card-header bg-dark text-white d-flex align-items-center gap-2">
+        <i class="bi bi-printer-fill text-warning fs-5"></i>
+        <span class="fw-semibold">Imprimir Etiqueta</span>
+      </div>
+      <div class="card-body">
+
+        {% if not profiles %}
+          <div class="alert alert-warning mb-0">
+            No hay perfiles configurados.
+            <a href="{{ url_for('profile_new') }}" class="alert-link">Crear un perfil</a>.
+          </div>
+        {% else %}
+
+          <!-- Profile selector (redirects page) -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Perfil</label>
+            <select class="form-select" id="profileSelector" onchange="switchProfile(this.value)">
+              {% for p in profiles %}
+                <option value="{{ p }}" {% if p == selected %}selected{% endif %}>{{ p }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          {% if not profile %}
+            <p class="text-muted">Selecciona un perfil para continuar.</p>
+          {% elif not profile.template %}
+            <div class="alert alert-warning">
+              El perfil no tiene una plantilla ZPL asignada.
+              <a href="{{ url_for('profile_edit', name=selected) }}" class="alert-link">Editar perfil</a>.
+            </div>
+          {% else %}
+
+            <form method="post" action="{{ url_for('do_print') }}" id="printForm">
+              <input type="hidden" name="profile" value="{{ selected }}">
+
+              {% set field_defs = profile.get('fields', []) %}
+
+              {% if field_defs %}
+                <!-- Structured fields from profile definition -->
+                {% for field in field_defs %}
+                  <div class="mb-3">
+                    <label class="form-label" for="f_{{ field.name }}">
+                      {{ field.get('label', field.name) }}
+                      {% if field.get('required') %}<span class="text-danger">*</span>{% endif %}
+                    </label>
+
+                    {% set lk_items = lookup_options.get(field.name, []) %}
+
+                    {% if lk_items %}
+                      <!-- Field with lookup autocomplete -->
+                      <div class="input-group">
+                        <input type="text"
+                               class="form-control lookup-input"
+                               id="f_{{ field.name }}"
+                               name="{{ field.name }}"
+                               data-lookup="{{ field.get('lookup') }}"
+                               data-value-field="{{ field.get('lookup_value_field', 'value') }}"
+                               data-label-field="{{ field.get('lookup_label_field', 'label') }}"
+                               data-autofill="{{ field.get('autofill', []) | tojson }}"
+                               autocomplete="off"
+                               {% if field.get('required') %}required{% endif %}>
+                        <button class="btn btn-outline-secondary" type="button"
+                                onclick="openLookupModal('{{ field.name }}',
+                                  '{{ field.get('lookup') }}',
+                                  '{{ field.get('lookup_value_field', 'value') }}',
+                                  '{{ field.get('lookup_label_field', 'label') }}',
+                                  {{ field.get('autofill', []) | tojson }})">
+                          <i class="bi bi-search"></i>
+                        </button>
+                      </div>
+                    {% else %}
+                      <input type="{{ field.get('type', 'text') }}"
+                             class="form-control"
+                             id="f_{{ field.name }}"
+                             name="{{ field.name }}"
+                             {% if field.get('required') %}required{% endif %}>
+                    {% endif %}
+                  </div>
+                {% endfor %}
+
+              {% else %}
+                <!-- Auto-generated fields from ZPL template variables -->
+                {% for var in variables %}
+                  <div class="mb-3">
+                    <label class="form-label" for="f_{{ var }}">{{ var }}</label>
+                    <input type="text" class="form-control" id="f_{{ var }}" name="{{ var }}">
+                  </div>
+                {% endfor %}
+                {% if not variables %}
+                  <p class="text-muted">La plantilla no tiene variables.</p>
+                {% endif %}
+              {% endif %}
+
+              <div class="row g-2 mt-1">
+                <div class="col-sm-3">
+                  <label class="form-label fw-semibold">Copias</label>
+                  <input type="number" class="form-control" name="copies" value="1" min="1" max="99">
+                </div>
+                <div class="col-sm-9 d-flex align-items-end">
+                  <button type="submit" class="btn btn-warning w-100">
+                    <i class="bi bi-printer-fill me-2"></i>Imprimir
+                  </button>
+                </div>
+              </div>
+            </form>
+
+          {% endif %}
+        {% endif %}
+
+      </div>
+    </div>
+  </div><!-- /col -->
+
+  <!-- Right column: printer info + ZPL preview -->
+  <div class="col-lg-5">
+
+    {% if profile %}
+      <div class="card shadow-sm mb-3">
+        <div class="card-header bg-secondary text-white">
+          <i class="bi bi-info-circle-fill me-1"></i>Impresora
+        </div>
+        <div class="card-body py-2">
+          <dl class="row mb-0 small">
+            <dt class="col-5">Host</dt>
+            <dd class="col-7 font-monospace">{{ profile.printer.host }}</dd>
+            <dt class="col-5">Puerto</dt>
+            <dd class="col-7 font-monospace">{{ profile.printer.get('port', 9100) }}</dd>
+            <dt class="col-5">Plantilla</dt>
+            <dd class="col-7">{{ profile.template }}</dd>
+          </dl>
+        </div>
+      </div>
+    {% endif %}
+
+    {% if template_content %}
+      <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-file-code-fill me-1"></i>Plantilla ZPL</span>
+          <a href="{{ url_for('template_edit', name=profile.template) }}"
+             class="btn btn-sm btn-outline-light">
+            <i class="bi bi-pencil-fill"></i>
+          </a>
+        </div>
+        <div class="card-body p-0">
+          <pre class="zpl-preview m-0 p-3">{{ template_content }}</pre>
+        </div>
+      </div>
+    {% endif %}
+
+  </div><!-- /col -->
+</div><!-- /row -->
+
+<!-- Lookup search modal -->
+<div class="modal fade" id="lookupModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-search me-2"></i>Buscar en caché</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="text" class="form-control mb-3" id="lookupSearchInput"
+               placeholder="Buscar…" oninput="doLookupSearch(this.value)">
+        <div id="lookupResults" class="list-group" style="max-height:350px;overflow-y:auto;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function switchProfile(name) {
+  window.location = '/?profile=' + encodeURIComponent(name);
+}
+</script>
+{% endblock %}

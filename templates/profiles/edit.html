@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}{% if name %}Editar perfil {{ name }}{% else %}Nuevo perfil{% endif %} – Doctor Zebra{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-3 gap-2">
+  <a href="{{ url_for('profiles_list') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <h4 class="mb-0">
+    {% if name %}Editar perfil <code>{{ name }}</code>{% else %}Nuevo perfil{% endif %}
+  </h4>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <form method="post">
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Nombre del perfil (ID) <span class="text-danger">*</span></label>
+            <input type="text" class="form-control font-monospace" name="name"
+                   value="{{ name or '' }}"
+                   pattern="[A-Za-z0-9_\-]+"
+                   title="Solo letras, números, guiones y guiones bajos"
+                   {% if name %}readonly{% endif %} required>
+            {% if name %}<div class="form-text text-muted">El nombre no se puede cambiar. Crea un perfil nuevo si quieres renombrarlo.</div>{% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Nombre visible</label>
+            <input type="text" class="form-control" name="display_name"
+                   value="{{ (profile or {}).get('name', name or '') }}">
+          </div>
+
+          <hr>
+          <h6 class="text-secondary">Impresora</h6>
+
+          <div class="row g-2 mb-3">
+            <div class="col-sm-8">
+              <label class="form-label">Host / IP <span class="text-danger">*</span></label>
+              <input type="text" class="form-control font-monospace" name="printer_host"
+                     value="{{ ((profile or {}).get('printer') or {}).get('host', '') }}"
+                     placeholder="192.168.1.100" required>
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label">Puerto</label>
+              <input type="number" class="form-control font-monospace" name="printer_port"
+                     value="{{ ((profile or {}).get('printer') or {}).get('port', 9100) }}"
+                     min="1" max="65535">
+            </div>
+          </div>
+
+          <hr>
+          <h6 class="text-secondary">Plantilla ZPL</h6>
+
+          <div class="mb-3">
+            <label class="form-label">Plantilla <span class="text-danger">*</span></label>
+            <select class="form-select" name="template" required>
+              <option value="">— Seleccionar —</option>
+              {% for t in templates %}
+                <option value="{{ t }}"
+                  {% if (profile or {}).get('template') == t %}selected{% endif %}>
+                  {{ t }}
+                </option>
+              {% endfor %}
+            </select>
+            {% if not templates %}
+              <div class="form-text text-warning">
+                No hay plantillas. <a href="{{ url_for('template_new') }}">Crear una</a>.
+              </div>
+            {% endif %}
+          </div>
+
+          <hr>
+          <h6 class="text-secondary">Campos del formulario</h6>
+          <p class="text-muted small">
+            Define los campos que aparecen en el formulario de impresión.
+            Si está vacío, se usarán las variables de la plantilla.
+          </p>
+
+          <div class="mb-3">
+            <label class="form-label">Definición de campos (JSON)</label>
+            <textarea class="form-control font-monospace" name="fields_json"
+                      rows="10" id="fieldsJsonTextarea">{{ (profile or {}).get('fields', []) | tojson(indent=2) }}</textarea>
+            <div class="form-text">
+              Array de objetos con las claves:
+              <code>name</code>, <code>label</code>, <code>type</code>, <code>required</code>,
+              <code>lookup</code>, <code>lookup_value_field</code>, <code>lookup_label_field</code>,
+              <code>autofill</code>.
+            </div>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-warning">
+              <i class="bi bi-floppy-fill me-1"></i>Guardar
+            </button>
+            <a href="{{ url_for('profiles_list') }}" class="btn btn-outline-secondary">Cancelar</a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-header"><i class="bi bi-info-circle me-1"></i>Ejemplo de campos</div>
+      <div class="card-body p-2">
+        <pre class="small m-0" style="font-size:0.75rem;">[
+  {
+    "name": "codigo",
+    "label": "Código",
+    "type": "text",
+    "required": true,
+    "lookup": "productos",
+    "lookup_value_field": "code",
+    "lookup_label_field": "name",
+    "autofill": [
+      {"from": "descripcion", "to": "descripcion"}
+    ]
+  },
+  {
+    "name": "descripcion",
+    "label": "Descripción",
+    "type": "text"
+  }
+]</pre>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

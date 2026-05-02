@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}{% if name %}Editar lookup {{ name }}{% else %}Nuevo lookup{% endif %} – Doctor Zebra{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-3 gap-2">
+  <a href="{{ url_for('cache_list') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <h4 class="mb-0">
+    {% if name %}Editar lookup <code>{{ name }}</code>{% else %}Nuevo lookup{% endif %}
+  </h4>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <form method="post">
+          <input type="hidden" name="action" id="formAction" value="save">
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Nombre (ID) <span class="text-danger">*</span></label>
+            <input type="text" class="form-control font-monospace" name="name"
+                   value="{{ name or '' }}"
+                   pattern="[A-Za-z0-9_\-]+"
+                   title="Solo letras, números, guiones y guiones bajos"
+                   {% if name %}readonly{% endif %} required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">URL de origen (opcional)</label>
+            <div class="input-group">
+              <input type="url" class="form-control font-monospace" name="source_url"
+                     id="sourceUrl"
+                     value="{{ source_url or '' }}"
+                     placeholder="https://api.example.com/productos.json">
+              <button class="btn btn-outline-primary" type="submit"
+                      onclick="document.getElementById('formAction').value='refresh'">
+                <i class="bi bi-cloud-download-fill me-1"></i>Importar desde URL
+              </button>
+            </div>
+            <div class="form-text">
+              El endpoint debe devolver un array JSON.  Esto actualiza el caché local y no
+              requiere conexión posterior.
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Datos JSON</label>
+            <textarea class="form-control font-monospace" name="data_json" id="dataJson"
+                      rows="16" spellcheck="false">{{ data_json }}</textarea>
+            <div class="form-text">
+              Array JSON de objetos.  Ejemplo:
+              <code>[{"code":"001","name":"Producto A"},…]</code>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-warning"
+                    onclick="document.getElementById('formAction').value='save'">
+              <i class="bi bi-floppy-fill me-1"></i>Guardar datos
+            </button>
+            <a href="{{ url_for('cache_list') }}" class="btn btn-outline-secondary">Cancelar</a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-header"><i class="bi bi-lightbulb-fill me-1"></i>Consejos</div>
+      <div class="card-body small text-muted">
+        <ul class="ps-3 mb-0">
+          <li>La URL debe devolver un <strong>array JSON</strong> (lista de objetos).</li>
+          <li>Puedes importar desde URL y luego editar manualmente los datos.</li>
+          <li>Referencia este lookup en un perfil con
+              <code>"lookup": "{{ name or 'nombre' }}"</code>.</li>
+          <li>Usa <code>lookup_value_field</code> y <code>lookup_label_field</code>
+              para indicar qué campos usar en el autocompletado.</li>
+          <li>Con <code>autofill</code> puedes auto-rellenar otros campos al seleccionar
+              un ítem.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
