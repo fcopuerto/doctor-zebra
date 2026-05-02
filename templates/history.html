@@ -1,13 +1,12 @@
 {% extends "base.html" %}
-{% block title %}History · Doctor Zebra{% endblock %}
-{% block topbar_title %}Print history{% endblock %}
+{% block title %}{{ t('nav.history') }} · Doctor Zebra{% endblock %}
+{% block topbar_title %}{{ t('history.title') }}{% endblock %}
 
 {% block content %}
 <div class="card">
     <div class="card__header">
         <div>
-            <h1 class="card__title" style="font-size:20px;">Print history</h1>
-            <p class="card__subtitle">Every label sent to a printer is recorded here.</p>
+            <h1 class="card__title" style="font-size:20px;">{{ t('history.title') }}</h1>
         </div>
     </div>
 
@@ -15,9 +14,9 @@
     <table>
         <thead>
             <tr>
-                <th>When</th>
-                <th>Template</th>
-                <th>Fields</th>
+                <th>{{ t('history.col.when') }}</th>
+                <th>{{ t('history.col.template') }}</th>
+                <th>{{ t('history.col.fields') }}</th>
                 <th style="width:80px;"></th>
             </tr>
         </thead>
@@ -39,18 +38,18 @@
                         {% endfor %}
                     </ul>
                     {% else %}
-                    <span class="muted">(no fields)</span>
+                    <span class="muted">—</span>
                     {% endif %}
                 </td>
                 <td>
-                    <a href="{{ url_for('labels.load_label', label_id=rec.id) }}" class="btn btn-ghost">Load</a>
+                    <a href="{{ url_for('labels.load_label', label_id=rec.id) }}" class="btn btn-ghost">{{ t('history.action.reuse') }}</a>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
     {% else %}
-    <p class="muted">No labels have been printed yet.</p>
+    <p class="muted">{{ t('history.empty') }}</p>
     {% endif %}
 </div>
 {% endblock %}

@@ -3,15 +3,17 @@
 import logging
 from pathlib import Path
 
-from flask import Flask
+from flask import Flask, g, request
 
-from zebra import printer, profiles
+from zebra import i18n, printer, profiles
 from zebra.cache_scheduler import start_scheduler
 from zebra.db import init_db
 from zebra.lookup_cache import init_cache
 from zebra.settings import Settings
 
-__version__ = '0.2.1'
+LANG_COOKIE = 'doctor_zebra_lang'
+
+__version__ = '0.3.0'
 
 # Path to the package root (read-only assets when frozen with PyInstaller).
 PACKAGE_ROOT = Path(__file__).resolve().parent.parent
@@ -53,6 +55,7 @@ def create_app(
 
     init_db(app.config['DB_PATH'])
     init_cache(app.config['DB_PATH'])
+    i18n.load_all(PACKAGE_ROOT / 'i18n')
 
     if app.config.get('AUTO_SYNC_CACHE', True):
         start_scheduler(app)
@@ -68,6 +71,13 @@ def create_app(
     if not app.config.get('SECRET_KEY'):
         app.config['SECRET_KEY'] = 'zebra-labels-local'
 
+    @app.before_request
+    def _resolve_lang():
+        g.lang = i18n.pick(
+            request.cookies.get(LANG_COOKIE),
+            request.headers.get('Accept-Language'),
+        )
+
     @app.context_processor
     def inject_printer_info():
         name = settings.default_printer
@@ -78,6 +88,15 @@ def create_app(
             status_color=color,
             active_profile=app.config.get('PROFILE_NAME', 'default'),
             app_version=__version__,
+        )
+
+    @app.context_processor
+    def inject_i18n():
+        lang = getattr(g, 'lang', i18n.DEFAULT_LANG)
+        return dict(
+            t=lambda key: i18n.translate(key, lang),
+            lang=lang,
+            available_langs=i18n.available(),
         )
 
     logging.info('Zebra app initialized')

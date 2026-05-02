@@ -9,8 +9,8 @@ from flask import (
 )
 
 from zebra import (
-    cache_scheduler, datasources, db, fields as fields_mod, lookup_cache,
-    preview, zpl,
+    LANG_COOKIE, cache_scheduler, datasources, db, fields as fields_mod,
+    i18n, lookup_cache, preview, zpl,
 )
 from zebra.constants import MAX_COPIES
 from zebra.datasources.base import DataSourceError
@@ -302,6 +302,23 @@ def generate_zpl():
 def history():
     records = db.list_all(_db_path())
     return render_template('history.html', records=records)
+
+
+@bp.route('/api/lang/<code>', methods=['POST'])
+def set_lang(code):
+    """Persist the user's language choice in a cookie. Idempotent."""
+    if not i18n.is_supported(code):
+        return jsonify({'ok': False, 'error': 'unsupported language'}), 400
+    resp = jsonify({'ok': True, 'lang': code.lower()})
+    # 1-year cookie, available across the whole app, not exposed to JS by
+    # accident on third-party origins. Marked as session-persistent.
+    resp.set_cookie(
+        LANG_COOKIE, code.lower(),
+        max_age=60 * 60 * 24 * 365,
+        samesite='Lax',
+        httponly=False,
+    )
+    return resp
 
 
 @bp.route('/dashboard')

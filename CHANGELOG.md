@@ -7,6 +7,26 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-05-02
+
+Soporte multi-idioma — primera oleada (sidebar, topbar, dashboard, historial).
+
+### Añadido
+
+- **i18n** con diccionarios JSON (`i18n/en.json`, `es.json`, `ca.json`).
+- Selector de idioma en la topbar (`EN · ES · CA`) con el activo destacado.
+- Resolución del idioma: cookie `doctor_zebra_lang` → `Accept-Language` →
+  **español por defecto**. Las claves no traducidas caen a inglés y, si
+  tampoco existen ahí, se muestra la propia clave para que sean visibles.
+- Endpoint `POST /api/lang/<code>` que persiste el idioma en cookie de 1 año.
+- Páginas traducidas en esta versión: navegación lateral, topbar, dashboard
+  completo (KPIs, paneles, tabla de errores) e historial.
+
+### Pendiente para 0.3.1
+
+- Traducir formulario de impresión, asistente, configuraciones (printers,
+  plantillas, conexiones, perfiles) y mensajes de error de servidor.
+
 ## [0.2.1] - 2026-05-02
 
 ### Añadido
@@ -86,7 +106,8 @@ distribuye como `.exe` autónomo para Windows.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/doctor-zebra/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/fcopuerto/doctor-zebra/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/fcopuerto/doctor-zebra/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/fcopuerto/doctor-zebra/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/fcopuerto/doctor-zebra/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/fcopuerto/doctor-zebra/compare/v0.1.0...v0.1.1

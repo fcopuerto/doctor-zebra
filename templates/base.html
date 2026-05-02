@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="{{ lang }}" data-theme="light">
 
 <head>
     <meta charset="UTF-8">
@@ -95,24 +95,24 @@
                 Doctor Zebra
             </div>
             <nav class="sidebar__nav">
-                <div class="sidebar__section">Operations</div>
+                <div class="sidebar__section">{{ t('nav.section.operations') }}</div>
                 <a href="{{ url_for('labels.index') }}"
                     class="sidebar__link {% if request.endpoint == 'labels.index' %}active{% endif %}">
                     <svg class="icon"><use href="#i-printer" /></svg>
-                    Print
+                    {{ t('nav.print') }}
                 </a>
                 <a href="{{ url_for('labels.dashboard') }}"
                     class="sidebar__link {% if request.endpoint == 'labels.dashboard' %}active{% endif %}">
                     <svg class="icon"><use href="#i-bar-chart" /></svg>
-                    Dashboard
+                    {{ t('nav.dashboard') }}
                 </a>
                 <a href="{{ url_for('labels.history') }}"
                     class="sidebar__link {% if request.endpoint == 'labels.history' %}active{% endif %}">
                     <svg class="icon"><use href="#i-history" /></svg>
-                    History
+                    {{ t('nav.history') }}
                 </a>
 
-                <div class="sidebar__section sidebar__section--with-divider">Administration</div>
+                <div class="sidebar__section sidebar__section--with-divider">{{ t('nav.section.administration') }}</div>
                 {% set _settings_endpoints = ['config.config_page', 'config.printers',
                     'config.templates_list', 'config.connections_page', 'config.wizard',
                     'config.profiles_page',
@@ -120,11 +120,11 @@
                 <a href="{{ url_for('config.config_page') }}"
                     class="sidebar__link {% if request.endpoint in _settings_endpoints %}active{% endif %}">
                     <svg class="icon"><use href="#i-settings" /></svg>
-                    Settings
+                    {{ t('nav.settings') }}
                 </a>
             </nav>
             <div class="sidebar__footer">
-                v{{ app_version }} · local only
+                v{{ app_version }} · {{ t('nav.footer.local_only') }}
             </div>
         </aside>
 
@@ -133,18 +133,27 @@
             <div class="topbar__title">{% block topbar_title %}{{ self.title() }}{% endblock %}</div>
             <div class="topbar__right">
                 <a href="{{ url_for('config.profiles_page') }}"
-                   class="profile-pill" title="Active profile — click to manage">
+                   class="profile-pill" title="{{ t('topbar.profile.tooltip') }}">
                     <svg class="icon"><use href="#i-folders" /></svg>
                     <code>{{ active_profile }}</code>
                 </a>
                 <span class="status-pill" title="Current printer">
                     <span class="status-dot {{ status_color }}"></span>
-                    <code>{{ active_printer or 'not configured' }}</code>
+                    <code>{{ active_printer or t('topbar.printer.not_configured') }}</code>
                     <span>·</span>
                     <span>{{ printer_status }}</span>
                 </span>
-                <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle theme"
-                    title="Toggle dark mode">
+                <div class="lang-switcher" role="group" aria-label="{{ t('topbar.lang.label') }}">
+                    {% for l in available_langs %}
+                    <button type="button"
+                            class="lang-switcher__btn {% if l.code == lang %}active{% endif %}"
+                            data-lang="{{ l.code }}"
+                            title="{{ l.name }}">{{ l.short }}</button>
+                    {% endfor %}
+                </div>
+                <button type="button" class="theme-toggle" id="themeToggle"
+                        aria-label="{{ t('topbar.toggle_theme') }}"
+                        title="{{ t('topbar.toggle_theme') }}">
                     <svg class="icon icon-moon">
                         <use href="#i-moon" />
                     </svg>

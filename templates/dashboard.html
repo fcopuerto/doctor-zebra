@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Dashboard · Doctor Zebra{% endblock %}
+{% block title %}{{ t('dashboard.title') }} · Doctor Zebra{% endblock %}
 
 {% macro top_table(rows, key, empty_msg) %}
     {% if rows %}
@@ -25,31 +25,31 @@
 {% block content %}
 <section class="dashboard">
     <header class="dashboard__header">
-        <h1>Dashboard</h1>
-        <p class="muted">Operational overview for profile <code>{{ active_profile }}</code>.</p>
+        <h1>{{ t('dashboard.title') }}</h1>
+        <p class="muted">{{ t('dashboard.subtitle') }} <code>{{ active_profile }}</code>.</p>
     </header>
 
     <!-- ============================== KPI cards -->
     <div class="kpi-grid">
         <div class="kpi-card">
-            <div class="kpi-card__label">Today</div>
+            <div class="kpi-card__label">{{ t('dashboard.kpi.today') }}</div>
             <div class="kpi-card__value">{{ kpis.today }}</div>
-            <div class="kpi-card__hint muted">labels printed</div>
+            <div class="kpi-card__hint muted">{{ t('dashboard.kpi.labels_printed') }}</div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-card__label">Last 7 days</div>
+            <div class="kpi-card__label">{{ t('dashboard.kpi.week') }}</div>
             <div class="kpi-card__value">{{ kpis.week }}</div>
-            <div class="kpi-card__hint muted">labels printed</div>
+            <div class="kpi-card__hint muted">{{ t('dashboard.kpi.labels_printed') }}</div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-card__label">Last 30 days</div>
+            <div class="kpi-card__label">{{ t('dashboard.kpi.month') }}</div>
             <div class="kpi-card__value">{{ kpis.month }}</div>
-            <div class="kpi-card__hint muted">labels printed</div>
+            <div class="kpi-card__hint muted">{{ t('dashboard.kpi.labels_printed') }}</div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-card__label">All time</div>
+            <div class="kpi-card__label">{{ t('dashboard.kpi.all_time') }}</div>
             <div class="kpi-card__value">{{ kpis.total }}</div>
-            <div class="kpi-card__hint muted">since first run</div>
+            <div class="kpi-card__hint muted">{{ t('dashboard.kpi.since_first_run') }}</div>
         </div>
     </div>
 
@@ -57,55 +57,55 @@
     <div class="dashboard__grid">
         <article class="dashboard__panel dashboard__panel--wide">
             <header class="dashboard__panel-head">
-                <h2>Activity (last 30 days)</h2>
+                <h2>{{ t('dashboard.panel.activity') }}</h2>
             </header>
             <div class="dashboard__panel-body">
                 {% if kpis.month %}
                     {{ activity_chart|safe }}
                 {% else %}
-                    <p class="muted dashboard__empty">No prints in the last 30 days yet.</p>
+                    <p class="muted dashboard__empty">{{ t('dashboard.empty.no_30d') }}</p>
                 {% endif %}
             </div>
         </article>
 
         <article class="dashboard__panel">
-            <header class="dashboard__panel-head"><h2>Top templates</h2></header>
+            <header class="dashboard__panel-head"><h2>{{ t('dashboard.panel.top_templates') }}</h2></header>
             <div class="dashboard__panel-body">
-                {{ top_table(top_templates, 'template_file', 'No prints recorded yet.') }}
+                {{ top_table(top_templates, 'template_file', t('dashboard.empty.templates')) }}
             </div>
         </article>
 
         <article class="dashboard__panel">
-            <header class="dashboard__panel-head"><h2>Top sizes</h2></header>
+            <header class="dashboard__panel-head"><h2>{{ t('dashboard.panel.top_sizes') }}</h2></header>
             <div class="dashboard__panel-body">
-                {{ top_table(top_sizes, 'label', 'No size data yet — print a label that includes ^PW/^LL.') }}
+                {{ top_table(top_sizes, 'label', t('dashboard.empty.sizes')) }}
             </div>
         </article>
 
         <article class="dashboard__panel">
-            <header class="dashboard__panel-head"><h2>Top printers</h2></header>
+            <header class="dashboard__panel-head"><h2>{{ t('dashboard.panel.top_printers') }}</h2></header>
             <div class="dashboard__panel-body">
-                {{ top_table(top_printers, 'printer_name', 'No printers recorded yet.') }}
+                {{ top_table(top_printers, 'printer_name', t('dashboard.empty.printers')) }}
             </div>
         </article>
 
         <article class="dashboard__panel">
-            <header class="dashboard__panel-head"><h2>Top items</h2></header>
+            <header class="dashboard__panel-head"><h2>{{ t('dashboard.panel.top_items') }}</h2></header>
             <div class="dashboard__panel-body">
-                {{ top_table(top_items, 'lookup_key', 'No items captured yet — print using a template that has a lookup field.') }}
+                {{ top_table(top_items, 'lookup_key', t('dashboard.empty.items')) }}
             </div>
         </article>
 
         <article class="dashboard__panel">
-            <header class="dashboard__panel-head"><h2>Consumables</h2></header>
+            <header class="dashboard__panel-head"><h2>{{ t('dashboard.panel.consumables') }}</h2></header>
             <div class="dashboard__panel-body">
-                <p class="muted dashboard__empty">Roll status per printer — coming soon.</p>
+                <p class="muted dashboard__empty">{{ t('dashboard.empty.consumables') }}</p>
             </div>
         </article>
 
         <article class="dashboard__panel dashboard__panel--wide">
             <header class="dashboard__panel-head">
-                <h2>Recent errors</h2>
+                <h2>{{ t('dashboard.panel.recent_errors') }}</h2>
                 {% if recent_errors %}<span class="badge badge--err">{{ recent_errors|length }}</span>{% endif %}
             </header>
             <div class="dashboard__panel-body">
@@ -113,10 +113,10 @@
                 <table class="errors-table">
                     <thead>
                         <tr>
-                            <th>When</th>
-                            <th>Template</th>
-                            <th>Printer</th>
-                            <th>Error</th>
+                            <th>{{ t('dashboard.errors.col.when') }}</th>
+                            <th>{{ t('dashboard.errors.col.template') }}</th>
+                            <th>{{ t('dashboard.errors.col.printer') }}</th>
+                            <th>{{ t('dashboard.errors.col.error') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -131,7 +131,7 @@
                     </tbody>
                 </table>
                 {% else %}
-                <p class="muted dashboard__empty">No recent errors. 🎉</p>
+                <p class="muted dashboard__empty">{{ t('dashboard.empty.no_errors') }}</p>
                 {% endif %}
             </div>
         </article>

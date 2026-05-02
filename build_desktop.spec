@@ -37,6 +37,7 @@ APP_VERSION = _m.group(1) if _m else '0.0.0'
 datas = [
     (str(root / 'templates'),      'templates'),
     (str(root / 'static'),         'static'),
+    (str(root / 'i18n'),           'i18n'),
     (str(root / 'seed_profiles'),  'seed_profiles'),
 ]
 
