@@ -1,10 +1,37 @@
 """ZPL template discovery, validation, sanitization, and rendering."""
 
 import logging
+import re
 from pathlib import Path
 
 # Strip ZPL command chars from user values to prevent command injection.
 _ZPL_CONTROL_CHARS = str.maketrans({'^': '', '~': ''})
+
+# Zebra printers default to 203 dpi (8 dots/mm). 300dpi exists but is rare
+# in this app's target installs; keeping it as a constant means stats
+# stay comparable across runs for the same template.
+_DEFAULT_DPI = 203
+_MM_PER_INCH = 25.4
+
+_PW_RE = re.compile(r'\^PW(\d+)', re.IGNORECASE)
+_LL_RE = re.compile(r'\^LL(\d+)', re.IGNORECASE)
+
+
+def label_dimensions_mm(
+    zpl_text: str, dpi: int = _DEFAULT_DPI
+) -> tuple[float | None, float | None]:
+    """Return ``(width_mm, height_mm)`` parsed from ``^PW`` / ``^LL`` commands.
+
+    Either component is ``None`` when the command isn't present — common for
+    fragments that rely on the printer's persistent settings.
+    """
+    if not zpl_text:
+        return (None, None)
+    pw = _PW_RE.search(zpl_text)
+    ll = _LL_RE.search(zpl_text)
+    width = round(int(pw.group(1)) * _MM_PER_INCH / dpi, 1) if pw else None
+    height = round(int(ll.group(1)) * _MM_PER_INCH / dpi, 1) if ll else None
+    return (width, height)
 
 
 def clean_field(value: str) -> str:

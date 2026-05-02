@@ -35,6 +35,31 @@ CREATE TABLE IF NOT EXISTS label_prints (
 )
 '''
 
+# Columns added after the original schema. init_db() adds any that are
+# missing via ALTER TABLE so existing installations gain them transparently
+# without losing data.
+_ADDITIVE_COLUMNS: tuple[tuple[str, str], ...] = (
+    ('copies',          'INTEGER NOT NULL DEFAULT 1'),
+    ('printer_name',    'TEXT'),
+    ('status',          "TEXT NOT NULL DEFAULT 'ok'"),
+    ('error_message',   'TEXT'),
+    ('label_width_mm',  'REAL'),
+    ('label_height_mm', 'REAL'),
+    ('lookup_key',      'TEXT'),
+    ('profile_name',    'TEXT'),
+)
+
+
+def _existing_columns(conn: sqlite3.Connection, table: str) -> set[str]:
+    return {row[1] for row in conn.execute(f'PRAGMA table_info({table})')}
+
+
+def _migrate_label_prints(conn: sqlite3.Connection) -> None:
+    have = _existing_columns(conn, 'label_prints')
+    for name, ddl in _ADDITIVE_COLUMNS:
+        if name not in have:
+            conn.execute(f'ALTER TABLE label_prints ADD COLUMN {name} {ddl}')
+
 _LEGACY_COLS = (
     'recipient_name', 'recipient_address',
     'recipient_city_state', 'recipient_country',
@@ -55,19 +80,54 @@ def init_db(db_path: str | Path) -> None:
     with connect(db_path) as conn:
         conn.execute(_LEGACY_SCHEMA)
         conn.execute(_SCHEMA)
+        _migrate_label_prints(conn)
+        # Helpful index for stats queries that scan by date.
+        conn.execute(
+            'CREATE INDEX IF NOT EXISTS idx_label_prints_printed_at '
+            'ON label_prints(printed_at)'
+        )
 
 
 # ---------------------------------------------------------------------------
 # Writes
 # ---------------------------------------------------------------------------
 
-def insert(db_path: str | Path, template_file: str, fields: dict) -> int:
-    """Insert a print record. ``fields`` is serialised to JSON."""
+def insert(
+    db_path: str | Path,
+    template_file: str,
+    fields: dict,
+    *,
+    copies: int = 1,
+    printer_name: str | None = None,
+    status: str = 'ok',
+    error_message: str | None = None,
+    label_width_mm: float | None = None,
+    label_height_mm: float | None = None,
+    lookup_key: str | None = None,
+    profile_name: str | None = None,
+) -> int:
+    """Insert a print record. ``fields`` is serialised to JSON.
+
+    All metadata beyond ``template_file`` and ``fields`` is optional so
+    callers can adopt the richer signature gradually.
+    """
     payload = json.dumps(fields or {}, ensure_ascii=False)
     with connect(db_path) as conn:
         cur = conn.execute(
-            'INSERT INTO label_prints (template_file, fields_json) VALUES (?, ?)',
-            (template_file, payload),
+            '''
+            INSERT INTO label_prints (
+                template_file, fields_json, copies, printer_name,
+                status, error_message,
+                label_width_mm, label_height_mm,
+                lookup_key, profile_name
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''',
+            (
+                template_file, payload, max(1, int(copies or 1)), printer_name,
+                status, error_message,
+                label_width_mm, label_height_mm,
+                lookup_key, profile_name,
+            ),
         )
         return cur.lastrowid or 0
 

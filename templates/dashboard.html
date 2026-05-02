@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · Doctor Zebra{% endblock %}
+
+{% block content %}
+<section class="dashboard">
+    <header class="dashboard__header">
+        <h1>Dashboard</h1>
+        <p class="muted">Operational overview for profile <code>{{ active_profile }}</code>.</p>
+    </header>
+
+    <!-- ============================== KPI cards -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-card__label">Today</div>
+            <div class="kpi-card__value">—</div>
+            <div class="kpi-card__hint muted">labels printed</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-card__label">This week</div>
+            <div class="kpi-card__value">—</div>
+            <div class="kpi-card__hint muted">labels printed</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-card__label">This month</div>
+            <div class="kpi-card__value">—</div>
+            <div class="kpi-card__hint muted">labels printed</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-card__label">All time</div>
+            <div class="kpi-card__value">—</div>
+            <div class="kpi-card__hint muted">since first run</div>
+        </div>
+    </div>
+
+    <!-- ============================== Sections placeholder -->
+    <div class="dashboard__grid">
+        <article class="dashboard__panel">
+            <header class="dashboard__panel-head"><h2>Activity (30 days)</h2></header>
+            <div class="dashboard__placeholder"><p class="muted">Daily activity chart coming in the next phase.</p></div>
+        </article>
+
+        <article class="dashboard__panel">
+            <header class="dashboard__panel-head"><h2>Top templates</h2></header>
+            <div class="dashboard__placeholder"><p class="muted">Most-printed templates will show here.</p></div>
+        </article>
+
+        <article class="dashboard__panel">
+            <header class="dashboard__panel-head"><h2>Top sizes</h2></header>
+            <div class="dashboard__placeholder"><p class="muted">Most-used label sizes (mm × mm).</p></div>
+        </article>
+
+        <article class="dashboard__panel">
+            <header class="dashboard__panel-head"><h2>Top items</h2></header>
+            <div class="dashboard__placeholder"><p class="muted">Ranking of labelled SKUs (needs lookup capture).</p></div>
+        </article>
+
+        <article class="dashboard__panel">
+            <header class="dashboard__panel-head"><h2>Consumables</h2></header>
+            <div class="dashboard__placeholder"><p class="muted">Roll status per printer — coming soon.</p></div>
+        </article>
+
+        <article class="dashboard__panel">
+            <header class="dashboard__panel-head"><h2>Recent errors</h2></header>
+            <div class="dashboard__placeholder"><p class="muted">Latest failed prints.</p></div>
+        </article>
+    </div>
+</section>
+{% endblock %}

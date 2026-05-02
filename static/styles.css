@@ -275,6 +275,21 @@ code {
     flex-shrink: 0;
 }
 
+.sidebar__section {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-subtle);
+    padding: var(--s-3) var(--s-4) var(--s-2);
+}
+
+.sidebar__section--with-divider {
+    margin-top: var(--s-4);
+    padding-top: var(--s-4);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
 .sidebar__footer {
     margin-top: auto;
     padding: var(--s-4) var(--s-5);
@@ -2044,4 +2059,117 @@ tbody tr:hover {
     fill: none;
     flex-shrink: 0;
     vertical-align: middle;
+}
+
+/* ========================================================================
+   Settings hub: prominent CTA for the Setup Wizard
+   ======================================================================== */
+.hub-cta {
+    display: flex;
+    align-items: center;
+    gap: var(--s-4);
+    padding: var(--s-4) var(--s-5);
+    margin-bottom: var(--s-6);
+    background: linear-gradient(135deg, var(--primary-soft, #eef4ff), transparent);
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: var(--r-lg);
+    color: var(--text);
+    text-decoration: none;
+    transition: border-color 0.12s, transform 0.12s, box-shadow 0.12s;
+}
+.hub-cta:hover {
+    border-color: var(--primary);
+    text-decoration: none;
+    box-shadow: var(--sh-md);
+    transform: translateY(-1px);
+}
+.hub-cta .icon {
+    width: 22px;
+    height: 22px;
+    color: var(--primary);
+}
+.hub-cta div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+}
+.hub-cta strong {
+    font-size: 15px;
+}
+.hub-cta__chev {
+    width: 18px;
+    height: 18px;
+    color: var(--text-subtle);
+}
+
+/* ========================================================================
+   Dashboard
+   ======================================================================== */
+.dashboard__header {
+    margin-bottom: var(--s-6);
+}
+.dashboard__header h1 {
+    margin: 0 0 var(--s-2);
+    font-size: 24px;
+    letter-spacing: -0.01em;
+}
+
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--s-4);
+    margin-bottom: var(--s-8);
+}
+.kpi-card {
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: var(--r-lg);
+    padding: var(--s-5);
+    box-shadow: var(--sh-sm, 0 1px 2px rgba(0, 0, 0, 0.04));
+}
+.kpi-card__label {
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 11px;
+    color: var(--text-subtle);
+    font-weight: 600;
+}
+.kpi-card__value {
+    font-size: 32px;
+    font-weight: 700;
+    margin: var(--s-2) 0 var(--s-1);
+    letter-spacing: -0.02em;
+}
+.kpi-card__hint {
+    font-size: 12px;
+}
+
+.dashboard__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: var(--s-4);
+}
+.dashboard__panel {
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+}
+.dashboard__panel-head {
+    padding: var(--s-4) var(--s-5);
+    border-bottom: 1px solid var(--border, #e5e7eb);
+}
+.dashboard__panel-head h2 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+}
+.dashboard__placeholder {
+    padding: var(--s-6) var(--s-5);
+    min-height: 120px;
+    display: grid;
+    place-items: center;
+    text-align: center;
 }

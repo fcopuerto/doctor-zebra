@@ -79,6 +79,10 @@
                 <path d="M2 14V6a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2" />
                 <path d="M6 14a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z" />
             </symbol>
+            <symbol id="i-bar-chart" viewBox="0 0 24 24">
+                <path d="M3 3v18h18" />
+                <path d="M7 14v4M12 9v9M17 5v13" />
+            </symbol>
         </defs>
     </svg>
 
@@ -91,36 +95,32 @@
                 Doctor Zebra
             </div>
             <nav class="sidebar__nav">
+                <div class="sidebar__section">Operations</div>
                 <a href="{{ url_for('labels.index') }}"
                     class="sidebar__link {% if request.endpoint == 'labels.index' %}active{% endif %}">
-                    <svg class="icon">
-                        <use href="#i-printer" />
-                    </svg>
+                    <svg class="icon"><use href="#i-printer" /></svg>
                     Print
                 </a>
-                <a href="{{ url_for('config.wizard') }}"
-                    class="sidebar__link {% if request.endpoint == 'config.wizard' %}active{% endif %}">
-                    <svg class="icon">
-                        <use href="#i-wand" />
-                    </svg>
-                    Setup Wizard
-                </a>
-                {% set _settings_endpoints = ['config.config_page', 'config.printers',
-                    'config.templates_list', 'config.connections_page',
-                    'tmpl.fields', 'tmpl.edit', 'tmpl.new'] %}
-                <a href="{{ url_for('config.config_page') }}"
-                    class="sidebar__link {% if request.endpoint in _settings_endpoints %}active{% endif %}">
-                    <svg class="icon">
-                        <use href="#i-settings" />
-                    </svg>
-                    Settings
+                <a href="{{ url_for('labels.dashboard') }}"
+                    class="sidebar__link {% if request.endpoint == 'labels.dashboard' %}active{% endif %}">
+                    <svg class="icon"><use href="#i-bar-chart" /></svg>
+                    Dashboard
                 </a>
                 <a href="{{ url_for('labels.history') }}"
                     class="sidebar__link {% if request.endpoint == 'labels.history' %}active{% endif %}">
-                    <svg class="icon">
-                        <use href="#i-history" />
-                    </svg>
+                    <svg class="icon"><use href="#i-history" /></svg>
                     History
+                </a>
+
+                <div class="sidebar__section sidebar__section--with-divider">Administration</div>
+                {% set _settings_endpoints = ['config.config_page', 'config.printers',
+                    'config.templates_list', 'config.connections_page', 'config.wizard',
+                    'config.profiles_page',
+                    'tmpl.fields', 'tmpl.edit', 'tmpl.new'] %}
+                <a href="{{ url_for('config.config_page') }}"
+                    class="sidebar__link {% if request.endpoint in _settings_endpoints %}active{% endif %}">
+                    <svg class="icon"><use href="#i-settings" /></svg>
+                    Settings
                 </a>
             </nav>
             <div class="sidebar__footer">

@@ -256,18 +256,34 @@ def generate_zpl():
 
     rendered = zpl.render(path, values)
     printer_name = _settings().printer_for_template(template_file)
+    width_mm, height_mm = zpl.label_dimensions_mm(rendered)
+    profile_name = current_app.config.get('PROFILE_NAME')
 
     try:
         send_to_printer(printer_name, rendered, copies)
     except PrinterError as e:
         logging.error(f"Failed to send label to printer: {e}")
+        # Still record the failed attempt so the dashboard can surface it.
+        db.insert(
+            _db_path(), template_file, values,
+            copies=copies, printer_name=printer_name,
+            status='error', error_message=str(e),
+            label_width_mm=width_mm, label_height_mm=height_mm,
+            profile_name=profile_name,
+        )
         return jsonify({'message': f'Failed to send label to printer: {e}'}), 500
 
     logging.info(
         f"Label sent to printer {printer_name} using template {template_file} "
         f"({copies} copies)"
     )
-    db.insert(_db_path(), template_file, values)
+    db.insert(
+        _db_path(), template_file, values,
+        copies=copies, printer_name=printer_name,
+        status='ok',
+        label_width_mm=width_mm, label_height_mm=height_mm,
+        profile_name=profile_name,
+    )
     return jsonify({'message': 'Label sent to printer successfully!'})
 
 
@@ -275,3 +291,13 @@ def generate_zpl():
 def history():
     records = db.list_all(_db_path())
     return render_template('history.html', records=records)
+
+
+@bp.route('/dashboard')
+def dashboard():
+    """Operational overview: KPIs, top templates/sizes, alerts.
+
+    Phase A scaffold: only renders the layout with placeholder values.
+    Real metrics land in Phase B once we have enough captured data.
+    """
+    return render_template('dashboard.html')
