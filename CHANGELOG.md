@@ -7,6 +7,18 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-05-02
+
+### Arreglado
+
+- El `.exe` de Windows no incluía ningún driver de SQL Server, así que las
+  conexiones MSSQL fallaban con `No module named pymssql`. Ahora la build
+  de Windows empaqueta `pymssql` (pure-Python, sin dependencias del sistema)
+  y la pantalla **Settings → Database connections** lo refleja.
+- En el `.exe`, la pantalla de conexiones ya no sugiere comandos
+  `pip install` (que no aplican fuera del entorno de desarrollo). En su
+  lugar muestra qué drivers vienen empaquetados y qué requiere cada uno.
+
 ## [0.1.0] - 2026-05-02
 
 Primera versión pública. La app ya es usable de extremo a extremo y se
@@ -35,5 +47,6 @@ distribuye como `.exe` autónomo para Windows.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/doctor-zebra/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/fcopuerto/doctor-zebra/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/fcopuerto/doctor-zebra/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/fcopuerto/doctor-zebra/releases/tag/v0.1.0

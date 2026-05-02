@@ -16,6 +16,7 @@ backend falls back to whichever is importable.
 from __future__ import annotations
 
 import logging
+import sys
 from typing import Any
 
 from zebra.datasources.base import ConnectionConfig, DataSource, DataSourceError
@@ -62,7 +63,7 @@ def _int(raw, default: int) -> int:
         return default
 
 
-_INSTALL_HELP = (
+_INSTALL_HELP_SOURCE = (
     'No SQL Server driver is available. Pick whichever fits your machine:\n'
     '  • pymssql (pure-Python, works on Mac/Linux/Windows, no Microsoft '
     'components):  pip install -r requirements-mssql-pure.txt\n'
@@ -71,13 +72,26 @@ _INSTALL_HELP = (
     'requirements-mssql-odbc.txt'
 )
 
+_INSTALL_HELP_FROZEN = (
+    'No SQL Server driver is bundled with this build. Use a release that '
+    'includes pymssql, or for Windows Authentication install the Microsoft '
+    'ODBC Driver 18 system-wide and use a build that includes pyodbc.'
+)
+
+
+def is_frozen() -> bool:
+    """True when running inside a PyInstaller bundle (.exe / .app)."""
+    return bool(getattr(sys, 'frozen', False))
+
 
 def driver_status() -> dict:
     """Quick snapshot used by the UI to show what's installed."""
+    frozen = is_frozen()
     return {
         'pyodbc': _has_pyodbc(),
         'pymssql': _has_pymssql(),
-        'help': _INSTALL_HELP,
+        'frozen': frozen,
+        'help': _INSTALL_HELP_FROZEN if frozen else _INSTALL_HELP_SOURCE,
     }
 
 

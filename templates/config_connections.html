@@ -19,17 +19,38 @@
 
     {% set has_any = mssql_drivers.pyodbc or mssql_drivers.pymssql %}
     <div class="driver-banner {% if has_any %}ok{% else %}warn{% endif %}">
-        <strong>SQL Server drivers installed:</strong>
+        <strong>SQL Server drivers available:</strong>
         pyodbc {% if mssql_drivers.pyodbc %}✓{% else %}✗{% endif %} ·
         pymssql {% if mssql_drivers.pymssql %}✓{% else %}✗{% endif %}
-        {% if not has_any %}
-        <p>Pick whichever fits your machine and install it before saving a connection:</p>
-        <ul>
-            <li><strong>pymssql</strong> — pure-Python, works on Mac/Linux/Windows, no Microsoft components needed:<br>
-                <code>pip install -r requirements-mssql-pure.txt</code></li>
-            <li><strong>pyodbc + Microsoft ODBC Driver 18</strong> — recommended on Windows; supports Windows / AD authentication:<br>
-                <code>pip install -r requirements-mssql-odbc.txt</code></li>
-        </ul>
+
+        {% if mssql_drivers.frozen %}
+            {# Packaged .exe / .app — the user can't pip install anything. #}
+            {% if has_any %}
+                <p class="muted" style="margin: 6px 0 0;">
+                    {% if mssql_drivers.pymssql and not mssql_drivers.pyodbc %}
+                        This build ships with <strong>pymssql</strong>, which works against
+                        any SQL Server using SQL authentication.
+                        For <strong>Windows / AD authentication</strong> you'd need <code>pyodbc</code>
+                        plus the Microsoft ODBC Driver 18 — not included in this build.
+                    {% elif mssql_drivers.pyodbc %}
+                        Using <strong>pyodbc</strong> requires the Microsoft ODBC Driver 18 to be
+                        installed system-wide on this machine.
+                    {% endif %}
+                </p>
+            {% else %}
+                <p>{{ mssql_drivers.help }}</p>
+            {% endif %}
+        {% else %}
+            {# Running from source — show pip install instructions. #}
+            {% if not has_any %}
+            <p>Pick whichever fits your machine and install it before saving a connection:</p>
+            <ul>
+                <li><strong>pymssql</strong> — pure-Python, works on Mac/Linux/Windows, no Microsoft components needed:<br>
+                    <code>pip install -r requirements-mssql-pure.txt</code></li>
+                <li><strong>pyodbc + Microsoft ODBC Driver 18</strong> — recommended on Windows; supports Windows / AD authentication:<br>
+                    <code>pip install -r requirements-mssql-odbc.txt</code></li>
+            </ul>
+            {% endif %}
         {% endif %}
     </div>
 

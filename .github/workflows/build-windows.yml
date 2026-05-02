@@ -28,6 +28,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          # Bundle the pure-Python SQL Server driver into the .exe so users
+          # can configure DB connections out of the box. pyodbc is left out
+          # on purpose: it requires the Microsoft ODBC Driver 18 installed
+          # at the OS level, which we can't ship inside the bundle.
+          pip install -r requirements-mssql-pure.txt
           pip install pyinstaller
 
       - name: Build executable
