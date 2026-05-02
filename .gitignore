@@ -28,6 +28,8 @@ Thumbs.db
 # Local secrets
 secrets.cfg
 *.local.cfg
+network.json
+lang.txt
 
 # Printer captures / samples (will be curated and added back later)
 *.prn
