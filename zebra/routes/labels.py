@@ -259,6 +259,17 @@ def generate_zpl():
     width_mm, height_mm = zpl.label_dimensions_mm(rendered)
     profile_name = current_app.config.get('PROFILE_NAME')
 
+    # Capture the value of the first lookup field so the dashboard can rank
+    # the most-printed items (typically a SKU). Templates with no lookup
+    # field, or with the field left blank, simply record None.
+    lookup_key: str | None = None
+    for s in specs:
+        if s.type == 'lookup':
+            v = (values.get(s.key) or '').strip()
+            if v:
+                lookup_key = v
+            break
+
     try:
         send_to_printer(printer_name, rendered, copies)
     except PrinterError as e:
@@ -269,7 +280,7 @@ def generate_zpl():
             copies=copies, printer_name=printer_name,
             status='error', error_message=str(e),
             label_width_mm=width_mm, label_height_mm=height_mm,
-            profile_name=profile_name,
+            lookup_key=lookup_key, profile_name=profile_name,
         )
         return jsonify({'message': f'Failed to send label to printer: {e}'}), 500
 
@@ -282,7 +293,7 @@ def generate_zpl():
         copies=copies, printer_name=printer_name,
         status='ok',
         label_width_mm=width_mm, label_height_mm=height_mm,
-        profile_name=profile_name,
+        lookup_key=lookup_key, profile_name=profile_name,
     )
     return jsonify({'message': 'Label sent to printer successfully!'})
 
@@ -306,6 +317,7 @@ def dashboard():
         top_templates=db.top_templates(p, limit=5),
         top_sizes=db.top_sizes(p, limit=5),
         top_printers=db.top_printers(p, limit=5),
+        top_items=db.top_items(p, limit=10),
         recent_errors=db.recent_errors(p, limit=8),
     )
 

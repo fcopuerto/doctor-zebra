@@ -92,7 +92,7 @@
         <article class="dashboard__panel">
             <header class="dashboard__panel-head"><h2>Top items</h2></header>
             <div class="dashboard__panel-body">
-                <p class="muted dashboard__empty">Lookup capture lands in the next phase — items will rank here.</p>
+                {{ top_table(top_items, 'lookup_key', 'No items captured yet — print using a template that has a lookup field.') }}
             </div>
         </article>
 

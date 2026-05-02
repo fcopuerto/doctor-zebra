@@ -7,6 +7,17 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-05-02
+
+### Añadido
+
+- **Top items** en el Dashboard: ranking de los SKUs / claves de lookup
+  más impresos (10 primeros). Cada impresión captura automáticamente el
+  valor del primer campo de tipo `lookup` del formulario y lo guarda en
+  `lookup_key`, así que no hay que tocar plantillas existentes.
+- Las impresiones desde plantillas sin campo lookup quedan con
+  `lookup_key=NULL` y simplemente no aparecen en el ranking.
+
 ## [0.2.0] - 2026-05-02
 
 Reorganización del nav y primera versión del Dashboard con métricas reales.
@@ -75,7 +86,8 @@ distribuye como `.exe` autónomo para Windows.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/doctor-zebra/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/fcopuerto/doctor-zebra/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/fcopuerto/doctor-zebra/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/fcopuerto/doctor-zebra/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/fcopuerto/doctor-zebra/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/fcopuerto/doctor-zebra/releases/tag/v0.1.0

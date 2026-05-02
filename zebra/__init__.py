@@ -11,7 +11,7 @@ from zebra.db import init_db
 from zebra.lookup_cache import init_cache
 from zebra.settings import Settings
 
-__version__ = '0.2.0'
+__version__ = '0.2.1'
 
 # Path to the package root (read-only assets when frozen with PyInstaller).
 PACKAGE_ROOT = Path(__file__).resolve().parent.parent

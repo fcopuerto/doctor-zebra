@@ -368,6 +368,29 @@ def top_sizes(db_path: str | Path, limit: int = 5) -> list[dict]:
     return out
 
 
+def top_items(db_path: str | Path, limit: int = 10) -> list[dict]:
+    """Top labelled items by lookup_key (typically the product SKU).
+
+    Rows where ``lookup_key`` is null/empty are excluded — they correspond
+    to prints from templates without a lookup field.
+    """
+    with connect(db_path) as conn:
+        rows = conn.execute(
+            '''
+            SELECT lookup_key, SUM(copies) AS n
+            FROM label_prints
+            WHERE status = 'ok'
+              AND lookup_key IS NOT NULL
+              AND lookup_key <> ''
+            GROUP BY lookup_key
+            ORDER BY n DESC
+            LIMIT ?
+            ''',
+            (limit,),
+        ).fetchall()
+    return [{'lookup_key': r[0], 'count': int(r[1])} for r in rows]
+
+
 def top_printers(db_path: str | Path, limit: int = 5) -> list[dict]:
     with connect(db_path) as conn:
         rows = conn.execute(
