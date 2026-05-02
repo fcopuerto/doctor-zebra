@@ -11,6 +11,8 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    permissions:
+      contents: write   # needed to create/update GitHub Releases on tag push
 
     steps:
       - name: Checkout
