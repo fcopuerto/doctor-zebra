@@ -96,7 +96,10 @@ exe = EXE(  # noqa: F821
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    # UPX off on purpose: the compressed bootloader fingerprint matches
+    # too many old PyInstaller-packed malware samples and trips Windows
+    # Defender / SmartScreen heuristics. Worth the bigger .exe.
+    upx=False,
     upx_exclude=[],
     runtime_tmpdir=None,
     console=False,  # no terminal window on Windows

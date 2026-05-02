@@ -48,11 +48,24 @@ jobs:
           }
           Get-Item "dist\ComandanteZebra.exe" | Select-Object Name, Length, LastWriteTime
 
+      - name: Compute SHA-256 checksum
+        shell: pwsh
+        run: |
+          # Publishing the SHA-256 lets users verify they downloaded the
+          # exact bytes our CI built — the closest thing to a signature
+          # we can offer without a paid code-signing cert.
+          $hash = (Get-FileHash dist\ComandanteZebra.exe -Algorithm SHA256).Hash.ToLower()
+          $line = "$hash  ComandanteZebra.exe"
+          Set-Content -Path dist\ComandanteZebra.exe.sha256 -Value $line -Encoding ascii
+          Write-Host "SHA-256: $hash"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ComandanteZebra-windows
-          path: dist/ComandanteZebra.exe
+          path: |
+            dist/ComandanteZebra.exe
+            dist/ComandanteZebra.exe.sha256
           if-no-files-found: error
           retention-days: 30
 
@@ -60,4 +73,6 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/ComandanteZebra.exe
+          files: |
+            dist/ComandanteZebra.exe
+            dist/ComandanteZebra.exe.sha256

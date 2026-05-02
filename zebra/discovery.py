@@ -36,6 +36,13 @@ try:
 except Exception as e:  # noqa: BLE001
     logging.warning(f'zeroconf unavailable, peer discovery disabled: {e}')
     HAVE_ZEROCONF = False
+    # Fallbacks so the module still imports cleanly when zeroconf is
+    # missing — Discovery.start() just becomes a no-op in that case.
+    ServiceListener = object  # type: ignore[misc,assignment]
+    ServiceBrowser  = None    # type: ignore[assignment]
+    ServiceInfo     = None    # type: ignore[assignment]
+    Zeroconf        = None    # type: ignore[assignment]
+    IPVersion       = None    # type: ignore[assignment]
 
 
 SERVICE_TYPE = '_comandante-zebra._tcp.local.'

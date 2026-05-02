@@ -7,6 +7,30 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-05-03
+
+### Arreglado
+
+- `python desktop.py` reventaba con `NameError: ServiceListener is not
+  defined` cuando `zeroconf` no estaba instalado en el entorno de Python
+  activo (típico al correr desde una venv distinta de la `.venv` de uv).
+  Ahora el módulo `discovery` degrada limpiamente: si `zeroconf` no se
+  importa, la app sigue arrancando, la pantalla **Red** muestra una lista
+  de peers vacía y el announcement no se publica.
+
+### Cambiado (Windows / SmartScreen)
+
+- **UPX desactivado** en `build_desktop.spec`. El bootloader comprimido
+  con UPX comparte huella con muchos binarios PyInstaller-malware
+  antiguos y disparaba SmartScreen / Defender. El `.exe` resultante es
+  algo más grande pero entra mucho más limpio.
+- **SHA-256** del `.exe` calculado en CI y publicado como
+  `ComandanteZebra.exe.sha256` junto al binario en cada Release y como
+  artifact del workflow. Permite verificar que descargaste exactamente
+  los bytes que construyó el CI sin necesidad de un certificado pagado.
+- README añade una sección sobre el aviso de SmartScreen y cómo
+  comprobar el SHA-256 con `Get-FileHash` en PowerShell.
+
 ## [0.6.0] - 2026-05-03
 
 ### Añadido
@@ -309,7 +333,8 @@ distribuye como `.exe` autónomo para Windows.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.6.1...HEAD
+[0.6.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.4.1...v0.5.0

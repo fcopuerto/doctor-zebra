@@ -51,6 +51,26 @@ Casos típicos:
 
 > Si no hay un release publicado todavía, puedes bajar el último build de la pestaña **Actions** (artifact `ComandanteZebra-windows`).
 
+#### Aviso de Windows SmartScreen / Defender
+
+Como el `.exe` no está firmado con un certificado de _code signing_ comercial,
+Windows SmartScreen mostrará el aviso **"Windows protected your PC"** la
+primera vez que lo ejecutes. Es normal para binarios nuevos sin reputación.
+Para abrirlo:
+
+1. Click en **More info** (Más información) en el diálogo.
+2. Click en **Run anyway** (Ejecutar de todas formas).
+
+Esto lo "aprenderás" Windows tras la primera ejecución y dejará de
+preguntar. Para verificar que descargaste exactamente el `.exe` que
+construyó nuestro CI, cada release adjunta también un archivo
+`ComandanteZebra.exe.sha256`. Compara el hash en PowerShell:
+
+```powershell
+Get-FileHash ComandanteZebra.exe -Algorithm SHA256
+# Debe coincidir con el contenido de ComandanteZebra.exe.sha256
+```
+
 ### macOS / Linux
 
 Por ahora solo se publican binarios de Windows. En macOS puedes correrlo desde fuente (ver más abajo) o construir el `.app` localmente con `pyinstaller build_desktop.spec`.
