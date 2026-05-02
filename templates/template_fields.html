@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Fields · {{ template_name }}{% endblock %}
+{% block topbar_title %}Edit fields — <code>{{ template_file }}</code>{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="{{ url_for('config.config_page') }}">Settings</a>
+    <svg class="icon"><use href="#i-chevron-right" /></svg>
+    <a href="{{ url_for('config.templates_list') }}">Templates</a>
+    <svg class="icon"><use href="#i-chevron-right" /></svg>
+    <strong>{{ template_name }}</strong>
+</nav>
+
+<div class="card">
+    <div class="card__header">
+        <div>
+            <h1 class="card__title" style="font-size:18px;">Fields</h1>
+            <p class="card__subtitle" id="fieldsSummary">
+                Define what users fill in when printing this label.
+            </p>
+        </div>
+        <a href="{{ url_for('tmpl.source', name=template_name) }}" class="btn btn-ghost">
+            Edit ZPL source
+        </a>
+    </div>
+
+    <div id="fieldsEditor"
+         data-template-file="{{ template_file }}"
+         data-fields='{{ fields|tojson }}'
+         data-has-sidecar='{{ "1" if has_sidecar else "0" }}'
+         data-connections='{{ connections|tojson }}'>
+
+        <!-- ============================================================ -->
+        <!-- Database lookups                                              -->
+        <!-- ============================================================ -->
+        <section class="fields-section fields-section--db">
+            <header class="fields-section__head">
+                <div>
+                    <h2 class="fields-section__title">
+                        <span class="fields-section__icon">DB</span>
+                        Database lookups
+                    </h2>
+                    <p class="fields-section__desc">
+                        The user types into a lookup field; on selection, columns from the
+                        chosen row fill any label fields you map below.
+                    </p>
+                </div>
+                <button type="button" class="btn" id="fieldsAddDb">
+                    + Add database lookup
+                </button>
+            </header>
+
+            <div class="db-section-controls">
+                <label class="stacked db-section-controls__source">
+                    <span>Connection <em>used by every lookup in this template</em></span>
+                    <select id="dbSectionSource"></select>
+                </label>
+                <label class="stacked db-section-controls__table">
+                    <span>
+                        Table
+                        <button type="button" class="link-btn" id="dbReloadTables">reload</button>
+                    </span>
+                    <select id="dbSectionTable"></select>
+                </label>
+                <a href="{{ url_for('config.connections_page') }}" class="btn btn-ghost">
+                    Manage connections →
+                </a>
+            </div>
+
+            <div class="cache-bar" id="cacheBar" hidden>
+                <div class="cache-bar__info">
+                    <span class="cache-bar__label">Offline cache</span>
+                    <span id="cacheStatus" class="cache-bar__status">No data cached yet.</span>
+                </div>
+                <div class="cache-bar__actions">
+                    <button type="button" class="btn-secondary" id="cacheSync">
+                        <svg class="icon" aria-hidden="true"><use href="#i-refresh" /></svg>
+                        Sync now
+                    </button>
+                </div>
+            </div>
+
+            <p class="test-result" id="dbSectionStatus" aria-live="polite"></p>
+
+            <div id="fieldsListDb" class="fields-list" data-empty="No database lookups yet — click “+ Add database lookup”."></div>
+        </section>
+
+        <!-- ============================================================ -->
+        <!-- Text fields                                                   -->
+        <!-- ============================================================ -->
+        <section class="fields-section fields-section--text">
+            <header class="fields-section__head">
+                <div>
+                    <h2 class="fields-section__title">
+                        <span class="fields-section__icon">Aa</span>
+                        Text fields
+                    </h2>
+                    <p class="fields-section__desc">
+                        The user types a value freely.
+                    </p>
+                </div>
+                <button type="button" class="btn-secondary" id="fieldsAddText">
+                    + Add text field
+                </button>
+            </header>
+
+            <div id="fieldsListText" class="fields-list" data-empty="No text fields yet — click “+ Add text field”."></div>
+        </section>
+
+        <div class="fields-actions">
+            <button type="button" class="btn-ghost" id="fieldsReset">Reset to autodetect</button>
+            <button type="button" id="fieldsSave">Save changes</button>
+        </div>
+        <p class="test-result" id="fieldsResult" aria-live="polite"></p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='fields-editor.js') }}"></script>
+{% endblock %}

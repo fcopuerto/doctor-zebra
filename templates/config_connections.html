@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block title %}Connections · Settings{% endblock %}
+{% block topbar_title %}Database connections{% endblock %}
+
+{% block content %}
+{% include "_settings_tabs.html" %}
+
+<div class="card">
+    <div class="card__header">
+        <div>
+            <h1 class="card__title" style="font-size:18px;">Database connections</h1>
+            <p class="card__subtitle">
+                Used by <em>database fields</em> to populate values from a real database
+                (products, customers, orders…). Passwords are stored in
+                <code>secrets.cfg</code>.
+            </p>
+        </div>
+    </div>
+
+    {% set has_any = mssql_drivers.pyodbc or mssql_drivers.pymssql %}
+    <div class="driver-banner {% if has_any %}ok{% else %}warn{% endif %}">
+        <strong>SQL Server drivers installed:</strong>
+        pyodbc {% if mssql_drivers.pyodbc %}✓{% else %}✗{% endif %} ·
+        pymssql {% if mssql_drivers.pymssql %}✓{% else %}✗{% endif %}
+        {% if not has_any %}
+        <p>Pick whichever fits your machine and install it before saving a connection:</p>
+        <ul>
+            <li><strong>pymssql</strong> — pure-Python, works on Mac/Linux/Windows, no Microsoft components needed:<br>
+                <code>pip install -r requirements-mssql-pure.txt</code></li>
+            <li><strong>pyodbc + Microsoft ODBC Driver 18</strong> — recommended on Windows; supports Windows / AD authentication:<br>
+                <code>pip install -r requirements-mssql-odbc.txt</code></li>
+        </ul>
+        {% endif %}
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Server / Database</th>
+                <th>Auth</th>
+                <th style="width:200px;"></th>
+            </tr>
+        </thead>
+        <tbody id="connectionsBody">
+            {% for c in connections %}
+            <tr data-conn='{{ c|tojson }}'>
+                <td><code>{{ c.name }}</code></td>
+                <td>{{ c.type }}</td>
+                <td>{{ c.options.server or '—' }} / {{ c.options.database or '—' }}</td>
+                <td>{{ c.options.auth or 'sql' }}{% if c.options.username %} · {{ c.options.username }}{% endif %}</td>
+                <td style="white-space:nowrap;">
+                    <button type="button" class="btn btn-ghost" data-action="edit-conn" data-name="{{ c.name }}">Edit</button>
+                    <button type="button" class="btn-danger" data-action="delete-conn" data-name="{{ c.name }}">Delete</button>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="muted">No connections yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3 style="margin-top:var(--s-6);" id="connFormTitle">Add a connection</h3>
+    <form id="connectionForm" class="printer-form">
+        <input type="hidden" name="connection_type" value="mssql">
+        <div class="two-col">
+            <div>
+                <label for="conn_name">Name</label>
+                <input type="text" id="conn_name" name="connection_name"
+                    pattern="[a-zA-Z][a-zA-Z0-9_]*" required placeholder="erp_main">
+            </div>
+            <div>
+                <label for="conn_type">Type</label>
+                <select id="conn_type" name="connection_type" disabled>
+                    {% for t in datasource_types %}
+                    <option value="{{ t }}">{{ t.upper() }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="two-col">
+            <div>
+                <label for="conn_server">Server</label>
+                <input type="text" id="conn_server" name="server" required placeholder="DB01\SQLEXPRESS or 10.0.0.5">
+            </div>
+            <div>
+                <label for="conn_port">Port</label>
+                <input type="number" id="conn_port" name="port" value="1433" min="1" max="65535">
+            </div>
+        </div>
+        <div class="two-col">
+            <div>
+                <label for="conn_db">Database</label>
+                <input type="text" id="conn_db" name="database" required placeholder="ERP">
+            </div>
+            <div>
+                <label for="conn_driver_lib">Python driver</label>
+                <select id="conn_driver_lib" name="driver_lib">
+                    <option value="" {% if not mssql_drivers.pyodbc and not mssql_drivers.pymssql %}selected{% endif %}>
+                        Auto-detect
+                    </option>
+                    <option value="pymssql" {% if mssql_drivers.pymssql and not mssql_drivers.pyodbc %}selected{% endif %}>
+                        pymssql (no Microsoft drivers needed)
+                        {% if not mssql_drivers.pymssql %} — not installed{% endif %}
+                    </option>
+                    <option value="pyodbc" {% if mssql_drivers.pyodbc %}selected{% endif %}>
+                        pyodbc + Microsoft ODBC Driver 18
+                        {% if not mssql_drivers.pyodbc %} — not installed{% endif %}
+                    </option>
+                </select>
+            </div>
+        </div>
+        <div class="field-row">
+            <label for="conn_driver">ODBC driver name <span class="muted">(only for pyodbc)</span></label>
+            <input type="text" id="conn_driver" name="driver" value="ODBC Driver 18 for SQL Server">
+        </div>
+        <div class="field-row">
+            <label>Authentication</label>
+            <div class="builder">
+                <div class="radio-row">
+                    <label class="radio">
+                        <input type="radio" name="auth" value="sql" checked>
+                        <span>SQL Server (user / password)</span>
+                    </label>
+                    <label class="radio">
+                        <input type="radio" name="auth" value="windows">
+                        <span>Windows Authentication</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="two-col" id="conn_sqlauth">
+            <div>
+                <label for="conn_user">Username</label>
+                <input type="text" id="conn_user" name="username" placeholder="sa">
+            </div>
+            <div>
+                <label for="conn_pwd">Password</label>
+                <input type="password" id="conn_pwd" name="password"
+                    placeholder="(leave empty to keep existing)">
+            </div>
+        </div>
+        <div class="two-col">
+            <div>
+                <label>Encrypt</label>
+                <select name="encrypt">
+                    <option value="yes" selected>Yes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+            <div>
+                <label>Trust server certificate</label>
+                <select name="trust_server_certificate">
+                    <option value="yes" selected>Yes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="button-row">
+            <button type="button" class="btn-secondary" id="connTest">Test connection</button>
+            <button type="submit">Save connection</button>
+            <button type="button" class="btn-ghost" id="connReset" hidden>Cancel edit</button>
+        </div>
+        <p class="test-result" id="connResult" aria-live="polite"></p>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='connections.js') }}"></script>
+{% endblock %}

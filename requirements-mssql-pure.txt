@@ -1,0 +1,4 @@
+# Pure-Python SQL Server driver — works on macOS / Linux / Windows
+# without installing any Microsoft component. Uses FreeTDS under the hood.
+# Trade-off: doesn't support Windows / Active Directory authentication.
+pymssql>=2.2

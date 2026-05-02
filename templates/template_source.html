@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}ZPL source · {{ template_name }}{% endblock %}
+{% block topbar_title %}ZPL source — <code>{{ template_file }}</code>{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="{{ url_for('config.config_page') }}">Settings</a>
+    <svg class="icon"><use href="#i-chevron-right" /></svg>
+    <a href="{{ url_for('config.templates_list') }}">Templates</a>
+    <svg class="icon"><use href="#i-chevron-right" /></svg>
+    <strong>{{ template_name }}</strong>
+    <svg class="icon"><use href="#i-chevron-right" /></svg>
+    <span>Source</span>
+</nav>
+
+<div class="card">
+    <div class="card__header">
+        <div>
+            <h1 class="card__title" style="font-size:18px;">ZPL source</h1>
+            <p class="card__subtitle">
+                Edit the ZPL directly. Use <code>{key}</code> placeholders to mark
+                variables — they map to the fields configured for this template.
+                <a href="{{ url_for('tmpl.fields', name=template_name) }}">Edit fields →</a>
+            </p>
+        </div>
+        <div class="source-toolbar">
+            <a href="{{ url_for('tmpl.edit', name=template_name) }}" class="btn btn-ghost"
+               title="Open the variable mapper to identify ^FD…^FS blocks as variables">
+                Identify variables…
+            </a>
+            <button type="button" class="btn-ghost" id="srcRevert" title="Discard local edits">
+                Revert
+            </button>
+            <button type="button" id="srcSave">
+                <svg class="icon" aria-hidden="true"><use href="#i-check" /></svg>
+                Save
+            </button>
+        </div>
+    </div>
+
+    <div class="source-editor"
+         data-template-name="{{ template_name }}"
+         data-template-file="{{ template_file }}">
+        <div class="source-editor__pane">
+            <div class="source-editor__head">
+                <span class="source-editor__title">Source</span>
+                <span class="source-editor__meta">
+                    <span id="srcStatus">Saved</span>
+                    <span class="muted" id="srcMeta"></span>
+                </span>
+            </div>
+            <textarea id="srcTextarea" spellcheck="false"
+                      autocomplete="off" autocorrect="off" autocapitalize="off"
+                      wrap="off">{{ zpl_text }}</textarea>
+        </div>
+
+        <div class="source-editor__preview">
+            <div class="source-editor__head">
+                <span class="source-editor__title">Preview</span>
+                <span class="source-editor__meta">
+                    <button type="button" class="link-btn" id="srcRefresh">refresh</button>
+                </span>
+            </div>
+            <div class="preview-frame" id="srcPreviewFrame">
+                <p class="muted">Type some ZPL — preview renders 600 ms after you stop.</p>
+            </div>
+            <p class="hint" id="srcPreviewHint">
+                Live preview uses Labelary (online). Without internet the printed label still
+                works — only the preview won't render.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='template-source.js') }}"></script>
+{% endblock %}

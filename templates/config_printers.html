@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Printers · Settings{% endblock %}
+{% block topbar_title %}Printers{% endblock %}
+
+{% block content %}
+{% include "_settings_tabs.html" %}
+
+<!-- ============================================================ -->
+<!-- Default printer                                              -->
+<!-- ============================================================ -->
+<div class="card">
+    <div class="card__header">
+        <div>
+            <h1 class="card__title" style="font-size:18px;">Default printer</h1>
+            <p class="card__subtitle">
+                Used by every template unless an override below says otherwise.
+                Running on <strong>{{ os_label }}</strong>.
+            </p>
+        </div>
+        <div class="card__status">
+            <span class="status-dot {{ status_color }}"></span>
+            <code>{{ default_target or 'not set' }}</code>
+            <span class="muted">{{ printer_status }}</span>
+        </div>
+    </div>
+
+    <form action="{{ url_for('config.printers') }}" method="post" class="printer-form" data-builder="default">
+        <input type="hidden" name="action" value="save_default">
+
+        {% include "_printer_builder.html" with context %}
+
+        <div class="field-row">
+            <label for="templates_dir">Templates directory</label>
+            <input type="text" id="templates_dir" name="templates_dir" value="{{ templates_dir }}">
+        </div>
+
+        <div class="button-row">
+            <button type="button" class="btn-secondary btn-test" data-action="test">Test connection</button>
+            <button type="button" class="btn-secondary btn-test" data-action="print-test">Print test label</button>
+            <button type="submit">Save as default</button>
+        </div>
+        <div class="test-result" aria-live="polite"></div>
+    </form>
+</div>
+
+<!-- ============================================================ -->
+<!-- Per-template overrides                                       -->
+<!-- ============================================================ -->
+<div class="card">
+    <div class="card__header">
+        <div>
+            <h1 class="card__title" style="font-size:18px;">Per-template overrides</h1>
+            <p class="card__subtitle">Route specific templates to a different printer.</p>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Template</th>
+                <th>Target</th>
+                <th>Backend</th>
+                <th style="width:90px;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in label_configs %}
+            <tr>
+                <td><code>{{ item.template }}</code></td>
+                <td><code>{{ item.target }}</code></td>
+                <td>{{ item.backend }}</td>
+                <td>
+                    <form action="{{ url_for('config.printers') }}" method="post" class="inline-form"
+                        onsubmit="return confirm('Delete override for {{ item.template }}?');">
+                        <input type="hidden" name="action" value="delete_label">
+                        <input type="hidden" name="zpl_template_path" value="{{ item.template }}">
+                        <button type="submit" class="btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" class="muted">No per-template overrides configured.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>Add / update override</h3>
+    <form action="{{ url_for('config.printers') }}" method="post" class="printer-form" data-builder="label">
+        <input type="hidden" name="action" value="save_label">
+
+        <div class="field-row">
+            <label for="zpl_template_path">Template</label>
+            <select id="zpl_template_path" name="zpl_template_path" required>
+                <option value="">-- select a template --</option>
+                {% for t in templates_available %}
+                <option value="{{ t }}">{{ t }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        {% set default_fields = {'backend': 'system', 'system_printer': '', 'tcp_host': '', 'tcp_port': '9100', 'raw_target': ''} %}
+        {% include "_printer_builder.html" with context %}
+
+        <div class="button-row">
+            <button type="button" class="btn-secondary btn-test" data-action="test">Test connection</button>
+            <button type="submit">Save override</button>
+        </div>
+        <div class="test-result" aria-live="polite"></div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='config.js') }}"></script>
+{% endblock %}

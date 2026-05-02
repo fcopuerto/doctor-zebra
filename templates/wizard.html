@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% block title %}Setup Wizard · Zebra Labels{% endblock %}
+{% block topbar_title %}Setup Wizard{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card__header">
+        <div>
+            <h1 class="card__title" style="font-size:20px;">Printer setup</h1>
+            <p class="card__subtitle">We'll walk you through connecting your Zebra step by step.</p>
+        </div>
+    </div>
+
+    <ol class="wizard-steps">
+        <li data-step="1" class="active">Welcome</li>
+        <li data-step="2">Connection</li>
+        <li data-step="3">Configure</li>
+        <li data-step="4">Test</li>
+        <li data-step="5">Finish</li>
+    </ol>
+
+    <form id="wizardForm" class="printer-form" action="{{ url_for('config.wizard') }}" method="post"
+        data-builder="wizard">
+
+        <!-- Step 1 -->
+        <section class="wizard-step" data-step="1">
+            <h2 style="margin-top:0;">Welcome</h2>
+            <p>
+                This wizard configures your Zebra printer so the app can send labels. We detected
+                you're running on <strong>{{ os_label }}</strong>.
+            </p>
+            {% if is_windows %}
+            <p class="hint">
+                On Windows you can use either a printer installed via the Zebra driver
+                (USB or network) or talk directly to a networked Zebra over TCP port 9100.
+            </p>
+            {% else %}
+            <p class="hint">
+                On macOS/Linux you can use a CUPS queue (USB or network, managed by the OS)
+                or talk directly to a networked Zebra over TCP port 9100.
+            </p>
+            {% endif %}
+            {% if default_target %}
+            <p class="hint">
+                A printer is already configured: <code>{{ default_target }}</code>.
+                You can reconfigure it below or jump to the dashboard.
+            </p>
+            {% endif %}
+        </section>
+
+        <!-- Step 2 -->
+        <section class="wizard-step" data-step="2" hidden>
+            <h2 style="margin-top:0;">How is the Zebra connected?</h2>
+            <div class="builder">
+                <div class="radio-row vertical">
+                    <label class="radio card">
+                        <input type="radio" name="backend" value="system" {% if default_fields.backend=='system'
+                            %}checked{% endif %}>
+                        <span>
+                            <strong>
+                                {% if is_windows %}USB or driver-installed printer{% else %}CUPS
+                                printer (USB or network){% endif %}
+                            </strong>
+                            <small>
+                                {% if is_windows %}
+                                Recommended for USB Zebras. Install the Zebra driver first, then
+                                pick the printer here.
+                                {% else %}
+                                Recommended for USB Zebras on Mac/Linux. The printer must already
+                                be added to CUPS.
+                                {% endif %}
+                            </small>
+                        </span>
+                    </label>
+                    <label class="radio card">
+                        <input type="radio" name="backend" value="tcp" {% if default_fields.backend=='tcp'
+                            %}checked{% endif %}>
+                        <span>
+                            <strong>Network (Ethernet / Wi-Fi)</strong>
+                            <small>
+                                Works on any OS. You'll need the printer's IP address and port 9100
+                                open on your network.
+                            </small>
+                        </span>
+                    </label>
+                    <label class="radio card">
+                        <input type="radio" name="backend" value="advanced" {% if
+                            default_fields.backend=='advanced' %}checked{% endif %}>
+                        <span>
+                            <strong>Advanced</strong>
+                            <small>
+                                Manually enter a target like <code>tcp://host:port</code>,
+                                <code>win://Name</code> or <code>cups://queue</code>.
+                            </small>
+                        </span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 3 -->
+        <section class="wizard-step" data-step="3" hidden>
+            <h2 style="margin-top:0;">Configuration</h2>
+
+            <div class="backend-panel" data-backend="system">
+                <div class="field-row">
+                    <label>Pick your printer</label>
+                    <select name="system_printer">
+                        <option value="">-- choose one --</option>
+                        {% for p in system_printers %}
+                        <option value="{{ p }}" {% if p==default_fields.system_printer %}selected{% endif %}>
+                            {{ p }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    {% if zebra_printers and zebra_printers != system_printers %}
+                    <p class="hint">Zebra-looking devices: {{ zebra_printers|join(', ') }}</p>
+                    {% endif %}
+                    {% if not system_printers %}
+                    <p class="hint err">
+                        No printers detected.
+                        {% if is_windows %}
+                        Install the Zebra driver from Windows Update or zebra.com, plug the printer in
+                        and reload.
+                        {% else %}
+                        Add the printer via CUPS at
+                        <a href="http://localhost:631" target="_blank">localhost:631</a> and reload.
+                        {% endif %}
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="backend-panel" data-backend="tcp">
+                <div class="two-col">
+                    <div>
+                        <label>IP address or hostname</label>
+                        <input type="text" name="tcp_host" value="{{ default_fields.tcp_host }}"
+                            placeholder="192.168.1.50">
+                    </div>
+                    <div>
+                        <label>Port</label>
+                        <input type="number" name="tcp_port" value="{{ default_fields.tcp_port }}" min="1"
+                            max="65535">
+                    </div>
+                </div>
+                <p class="hint">
+                    Find the IP on the printer's info label (press and hold Feed to print network
+                    settings). Standard ZPL port is <strong>9100</strong>.
+                </p>
+            </div>
+
+            <div class="backend-panel" data-backend="advanced">
+                <div class="field-row">
+                    <label>Raw target</label>
+                    <input type="text" name="raw_target" value="{{ default_fields.raw_target }}"
+                        placeholder="tcp://host:port, win://PrinterName, cups://queue">
+                </div>
+            </div>
+
+            <div class="field-row" style="margin-top:var(--s-5);">
+                <label for="templates_dir">Templates directory</label>
+                <input type="text" id="templates_dir" name="templates_dir" value="{{ templates_dir }}">
+                <p class="hint">Folder containing your <code>.zpl</code> files, relative to the app.</p>
+            </div>
+        </section>
+
+        <!-- Step 4 -->
+        <section class="wizard-step" data-step="4" hidden>
+            <h2 style="margin-top:0;">Test the connection</h2>
+            <p>
+                Run a quick reachability check, then send a small test label to make sure everything
+                is wired up correctly.
+            </p>
+            <div class="button-row">
+                <button type="button" class="btn-secondary btn-test" data-action="test">Test
+                    connection</button>
+                <button type="button" class="btn-secondary btn-test" data-action="print-test">
+                    Print test label
+                </button>
+            </div>
+            <div class="test-result" aria-live="polite"></div>
+        </section>
+
+        <!-- Step 5 -->
+        <section class="wizard-step" data-step="5" hidden>
+            <h2 style="margin-top:0;">All set</h2>
+            <p>Review your settings and save.</p>
+            <dl class="review">
+                <dt>Connection type</dt>
+                <dd data-review="backend">—</dd>
+                <dt>Target</dt>
+                <dd data-review="target">—</dd>
+                <dt>Templates dir</dt>
+                <dd data-review="templates_dir">—</dd>
+            </dl>
+            <p class="hint">
+                You can reopen the wizard anytime, or tweak individual settings under
+                <a href="{{ url_for('config.config_page') }}">Settings</a>.
+            </p>
+        </section>
+
+        <div class="wizard-nav">
+            <button type="button" class="btn-secondary" data-nav="back" disabled>Back</button>
+            <button type="button" data-nav="next">
+                Next
+                <svg class="icon">
+                    <use href="#i-chevron-right" />
+                </svg>
+            </button>
+            <button type="submit" data-nav="save" hidden>Save &amp; finish</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>window.__IS_WINDOWS__ = {{ 'true' if is_windows else 'false' }};</script>
+<script src="{{ url_for('static', filename='wizard.js') }}"></script>
+{% endblock %}

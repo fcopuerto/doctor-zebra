@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Zebra Labels{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        (function () {
+            try {
+                var saved = localStorage.getItem('zebra-theme');
+                if (saved === 'dark' || saved === 'light') {
+                    document.documentElement.setAttribute('data-theme', saved);
+                } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                }
+            } catch (e) { }
+        })();
+    </script>
+    {% block head_extra %}{% endblock %}
+</head>
+
+<body>
+    <!-- Icon sprite -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+            <symbol id="i-printer" viewBox="0 0 24 24">
+                <path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                <path d="M6 14h12v7H6z" />
+            </symbol>
+            <symbol id="i-settings" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="3" />
+                <path
+                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </symbol>
+            <symbol id="i-wand" viewBox="0 0 24 24">
+                <path d="M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 11.8 19 13M15 9h0M17.8 6.2 19 5M3 21l9-9" />
+                <path d="M12.2 6.2 11 5" />
+            </symbol>
+            <symbol id="i-history" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v5l3 2" />
+            </symbol>
+            <symbol id="i-sun" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="4" />
+                <path
+                    d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+            </symbol>
+            <symbol id="i-moon" viewBox="0 0 24 24">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </symbol>
+            <symbol id="i-chevron-right" viewBox="0 0 24 24">
+                <path d="m9 18 6-6-6-6" />
+            </symbol>
+            <symbol id="i-search" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="7" />
+                <path d="m21 21-4.3-4.3" />
+            </symbol>
+            <symbol id="i-refresh" viewBox="0 0 24 24">
+                <path d="M21 12a9 9 0 1 1-3.5-7.1" />
+                <path d="M21 4v6h-6" />
+            </symbol>
+            <symbol id="i-database" viewBox="0 0 24 24">
+                <ellipse cx="12" cy="5" rx="9" ry="3" />
+                <path d="M3 5v6c0 1.7 4 3 9 3s9-1.3 9-3V5" />
+                <path d="M3 11v6c0 1.7 4 3 9 3s9-1.3 9-3v-6" />
+            </symbol>
+            <symbol id="i-info" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 8v.01M12 12v4" />
+            </symbol>
+            <symbol id="i-check" viewBox="0 0 24 24">
+                <path d="M20 6 9 17l-5-5" />
+            </symbol>
+            <symbol id="i-folders" viewBox="0 0 24 24">
+                <path d="M2 14V6a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2" />
+                <path d="M6 14a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z" />
+            </symbol>
+        </defs>
+    </svg>
+
+    <div class="app-shell">
+        <!-- ============================== Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar__brand">
+                <div class="sidebar__brand-mark" aria-hidden="true">
+                    <svg class="icon" width="18" height="18">
+                        <use href="#i-printer" />
+                    </svg>
+                </div>
+                Zebra Labels
+            </div>
+            <nav class="sidebar__nav">
+                <a href="{{ url_for('labels.index') }}"
+                    class="sidebar__link {% if request.endpoint == 'labels.index' %}active{% endif %}">
+                    <svg class="icon">
+                        <use href="#i-printer" />
+                    </svg>
+                    Print
+                </a>
+                <a href="{{ url_for('config.wizard') }}"
+                    class="sidebar__link {% if request.endpoint == 'config.wizard' %}active{% endif %}">
+                    <svg class="icon">
+                        <use href="#i-wand" />
+                    </svg>
+                    Setup Wizard
+                </a>
+                {% set _settings_endpoints = ['config.config_page', 'config.printers',
+                    'config.templates_list', 'config.connections_page',
+                    'tmpl.fields', 'tmpl.edit', 'tmpl.new'] %}
+                <a href="{{ url_for('config.config_page') }}"
+                    class="sidebar__link {% if request.endpoint in _settings_endpoints %}active{% endif %}">
+                    <svg class="icon">
+                        <use href="#i-settings" />
+                    </svg>
+                    Settings
+                </a>
+                <a href="{{ url_for('labels.history') }}"
+                    class="sidebar__link {% if request.endpoint == 'labels.history' %}active{% endif %}">
+                    <svg class="icon">
+                        <use href="#i-history" />
+                    </svg>
+                    History
+                </a>
+            </nav>
+            <div class="sidebar__footer">
+                v1 · local only
+            </div>
+        </aside>
+
+        <!-- ============================== Topbar -->
+        <header class="topbar">
+            <div class="topbar__title">{% block topbar_title %}{{ self.title() }}{% endblock %}</div>
+            <div class="topbar__right">
+                <a href="{{ url_for('config.profiles_page') }}"
+                   class="profile-pill" title="Active profile — click to manage">
+                    <svg class="icon"><use href="#i-folders" /></svg>
+                    <code>{{ active_profile }}</code>
+                </a>
+                <span class="status-pill" title="Current printer">
+                    <span class="status-dot {{ status_color }}"></span>
+                    <code>{{ active_printer or 'not configured' }}</code>
+                    <span>·</span>
+                    <span>{{ printer_status }}</span>
+                </span>
+                <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle theme"
+                    title="Toggle dark mode">
+                    <svg class="icon icon-moon">
+                        <use href="#i-moon" />
+                    </svg>
+                    <svg class="icon icon-sun">
+                        <use href="#i-sun" />
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- ============================== Content -->
+        <main class="content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <div id="toast" role="status" aria-live="polite"></div>
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

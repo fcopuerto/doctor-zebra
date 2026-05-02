@@ -1,0 +1,81 @@
+"""Application factory for the Zebra label app."""
+
+import logging
+from pathlib import Path
+
+from flask import Flask
+
+from zebra import printer, profiles
+from zebra.cache_scheduler import start_scheduler
+from zebra.db import init_db
+from zebra.lookup_cache import init_cache
+from zebra.settings import Settings
+
+# Path to the package root (read-only assets when frozen with PyInstaller).
+PACKAGE_ROOT = Path(__file__).resolve().parent.parent
+# Default writable base for profiles/, used when running from source.
+BASE_DIR = PACKAGE_ROOT
+
+
+def create_app(
+    config_path: str | Path | None = None,
+    db_path: str | Path | None = None,
+    base_dir: str | Path | None = None,
+) -> Flask:
+    """Create the Flask app.
+
+    ``base_dir`` is the writable root that holds ``profiles/`` (and any other
+    user-mutable state). When running from source it defaults to the project
+    root; when frozen with PyInstaller, ``desktop.py`` passes
+    ``~/.zebra_labels/`` so user data persists outside the bundle.
+    """
+    base = Path(base_dir) if base_dir else BASE_DIR
+
+    app = Flask(
+        'zebra',
+        template_folder=str(PACKAGE_ROOT / 'templates'),
+        static_folder=str(PACKAGE_ROOT / 'static'),
+    )
+
+    # Resolve which profile is active (creates profiles/default/ on first run
+    # and migrates pre-profile data into it).
+    profiles.bootstrap(base)
+    paths = profiles.resolve_paths(base)
+    app.config['PROFILE_NAME'] = paths['profile_name']
+    app.config['PROFILE_DIR'] = str(paths['profile_dir'])
+    app.config['BASE_DIR'] = str(base)
+
+    settings = Settings(config_path or paths['config_path'])
+    app.config['SETTINGS'] = settings
+    app.config['DB_PATH'] = str(db_path or paths['db_path'])
+
+    init_db(app.config['DB_PATH'])
+    init_cache(app.config['DB_PATH'])
+
+    if app.config.get('AUTO_SYNC_CACHE', True):
+        start_scheduler(app)
+
+    from zebra.routes.config import bp as config_bp
+    from zebra.routes.labels import bp as labels_bp
+    from zebra.routes.tmpl import bp as tmpl_bp
+    app.register_blueprint(labels_bp)
+    app.register_blueprint(config_bp)
+    app.register_blueprint(tmpl_bp)
+
+    # Needed for flash() messages.
+    if not app.config.get('SECRET_KEY'):
+        app.config['SECRET_KEY'] = 'zebra-labels-local'
+
+    @app.context_processor
+    def inject_printer_info():
+        name = settings.default_printer
+        status, color = printer.printer_status(name)
+        return dict(
+            active_printer=name,
+            printer_status=status,
+            status_color=color,
+            active_profile=app.config.get('PROFILE_NAME', 'default'),
+        )
+
+    logging.info('Zebra app initialized')
+    return app

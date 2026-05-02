@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Map fields · Zebra Labels{% endblock %}
+{% block topbar_title %}Map fields{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card__header">
+        <div>
+            <h1 class="card__title" style="font-size:20px;">
+                {% if edit_mode %}Edit template{% else %}Map variables{% endif %}
+            </h1>
+            <p class="card__subtitle">
+                Every <code>^FD…^FS</code> block in the file is listed below. Tick the
+                ones that should become <strong>variables</strong> at print time and give
+                them a key. The rest stay exactly as designed in ZebraDesigner.
+            </p>
+        </div>
+    </div>
+
+    {% with flashes = get_flashed_messages(with_categories=true) %}
+    {% if flashes %}
+    {% for category, msg in flashes %}
+    <p class="test-result {% if category == 'error' %}err{% else %}ok{% endif %}"
+        style="margin-bottom:var(--s-4);">{{ msg }}</p>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <form action="{{ url_for('tmpl.save') }}" method="post">
+        <input type="hidden" name="edit_mode" value="{{ 'true' if edit_mode else '' }}">
+        <input type="hidden" name="zpl" value="{{ zpl_text }}">
+
+        <div class="field-row">
+            <label for="template_name">Template name</label>
+            <input type="text" id="template_name" name="template_name" value="{{ name }}" required
+                pattern="[a-zA-Z0-9][a-zA-Z0-9_\- ]*" {% if edit_mode %}readonly{% endif %}>
+        </div>
+
+        {% if blocks %}
+        <table class="fields-table">
+            <thead>
+                <tr>
+                    <th style="width:40px;">Var</th>
+                    <th>Literal</th>
+                    <th>Type</th>
+                    <th style="width:200px;">Field key</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for b in blocks %}
+                {% set parameterised = already_parameterised(b) %}
+                <tr>
+                    <td>
+                        {% if parameterised %}
+                        <span title="Already a variable">✓</span>
+                        <input type="hidden" name="map_{{ b.index }}" value="1">
+                        <input type="hidden" name="key_{{ b.index }}"
+                            value="{{ b.data | replace('{','') | replace('}','') }}">
+                        {% else %}
+                        <input type="checkbox" name="map_{{ b.index }}" value="1"
+                            data-block-index="{{ b.index }}">
+                        {% endif %}
+                    </td>
+                    <td>
+                        <code style="white-space:pre-wrap; display:block; max-width:480px;">{{ b.data }}</code>
+                        {% if b.position %}
+                        <span class="hint" style="margin:2px 0 0;">@ {{ b.position[0] }}, {{ b.position[1] }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if b.barcode %}
+                        <span class="badge">{{ b.barcode }}</span>
+                        {% elif parameterised %}
+                        <span class="badge">existing</span>
+                        {% else %}
+                        <span class="muted">text</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if parameterised %}
+                        <code>{{ b.data | replace('{','') | replace('}','') }}</code>
+                        {% else %}
+                        <input type="text" name="key_{{ b.index }}" value="{{ b.suggested_key }}"
+                            pattern="[a-zA-Z_][a-zA-Z0-9_]*" disabled
+                            data-key-for="{{ b.index }}">
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <p class="hint" style="margin-top:var(--s-3);">
+            The tool suggested keys from the original text. Rename them to match the
+            columns you'll later link against a database.
+            {% if existing_keys %}
+            <br>Existing keys in this template:
+            {% for k in existing_keys %}<code>{{ k }}</code>{% if not loop.last %}, {% endif %}{% endfor %}.
+            {% endif %}
+        </p>
+        {% else %}
+        <p class="muted">No <code>^FD</code> blocks found in the ZPL.</p>
+        {% endif %}
+
+        <div class="button-row">
+            <a href="{{ url_for('tmpl.new') }}" class="btn btn-secondary">Back</a>
+            <button type="submit">
+                <svg class="icon"><use href="#i-printer" /></svg>
+                Save template
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Enable the key input when its row's checkbox is ticked.
+    document.querySelectorAll('input[type="checkbox"][name^="map_"]').forEach(function (cb) {
+        function sync() {
+            var idx = cb.dataset.blockIndex;
+            var input = document.querySelector('input[data-key-for="' + idx + '"]');
+            if (input) input.disabled = !cb.checked;
+        }
+        cb.addEventListener('change', sync);
+        sync();
+    });
+</script>
+{% endblock %}

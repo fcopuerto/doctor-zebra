@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Print label · Zebra Labels{% endblock %}
+{% block topbar_title %}Print label{% endblock %}
+
+{% block content %}
+<div class="main-flex">
+    <div class="card">
+        <h1>New label</h1>
+        <p class="hint">
+            Pick a template, fill in the fields and preview before printing.
+        </p>
+
+        <form id="previewForm" action="{{ url_for('labels.preview_label') }}" method="post"
+            data-fields-api="/api/fields/">
+            <div class="field-row">
+                <label for="template_file">Template</label>
+                <select id="template_file" name="template_file" required>
+                    {% for t in templates %}
+                    <option value="{{ t }}" {% if t==template_file %}selected{% endif %}>{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div id="fieldsContainer" data-template="{{ template_file }}">
+                {% if template_fields %}
+                {% for f in template_fields %}
+                {% set lookup_placeholder = f.placeholder or ('Starts with… (use * for any) — ' ~ (f.search_columns | join(', ')) if f.type == 'lookup' and f.search_columns else f.placeholder) %}
+                <div class="field-row {% if f.type == 'lookup' %}has-lookup{% endif %}"
+                    data-field-key="{{ f.key }}" data-field-type="{{ f.type or 'text' }}"
+                    {% if f.type == 'lookup' %}data-search-columns="{{ f.search_columns | join(',') }}"{% endif %}>
+                    <label for="field_{{ f.key }}">
+                        {{ f.label }}{% if f.required %}<span class="req">*</span>{% endif %}
+                        {% if f.barcode %}<span class="badge">{{ f.barcode }}</span>{% endif %}
+                    </label>
+                    {% if f.multiline %}
+                    <textarea id="field_{{ f.key }}" name="{{ f.key }}" rows="3" placeholder="{{ f.placeholder }}"
+                        {% if f.required %}required{% endif %}>{{ field_values.get(f.key, '') }}</textarea>
+                    {% elif f.type == 'lookup' %}
+                    <div class="lookup-input">
+                        <svg class="lookup-input__icon" aria-hidden="true"><use href="#i-search" /></svg>
+                        <input type="text" id="field_{{ f.key }}" name="{{ f.key }}"
+                            value="{{ field_values.get(f.key, '') }}"
+                            placeholder="{{ lookup_placeholder or 'Type to search the database…' }}"
+                            autocomplete="off"
+                            {% if f.required %}required{% endif %}>
+                        <div class="lookup-results" hidden></div>
+                    </div>
+                    {% else %}
+                    <input type="text" id="field_{{ f.key }}" name="{{ f.key }}"
+                        value="{{ field_values.get(f.key, '') }}" placeholder="{{ f.placeholder }}"
+                        {% if f.required %}required{% endif %}>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="muted" id="noFieldsHint">
+                    This template has no editable fields. Press Print to send it as-is.
+                </p>
+                {% endif %}
+            </div>
+
+            <div class="button-row">
+                <button type="submit" id="previewBtn" class="btn-secondary">Preview</button>
+            </div>
+        </form>
+
+        <form id="labelForm" action="{{ url_for('labels.generate_zpl') }}" method="post">
+            <input type="hidden" name="template_file" value="{{ template_file }}">
+            <div id="labelHiddenMirror">
+                {% for f in template_fields %}
+                <input type="hidden" name="{{ f.key }}" value="{{ field_values.get(f.key, '') }}">
+                {% endfor %}
+            </div>
+            <div class="field-row" style="display:flex; align-items:flex-end; gap:var(--s-3); margin-top:var(--s-5);">
+                <div>
+                    <label for="copies">Copies</label>
+                    <input type="number" id="copies" name="copies" value="1" min="1" max="100">
+                </div>
+                <button type="submit" id="printBtn">
+                    <svg class="icon">
+                        <use href="#i-printer" />
+                    </svg>
+                    Print label
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card label-preview">
+        <h2 style="margin-top:0;">Preview</h2>
+        <div class="label-box">
+            <div id="previewValues">
+                {% for f in template_fields %}
+                <div class="preview-line" data-preview-key="{{ f.key }}">
+                    <strong>{{ f.label }}:</strong>
+                    <span>{{ field_values.get(f.key, '') }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            <div style="margin-top:var(--s-4); font-size:12px; color:var(--text-subtle);">
+                Template: <span id="preview_template">{{ template_file }}</span>
+            </div>
+        </div>
+        <div id="preview_image_holder">
+            {% if image_url %}
+            <img src="{{ image_url }}" alt="Label Preview" class="label-preview-img">
+            {% else %}
+            <p class="muted">Press <em>Preview</em> to render the label via Labelary.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% endblock %}

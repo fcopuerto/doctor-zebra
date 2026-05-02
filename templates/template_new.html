@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}New template · Zebra Labels{% endblock %}
+{% block topbar_title %}New template{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card__header">
+        <div>
+            <h1 class="card__title" style="font-size:20px;">Create a new template</h1>
+            <p class="card__subtitle">
+                Design your label in ZebraDesigner (or any ZPL tool) and bring it in here.
+                We'll detect every static string and let you decide which ones become
+                variables at print time.
+            </p>
+        </div>
+    </div>
+
+    <form action="{{ url_for('tmpl.new') }}" method="post" enctype="multipart/form-data"
+        class="printer-form" data-builder="new">
+        <div class="field-row">
+            <label>Source</label>
+            <div class="builder">
+                <div class="radio-row vertical">
+                    <label class="radio card">
+                        <input type="radio" name="source" value="upload" checked>
+                        <span>
+                            <strong>Upload a .zpl file</strong>
+                            <small>Output from ZebraDesigner, NiceLabel, BarTender or
+                                any tool that exports ZPL.</small>
+                        </span>
+                    </label>
+                    <label class="radio card">
+                        <input type="radio" name="source" value="paste">
+                        <span>
+                            <strong>Paste ZPL</strong>
+                            <small>Paste the raw <code>^XA...^XZ</code> text if you have
+                                it in the clipboard.</small>
+                        </span>
+                    </label>
+                    <label class="radio card">
+                        <input type="radio" name="source" value="skeleton">
+                        <span>
+                            <strong>Start from a blank skeleton</strong>
+                            <small>Create an empty label with a size and the standard
+                                header commands.</small>
+                        </span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="field-row">
+            <label for="template_name">Template name</label>
+            <input type="text" id="template_name" name="template_name" required
+                pattern="[a-zA-Z0-9][a-zA-Z0-9_\- ]*" placeholder="shipping_box">
+            <p class="hint">
+                Used as the filename (<code>.zpl</code> extension added automatically).
+                Existing names: {% for n in existing_names %}<code>{{ n }}</code>{% if not loop.last %}, {% endif %}{% else %}<em>none</em>{% endfor %}.
+            </p>
+        </div>
+
+        <div class="backend-panel" data-backend="upload">
+            <div class="field-row">
+                <label for="file">ZPL file</label>
+                <input type="file" id="file" name="file" accept=".zpl,.txt,.prn,text/plain">
+            </div>
+        </div>
+
+        <div class="backend-panel" data-backend="paste">
+            <div class="field-row">
+                <label for="zpl">ZPL text</label>
+                <textarea id="zpl" name="zpl" rows="14"
+                    placeholder="^XA...^XZ"></textarea>
+            </div>
+        </div>
+
+        <div class="backend-panel" data-backend="skeleton">
+            <div class="two-col">
+                <div>
+                    <label>Width (dots)</label>
+                    <input type="number" name="width" value="800" min="1" max="4000">
+                </div>
+                <div>
+                    <label>Length (dots)</label>
+                    <input type="number" name="length" value="1200" min="1" max="6000">
+                </div>
+            </div>
+            <div class="two-col">
+                <div>
+                    <label>Darkness (0–30)</label>
+                    <input type="number" name="darkness" value="15" min="0" max="30">
+                </div>
+                <div>
+                    <label>Speed (1–14)</label>
+                    <input type="number" name="speed" value="4" min="1" max="14">
+                </div>
+            </div>
+            <p class="hint">
+                203 DPI ≈ 8 dots/mm. 4×6" ≈ 800×1200 dots; 100×100mm ≈ 800×800 dots.
+            </p>
+        </div>
+
+        <div class="button-row">
+            <a href="{{ url_for('config.config_page') }}" class="btn btn-secondary">Cancel</a>
+            <button type="submit">Continue</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    (function () {
+        function upd() {
+            var cur = document.querySelector('input[name="source"]:checked').value;
+            document.querySelectorAll('.backend-panel').forEach(function (p) {
+                var vis = p.dataset.backend === cur;
+                p.style.display = vis ? 'block' : 'none';
+                p.querySelectorAll('input, textarea').forEach(function (el) { el.disabled = !vis; });
+            });
+        }
+        document.querySelectorAll('input[name="source"]').forEach(function (r) {
+            r.addEventListener('change', upd);
+        });
+        upd();
+    })();
+</script>
+{% endblock %}

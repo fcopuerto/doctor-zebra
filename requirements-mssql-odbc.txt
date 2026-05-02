@@ -1,0 +1,16 @@
+# pyodbc-based SQL Server driver. Recommended on Windows because the
+# Microsoft ODBC Driver 18 ships with Windows Update and supports
+# Windows Authentication / Active Directory.
+#
+# On macOS:
+#   brew tap microsoft/mssql-release
+#   brew install msodbcsql18
+#   pip install -r requirements-mssql-odbc.txt
+#
+# On Debian/Ubuntu:
+#   curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+#   curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list \
+#     | sudo tee /etc/apt/sources.list.d/mssql-release.list
+#   sudo apt update && sudo apt install -y msodbcsql18 unixodbc-dev
+#   pip install -r requirements-mssql-odbc.txt
+pyodbc>=5.0

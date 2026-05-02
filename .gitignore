@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# PyInstaller
+build/
+dist/
+*.manifest
+
+# App runtime data — should NOT be committed.
+# (seed_profiles/ IS committed; profiles/ is the user's working data.)
+profiles/
+*.db
+*.db-journal
+zebra_app.log
+app.log
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local secrets
+secrets.cfg
+*.local.cfg
+
+# Printer captures / samples (will be curated and added back later)
+*.prn

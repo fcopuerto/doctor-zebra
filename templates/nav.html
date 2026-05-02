@@ -1,0 +1,11 @@
+<div class="nav">
+    <a href="{{ url_for('labels.index') }}">Print Label</a>
+    <a href="{{ url_for('config.wizard') }}">Setup Wizard</a>
+    <a href="{{ url_for('config.config_page') }}">Setup Config</a>
+    <a href="{{ url_for('labels.history') }}">History</a>
+    <span class="printer-info">
+        <strong>Active Printer:</strong> {{ active_printer }}
+        <span class="status-dot" style="background: {{ status_color }};"></span>
+        <span style="vertical-align: middle">{{ printer_status }}</span>
+    </span>
+</div>

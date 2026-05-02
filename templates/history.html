@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}History · Zebra Labels{% endblock %}
+{% block topbar_title %}Print history{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card__header">
+        <div>
+            <h1 class="card__title" style="font-size:20px;">Print history</h1>
+            <p class="card__subtitle">Every label sent to a printer is recorded here.</p>
+        </div>
+    </div>
+
+    {% if records %}
+    <table>
+        <thead>
+            <tr>
+                <th>When</th>
+                <th>Template</th>
+                <th>Fields</th>
+                <th style="width:80px;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rec in records %}
+            <tr>
+                <td>
+                    {{ rec.printed_at }}
+                    {% if rec.source == 'legacy' %}
+                    <span class="badge legacy">legacy</span>
+                    {% endif %}
+                </td>
+                <td><code>{{ rec.template_file }}</code></td>
+                <td>
+                    {% if rec.fields %}
+                    <ul class="history-fields">
+                        {% for key, val in rec.fields.items() %}
+                        <li><strong>{{ key }}</strong> {{ val }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <span class="muted">(no fields)</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('labels.load_label', label_id=rec.id) }}" class="btn btn-ghost">Load</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="muted">No labels have been printed yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+Flask>=3.0
+requests>=2.31
+
+# Native desktop window. Installs a platform-appropriate backend:
+#   - macOS: uses WebKit (bundled).
+#   - Windows: uses Edge WebView2 (present on Windows 10/11 by default).
+#   - Linux: uses GTK WebKit — on Debian/Ubuntu:
+#       apt install python3-gi gir1.2-webkit2-4.1
+pywebview>=5.0
+
+# Windows-only: talk to USB / driver-installed printers via the spooler.
+pywin32>=306; sys_platform == "win32"
+
+# SQL Server support is OPTIONAL — install only if you need it.
+#   Pure-Python (works on Mac/Linux/Windows, no Microsoft drivers needed):
+#     pip install -r requirements-mssql-pure.txt
+#
+#   Full MSSQL feature set incl. Windows Authentication / AD (Windows recommended):
+#     pip install -r requirements-mssql-odbc.txt

@@ -1,0 +1,68 @@
+<div class="builder">
+    <div class="field-row">
+        <label>Connection type:</label>
+        <div class="radio-row">
+            <label class="radio">
+                <input type="radio" name="backend" value="system" {% if default_fields.backend=='system'
+                    %}checked{% endif %}>
+                <span>{% if is_windows %}USB / Windows printer{% else %}System (CUPS){% endif %}</span>
+            </label>
+            <label class="radio">
+                <input type="radio" name="backend" value="tcp" {% if default_fields.backend=='tcp'
+                    %}checked{% endif %}>
+                <span>Network (TCP port 9100)</span>
+            </label>
+            <label class="radio">
+                <input type="radio" name="backend" value="advanced" {% if default_fields.backend=='advanced'
+                    %}checked{% endif %}>
+                <span>Advanced (raw target string)</span>
+            </label>
+        </div>
+    </div>
+
+    <div class="backend-panel" data-backend="system">
+        <div class="field-row">
+            <label>Detected printers:</label>
+            <select name="system_printer">
+                <option value="">-- pick a printer --</option>
+                {% for p in system_printers %}
+                <option value="{{ p }}" {% if p==default_fields.system_printer %}selected{% endif %}>{{ p }}
+                </option>
+                {% endfor %}
+            </select>
+            <p class="hint">
+                {% if is_windows %}
+                Install your Zebra via the Zebra driver; USB printers appear here automatically.
+                {% else %}
+                Printers are pulled from <code>lpstat</code>. Add USB/network printers via CUPS
+                (<code>http://localhost:631</code>).
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <div class="backend-panel" data-backend="tcp">
+        <div class="field-row two-col">
+            <div>
+                <label>Host / IP:</label>
+                <input type="text" name="tcp_host" value="{{ default_fields.tcp_host }}"
+                    placeholder="192.168.1.50">
+            </div>
+            <div>
+                <label>Port:</label>
+                <input type="number" name="tcp_port" value="{{ default_fields.tcp_port }}" min="1"
+                    max="65535">
+            </div>
+        </div>
+        <p class="hint">Networked Zebras listen on port <strong>9100</strong> by default.</p>
+    </div>
+
+    <div class="backend-panel" data-backend="advanced">
+        <div class="field-row">
+            <label>Raw target:</label>
+            <input type="text" name="raw_target" value="{{ default_fields.raw_target }}"
+                placeholder="tcp://host:port, win://PrinterName, cups://queue">
+            <p class="hint">Use explicit scheme prefixes to bypass auto-detection.</p>
+        </div>
+    </div>
+</div>

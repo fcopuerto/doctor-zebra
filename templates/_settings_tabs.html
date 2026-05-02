@@ -1,0 +1,16 @@
+{% set _tabs = [
+    ('config.config_page',     'Overview',    'i-settings'),
+    ('config.printers',        'Printers',    'i-printer'),
+    ('config.templates_list',  'Templates',   'i-wand'),
+    ('config.connections_page','Connections', 'i-database'),
+    ('config.profiles_page',   'Profiles',    'i-folders'),
+] %}
+<nav class="settings-tabs" aria-label="Settings sections">
+    {% for endpoint, label, icon in _tabs %}
+    <a href="{{ url_for(endpoint) }}"
+       class="settings-tabs__tab {% if request.endpoint == endpoint %}active{% endif %}">
+        <svg class="icon"><use href="#{{ icon }}" /></svg>
+        {{ label }}
+    </a>
+    {% endfor %}
+</nav>
