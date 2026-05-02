@@ -1,6 +1,27 @@
 {% extends "base.html" %}
 {% block title %}Dashboard · Doctor Zebra{% endblock %}
 
+{% macro top_table(rows, key, empty_msg) %}
+    {% if rows %}
+        {% set max_count = rows[0].count %}
+        <ul class="top-list">
+            {% for r in rows %}
+            <li>
+                <div class="top-list__row">
+                    <span class="top-list__label">{{ r[key] }}</span>
+                    <span class="top-list__count">{{ r.count }}</span>
+                </div>
+                <div class="top-list__bar">
+                    <div class="top-list__bar-fill" style="width: {{ (r.count / max_count * 100)|round(1) }}%"></div>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="muted dashboard__empty">{{ empty_msg }}</p>
+    {% endif %}
+{% endmacro %}
+
 {% block content %}
 <section class="dashboard">
     <header class="dashboard__header">
@@ -12,56 +33,107 @@
     <div class="kpi-grid">
         <div class="kpi-card">
             <div class="kpi-card__label">Today</div>
-            <div class="kpi-card__value">—</div>
+            <div class="kpi-card__value">{{ kpis.today }}</div>
             <div class="kpi-card__hint muted">labels printed</div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-card__label">This week</div>
-            <div class="kpi-card__value">—</div>
+            <div class="kpi-card__label">Last 7 days</div>
+            <div class="kpi-card__value">{{ kpis.week }}</div>
             <div class="kpi-card__hint muted">labels printed</div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-card__label">This month</div>
-            <div class="kpi-card__value">—</div>
+            <div class="kpi-card__label">Last 30 days</div>
+            <div class="kpi-card__value">{{ kpis.month }}</div>
             <div class="kpi-card__hint muted">labels printed</div>
         </div>
         <div class="kpi-card">
             <div class="kpi-card__label">All time</div>
-            <div class="kpi-card__value">—</div>
+            <div class="kpi-card__value">{{ kpis.total }}</div>
             <div class="kpi-card__hint muted">since first run</div>
         </div>
     </div>
 
-    <!-- ============================== Sections placeholder -->
+    <!-- ============================== Sections -->
     <div class="dashboard__grid">
-        <article class="dashboard__panel">
-            <header class="dashboard__panel-head"><h2>Activity (30 days)</h2></header>
-            <div class="dashboard__placeholder"><p class="muted">Daily activity chart coming in the next phase.</p></div>
+        <article class="dashboard__panel dashboard__panel--wide">
+            <header class="dashboard__panel-head">
+                <h2>Activity (last 30 days)</h2>
+            </header>
+            <div class="dashboard__panel-body">
+                {% if kpis.month %}
+                    {{ activity_chart|safe }}
+                {% else %}
+                    <p class="muted dashboard__empty">No prints in the last 30 days yet.</p>
+                {% endif %}
+            </div>
         </article>
 
         <article class="dashboard__panel">
             <header class="dashboard__panel-head"><h2>Top templates</h2></header>
-            <div class="dashboard__placeholder"><p class="muted">Most-printed templates will show here.</p></div>
+            <div class="dashboard__panel-body">
+                {{ top_table(top_templates, 'template_file', 'No prints recorded yet.') }}
+            </div>
         </article>
 
         <article class="dashboard__panel">
             <header class="dashboard__panel-head"><h2>Top sizes</h2></header>
-            <div class="dashboard__placeholder"><p class="muted">Most-used label sizes (mm × mm).</p></div>
+            <div class="dashboard__panel-body">
+                {{ top_table(top_sizes, 'label', 'No size data yet — print a label that includes ^PW/^LL.') }}
+            </div>
+        </article>
+
+        <article class="dashboard__panel">
+            <header class="dashboard__panel-head"><h2>Top printers</h2></header>
+            <div class="dashboard__panel-body">
+                {{ top_table(top_printers, 'printer_name', 'No printers recorded yet.') }}
+            </div>
         </article>
 
         <article class="dashboard__panel">
             <header class="dashboard__panel-head"><h2>Top items</h2></header>
-            <div class="dashboard__placeholder"><p class="muted">Ranking of labelled SKUs (needs lookup capture).</p></div>
+            <div class="dashboard__panel-body">
+                <p class="muted dashboard__empty">Lookup capture lands in the next phase — items will rank here.</p>
+            </div>
         </article>
 
         <article class="dashboard__panel">
             <header class="dashboard__panel-head"><h2>Consumables</h2></header>
-            <div class="dashboard__placeholder"><p class="muted">Roll status per printer — coming soon.</p></div>
+            <div class="dashboard__panel-body">
+                <p class="muted dashboard__empty">Roll status per printer — coming soon.</p>
+            </div>
         </article>
 
-        <article class="dashboard__panel">
-            <header class="dashboard__panel-head"><h2>Recent errors</h2></header>
-            <div class="dashboard__placeholder"><p class="muted">Latest failed prints.</p></div>
+        <article class="dashboard__panel dashboard__panel--wide">
+            <header class="dashboard__panel-head">
+                <h2>Recent errors</h2>
+                {% if recent_errors %}<span class="badge badge--err">{{ recent_errors|length }}</span>{% endif %}
+            </header>
+            <div class="dashboard__panel-body">
+                {% if recent_errors %}
+                <table class="errors-table">
+                    <thead>
+                        <tr>
+                            <th>When</th>
+                            <th>Template</th>
+                            <th>Printer</th>
+                            <th>Error</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for e in recent_errors %}
+                        <tr>
+                            <td><code>{{ e.printed_at }}</code></td>
+                            <td>{{ e.template_file }}</td>
+                            <td>{{ e.printer_name }}</td>
+                            <td class="errors-table__msg">{{ e.error_message }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="muted dashboard__empty">No recent errors. 🎉</p>
+                {% endif %}
+            </div>
         </article>
     </div>
 </section>

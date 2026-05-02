@@ -295,9 +295,56 @@ def history():
 
 @bp.route('/dashboard')
 def dashboard():
-    """Operational overview: KPIs, top templates/sizes, alerts.
+    """Operational overview: KPIs, top templates/sizes/printers, errors."""
+    p = _db_path()
+    activity = db.daily_activity(p, days=30)
+    return render_template(
+        'dashboard.html',
+        kpis=db.kpi_counts(p),
+        activity=activity,
+        activity_chart=_activity_chart_svg(activity),
+        top_templates=db.top_templates(p, limit=5),
+        top_sizes=db.top_sizes(p, limit=5),
+        top_printers=db.top_printers(p, limit=5),
+        recent_errors=db.recent_errors(p, limit=8),
+    )
 
-    Phase A scaffold: only renders the layout with placeholder values.
-    Real metrics land in Phase B once we have enough captured data.
+
+def _activity_chart_svg(activity: list[dict]) -> str:
+    """Return inline SVG markup for a 30-day bar chart.
+
+    Empty days still render a 1px tick so the axis density is obvious.
     """
-    return render_template('dashboard.html')
+    if not activity:
+        return ''
+    n = len(activity)
+    width = 600
+    height = 110
+    pad_top = 8
+    pad_bottom = 18  # room for the start/end date labels
+    chart_h = height - pad_top - pad_bottom
+    bar_gap = 2
+    bar_w = max(2, (width - bar_gap * (n - 1)) / n)
+    max_count = max((d['count'] for d in activity), default=0) or 1
+
+    bars: list[str] = []
+    for i, d in enumerate(activity):
+        x = i * (bar_w + bar_gap)
+        h = max(1, (d['count'] / max_count) * chart_h)
+        y = pad_top + (chart_h - h)
+        bars.append(
+            f'<rect x="{x:.1f}" y="{y:.1f}" width="{bar_w:.1f}" height="{h:.1f}" '
+            f'rx="1.5" class="bar"><title>{d["date"]}: {d["count"]}</title></rect>'
+        )
+
+    first = activity[0]['date']
+    last = activity[-1]['date']
+    return (
+        f'<svg viewBox="0 0 {width} {height}" preserveAspectRatio="none" '
+        f'class="activity-chart" role="img" aria-label="Activity over the last {n} days">'
+        f'<g>{"".join(bars)}</g>'
+        f'<text x="0" y="{height - 4}" class="activity-chart__axis">{first}</text>'
+        f'<text x="{width}" y="{height - 4}" text-anchor="end" '
+        f'class="activity-chart__axis">{last}</text>'
+        f'</svg>'
+    )

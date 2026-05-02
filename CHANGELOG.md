@@ -7,6 +7,34 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-05-02
+
+Reorganización del nav y primera versión del Dashboard con métricas reales.
+
+### Añadido
+
+- **Sidebar** dividido en dos secciones: **Operations** (Print, Dashboard,
+  History) y **Administration** (Settings). El asistente de configuración
+  se promociona como CTA dentro de Settings en vez de ocupar nav primario.
+- Pantalla **`/dashboard`** con:
+  - KPIs: etiquetas impresas hoy / últimos 7 días / últimos 30 días / total.
+  - Gráfico SVG inline de actividad diaria (últimos 30 días).
+  - Top 5 plantillas, top 5 tamaños (`mm × mm`) y top 5 impresoras, con
+    barras proporcionales.
+  - Tabla de errores recientes (impresiones que fallaron).
+- Captura enriquecida en cada impresión: `copies`, `printer_name`, `status`,
+  `error_message`, `label_width_mm`, `label_height_mm`, `lookup_key` y
+  `profile_name`. Las dimensiones se extraen de los comandos `^PW` / `^LL`
+  del ZPL renderizado (asumiendo 203 dpi, que es el estándar Zebra).
+- Las impresiones que fallan también se registran ahora (con
+  `status='error'`) para que el dashboard pueda mostrarlas.
+
+### Cambiado
+
+- El esquema de `label_prints` se migra de forma aditiva con `ALTER TABLE`,
+  así que las instalaciones existentes mantienen todos los registros.
+- Añadido índice por `printed_at` para acelerar las consultas de stats.
+
 ## [0.1.1] - 2026-05-02
 
 ### Arreglado
@@ -47,6 +75,7 @@ distribuye como `.exe` autónomo para Windows.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/doctor-zebra/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/fcopuerto/doctor-zebra/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/fcopuerto/doctor-zebra/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/fcopuerto/doctor-zebra/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/fcopuerto/doctor-zebra/releases/tag/v0.1.0

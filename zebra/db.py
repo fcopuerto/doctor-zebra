@@ -250,3 +250,160 @@ def _most_recent_legacy(db_path: str | Path) -> tuple[str, dict] | None:
     if not row:
         return None
     return (row[0], _legacy_row_to_fields(row[1:]))
+
+
+# ---------------------------------------------------------------------------
+# Stats (Dashboard)
+# ---------------------------------------------------------------------------
+#
+# All counts use SUM(copies) — what users care about is "labels printed",
+# not "jobs sent". Failed jobs are excluded by default since the user thinks
+# of those as "labels NOT printed"; pass include_errors=True to count them
+# (e.g. for the recent-errors panel which needs the raw rows anyway).
+
+def _kpi_sum(conn: sqlite3.Connection, since_iso: str | None) -> int:
+    where = "WHERE status = 'ok'"
+    args: tuple = ()
+    if since_iso:
+        where += ' AND printed_at >= ?'
+        args = (since_iso,)
+    row = conn.execute(
+        f'SELECT COALESCE(SUM(copies), 0) FROM label_prints {where}',
+        args,
+    ).fetchone()
+    return int(row[0] or 0)
+
+
+def kpi_counts(db_path: str | Path) -> dict:
+    """Return ``{today, week, month, total}`` — labels printed (sum of copies).
+
+    ``week``/``month`` are *rolling* windows (last 7 / 30 days), which is more
+    useful than calendar week/month for an operational dashboard.
+    """
+    from datetime import datetime, timedelta, timezone
+    now = datetime.now(timezone.utc)
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    week_start = now - timedelta(days=7)
+    month_start = now - timedelta(days=30)
+
+    fmt = '%Y-%m-%d %H:%M:%S'
+    with connect(db_path) as conn:
+        return {
+            'today': _kpi_sum(conn, today_start.strftime(fmt)),
+            'week':  _kpi_sum(conn, week_start.strftime(fmt)),
+            'month': _kpi_sum(conn, month_start.strftime(fmt)),
+            'total': _kpi_sum(conn, None),
+        }
+
+
+def daily_activity(db_path: str | Path, days: int = 30) -> list[dict]:
+    """Return one entry per day for the last ``days`` days, oldest first.
+
+    Each entry is ``{date: 'YYYY-MM-DD', count: int}``. Days with zero prints
+    are included (so the chart has a continuous x-axis).
+    """
+    from datetime import date, timedelta
+    days = max(1, int(days))
+    today = date.today()
+    start = today - timedelta(days=days - 1)
+
+    with connect(db_path) as conn:
+        rows = conn.execute(
+            '''
+            SELECT date(printed_at) AS d, COALESCE(SUM(copies), 0) AS n
+            FROM label_prints
+            WHERE status = 'ok' AND date(printed_at) >= ?
+            GROUP BY d
+            ''',
+            (start.isoformat(),),
+        ).fetchall()
+    by_day = {r[0]: int(r[1]) for r in rows}
+
+    out: list[dict] = []
+    for i in range(days):
+        d = (start + timedelta(days=i)).isoformat()
+        out.append({'date': d, 'count': by_day.get(d, 0)})
+    return out
+
+
+def top_templates(db_path: str | Path, limit: int = 5) -> list[dict]:
+    with connect(db_path) as conn:
+        rows = conn.execute(
+            '''
+            SELECT template_file, SUM(copies) AS n
+            FROM label_prints
+            WHERE status = 'ok'
+            GROUP BY template_file
+            ORDER BY n DESC
+            LIMIT ?
+            ''',
+            (limit,),
+        ).fetchall()
+    return [{'template_file': r[0], 'count': int(r[1])} for r in rows]
+
+
+def top_sizes(db_path: str | Path, limit: int = 5) -> list[dict]:
+    """Top label sizes. Rows with no dimensions are bucketed as ``unknown``."""
+    with connect(db_path) as conn:
+        rows = conn.execute(
+            '''
+            SELECT label_width_mm, label_height_mm, SUM(copies) AS n
+            FROM label_prints
+            WHERE status = 'ok'
+            GROUP BY label_width_mm, label_height_mm
+            ORDER BY n DESC
+            LIMIT ?
+            ''',
+            (limit,),
+        ).fetchall()
+    out: list[dict] = []
+    for w, h, n in rows:
+        if w is None and h is None:
+            label = 'unknown'
+        elif w is not None and h is not None:
+            label = f'{w:g} × {h:g} mm'
+        else:
+            label = f'{(w or h):g} mm'
+        out.append({'label': label, 'count': int(n)})
+    return out
+
+
+def top_printers(db_path: str | Path, limit: int = 5) -> list[dict]:
+    with connect(db_path) as conn:
+        rows = conn.execute(
+            '''
+            SELECT COALESCE(NULLIF(printer_name, ''), '(unset)') AS p,
+                   SUM(copies) AS n
+            FROM label_prints
+            WHERE status = 'ok'
+            GROUP BY p
+            ORDER BY n DESC
+            LIMIT ?
+            ''',
+            (limit,),
+        ).fetchall()
+    return [{'printer_name': r[0], 'count': int(r[1])} for r in rows]
+
+
+def recent_errors(db_path: str | Path, limit: int = 10) -> list[dict]:
+    with connect(db_path) as conn:
+        rows = conn.execute(
+            '''
+            SELECT printed_at, template_file, printer_name, error_message, copies
+            FROM label_prints
+            WHERE status = 'error'
+            ORDER BY printed_at DESC
+            LIMIT ?
+            ''',
+            (limit,),
+        ).fetchall()
+    return [
+        {
+            'printed_at': r[0],
+            'template_file': r[1],
+            'printer_name': r[2] or '(unset)',
+            'error_message': r[3] or '',
+            'copies': int(r[4] or 1),
+        }
+        for r in rows
+    ]

@@ -2173,3 +2173,119 @@ tbody tr:hover {
     place-items: center;
     text-align: center;
 }
+
+.dashboard__panel--wide {
+    grid-column: 1 / -1;
+}
+.dashboard__panel-body {
+    padding: var(--s-4) var(--s-5);
+}
+.dashboard__panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.dashboard__empty {
+    margin: var(--s-4) 0;
+    text-align: center;
+    font-size: 13px;
+}
+
+/* Top-N ranking with proportional bars (templates / sizes / printers) */
+.top-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-3);
+}
+.top-list li {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.top-list__row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s-3);
+    font-size: 13px;
+}
+.top-list__label {
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+}
+.top-list__count {
+    font-weight: 600;
+    color: var(--text-subtle);
+    font-variant-numeric: tabular-nums;
+}
+.top-list__bar {
+    height: 6px;
+    background: var(--surface-2, rgba(0, 0, 0, 0.05));
+    border-radius: 999px;
+    overflow: hidden;
+}
+.top-list__bar-fill {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 999px;
+    transition: width 0.2s ease-out;
+}
+
+/* Activity bar chart (inline SVG) */
+.activity-chart {
+    display: block;
+    width: 100%;
+    height: 110px;
+}
+.activity-chart .bar {
+    fill: var(--primary);
+    opacity: 0.85;
+    transition: opacity 0.1s;
+}
+.activity-chart .bar:hover {
+    opacity: 1;
+}
+.activity-chart__axis {
+    fill: var(--text-subtle);
+    font-size: 10px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* Errors table */
+.errors-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+.errors-table th,
+.errors-table td {
+    text-align: left;
+    padding: var(--s-2) var(--s-3);
+    border-bottom: 1px solid var(--border, #eee);
+    vertical-align: top;
+}
+.errors-table th {
+    color: var(--text-subtle);
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.errors-table__msg {
+    color: var(--danger, #b91c1c);
+    word-break: break-word;
+}
+.badge--err {
+    background: var(--danger-soft, rgba(220, 38, 38, 0.1));
+    color: var(--danger, #b91c1c);
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+}
