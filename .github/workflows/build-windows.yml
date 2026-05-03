@@ -59,6 +59,28 @@ jobs:
           Set-Content -Path dist\ComandanteZebra.exe.sha256 -Value $line -Encoding ascii
           Write-Host "SHA-256: $hash"
 
+      - name: VirusTotal scan
+        # Optional: only runs if a VIRUSTOTAL_API_KEY repo secret is set.
+        # Get a free key at https://www.virustotal.com/gui/my-apikey and
+        # add it under Settings → Secrets and variables → Actions.
+        # GitHub doesn't allow `secrets.X` in `if:` conditions directly,
+        # so we shadow it into env first and gate on that.
+        id: vt
+        if: env.VT_KEY != ''
+        env:
+          VT_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
+        uses: crazy-max/ghaction-virustotal@v4
+        with:
+          vt_api_key: ${{ secrets.VIRUSTOTAL_API_KEY }}
+          files: |
+            dist/ComandanteZebra.exe
+
+      - name: Show VirusTotal result
+        if: steps.vt.outcome == 'success'
+        shell: pwsh
+        run: |
+          Write-Host "VirusTotal analysis: ${{ steps.vt.outputs.analysis }}"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -76,3 +98,12 @@ jobs:
           files: |
             dist/ComandanteZebra.exe
             dist/ComandanteZebra.exe.sha256
+          # Append-mode body: keep any existing release notes (typed by
+          # the user when they cut the tag) and add the integrity links.
+          append_body: true
+          body: |
+
+            ---
+            **Integridad**
+            - SHA-256: `dist/ComandanteZebra.exe.sha256`
+            - VirusTotal: ${{ steps.vt.outputs.analysis || '_(no scan: VIRUSTOTAL_API_KEY no configurado)_' }}

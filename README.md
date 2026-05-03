@@ -71,6 +71,12 @@ Get-FileHash ComandanteZebra.exe -Algorithm SHA256
 # Debe coincidir con el contenido de ComandanteZebra.exe.sha256
 ```
 
+Cada release lleva además un **enlace al análisis de VirusTotal** del
+binario (en las release notes). Si VT lo da limpio en 60+ motores, sabes
+que no hay nada raro dentro — y los resultados se comparten con vendors
+AV (Microsoft incluido), así que ayuda indirectamente a reducir falsos
+positivos en SmartScreen.
+
 ### macOS / Linux
 
 Por ahora solo se publican binarios de Windows. En macOS puedes correrlo desde fuente (ver más abajo) o construir el `.app` localmente con `pyinstaller build_desktop.spec`.
@@ -206,6 +212,38 @@ Cuando se ejecuta como `.exe`, los datos viven fuera del bundle para sobrevivir 
 ```
 
 Si actualizas desde una versión pre-rebrand que usaba `~/.zebra_labels/`, la app la renombra automáticamente en el primer arranque.
+
+## CI / mantenimiento
+
+### Habilitar VirusTotal en cada build
+
+El workflow [`build-windows.yml`](.github/workflows/build-windows.yml) sube el
+`.exe` a VirusTotal automáticamente **si existe el secret `VIRUSTOTAL_API_KEY`**.
+Si no existe, el step se salta sin fallar el build.
+
+Para activarlo:
+
+1. Ve a https://www.virustotal.com/gui/my-apikey y copia tu API key
+   (la cuenta gratuita basta para 500 lookups al día).
+2. En el repo: **Settings → Secrets and variables → Actions → New repository secret**.
+3. Name: `VIRUSTOTAL_API_KEY`, Value: pega la key.
+4. El siguiente push a `main` (o tag) ya incluirá el scan y publicará
+   el enlace al análisis en las release notes.
+
+### Code signing (futuro, gratis con SignPath.io Foundation)
+
+[SignPath.io Foundation](https://signpath.io/foundation) ofrece firma
+de código gratuita para proyectos open source con certificados OV
+reales. Una vez aprobado el proyecto:
+
+1. Configuran un "signing policy" para Comandante Zebra.
+2. Te dan dos secrets para GitHub: `SIGNPATH_API_TOKEN` y similar.
+3. Se añade un step al workflow que envía el `.exe` firmar y se descarga
+   firmado. Soluciona SmartScreen del todo (el `.exe` deja de mostrar
+   el aviso).
+
+Aplicar al programa: https://signpath.io/foundation/apply (toma días-semanas
+en aprobación).
 
 ## Licencia
 

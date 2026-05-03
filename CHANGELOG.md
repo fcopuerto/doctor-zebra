@@ -7,6 +7,21 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Cambiado (CI)
+
+- **Scan de VirusTotal automático** en cada build de Windows. Es
+  opcional: solo se ejecuta si el repo tiene el secret
+  `VIRUSTOTAL_API_KEY`. Cuando está, sube el `.exe`, espera el análisis
+  y publica el enlace en las release notes (junto al SHA-256). Útil
+  como visibilidad rápida de si algún AV marca falsos positivos, y los
+  resultados de VT se comparten con muchos vendors AV (Microsoft
+  incluido), por lo que indirectamente ayuda a reducir warnings de
+  SmartScreen sin tener que enviar manualmente.
+- README añade sección **CI / mantenimiento** con instrucciones para
+  activar el secret de VirusTotal y para aplicar a SignPath.io
+  Foundation (firma de código gratis para open source — sustituiría
+  todas las mitigaciones de SmartScreen actuales).
+
 ## [0.7.0] - 2026-05-03
 
 Pulido general — diagnóstico de red, healthz, traducción del wizard
