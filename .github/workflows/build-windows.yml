@@ -14,6 +14,13 @@ jobs:
     permissions:
       contents: write   # needed to create/update GitHub Releases on tag push
 
+    # Hoist secrets to job-level env so they're visible in step-level
+    # `if:` conditions (a step's own `env:` block is NOT available in
+    # its own `if:` — that gotcha cost us the SignPath/VT runs in 0.7.1).
+    env:
+      SP_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+      VT_KEY:   ${{ secrets.VIRUSTOTAL_API_KEY }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4

@@ -7,6 +7,19 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.7.2] - 2026-05-03
+
+### Arreglado (CI)
+
+- En 0.7.1 los steps de SignPath y VirusTotal aparecían como
+  **skipped** aunque los secrets estaban configurados en el repo. La
+  causa: el `env:` declarado en cada step **no** está disponible en su
+  propio `if:` (gotcha clásico de GitHub Actions). Movidos
+  `SIGNPATH_API_TOKEN` y `VIRUSTOTAL_API_KEY` a `env:` a nivel de
+  **job**, así sí los ve el `if:`. A partir de esta versión, si los
+  secrets están configurados, el `.exe` sale firmado y el scan de VT
+  aparece en las release notes.
+
 ## [0.7.1] - 2026-05-03
 
 Release puramente de distribución: la aplicación es idéntica a 0.7.0,
@@ -414,7 +427,8 @@ distribuye como `.exe` autónomo para Windows.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.1...HEAD
+[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.2...HEAD
+[0.7.2]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.1...v0.7.2
 [0.7.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.6.0...v0.6.1
