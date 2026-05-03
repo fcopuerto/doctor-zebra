@@ -7,6 +7,13 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-05-03
+
+Release puramente de distribución: la aplicación es idéntica a 0.7.0,
+pero el `.exe` ahora puede salir **firmado** (vía SignPath.io Foundation)
+y cada build adjunta el enlace al **escaneo de VirusTotal** en las
+release notes.
+
 ### Cambiado (CI)
 
 - **Code signing con SignPath.io Foundation** integrado en el workflow.
@@ -407,7 +414,8 @@ distribuye como `.exe` autónomo para Windows.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.1...HEAD
+[0.7.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.5.1...v0.6.0
