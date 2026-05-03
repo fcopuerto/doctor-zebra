@@ -230,20 +230,35 @@ Para activarlo:
 4. El siguiente push a `main` (o tag) ya incluirá el scan y publicará
    el enlace al análisis en las release notes.
 
-### Code signing (futuro, gratis con SignPath.io Foundation)
+### Code signing con SignPath.io Foundation
 
-[SignPath.io Foundation](https://signpath.io/foundation) ofrece firma
-de código gratuita para proyectos open source con certificados OV
-reales. Una vez aprobado el proyecto:
+El workflow **ya está integrado** con
+[SignPath.io Foundation](https://signpath.io/foundation) (firma de
+código gratuita para open source con certificado OV real). El project
+slug, signing policy y organization ID ya están en el workflow; lo
+único que falta es el token de API.
 
-1. Configuran un "signing policy" para Comandante Zebra.
-2. Te dan dos secrets para GitHub: `SIGNPATH_API_TOKEN` y similar.
-3. Se añade un step al workflow que envía el `.exe` firmar y se descarga
-   firmado. Soluciona SmartScreen del todo (el `.exe` deja de mostrar
-   el aviso).
+Para activarlo:
 
-Aplicar al programa: https://signpath.io/foundation/apply (toma días-semanas
-en aprobación).
+1. En SignPath: avatar arriba a la derecha → **API Tokens** →
+   **Create new token** con permisos "Submit signing requests" para
+   el proyecto Comandante Zebra. Cópialo (solo se enseña una vez).
+2. En GitHub: **Settings → Secrets and variables → Actions** →
+   **New repository secret**:
+   - Name: `SIGNPATH_API_TOKEN`
+   - Value: pega el token
+
+A partir del próximo push:
+
+- El `.exe` sale firmado con el cert OV de SignPath Foundation.
+- SmartScreen ya no muestra el aviso "Windows protected your PC".
+- El SHA-256 publicado y el scan de VirusTotal corresponden al binario
+  firmado (no al unsigned), así que la verificación es coherente.
+- Las release notes indican `✅ Firmado por SignPath.io Foundation (OV)`.
+
+> Si el secret no está configurado o SignPath alcanza un timeout, el
+> workflow no falla — publica el `.exe` sin firmar y lo indica en las
+> release notes.
 
 ## Licencia
 

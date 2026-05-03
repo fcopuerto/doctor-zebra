@@ -9,6 +9,23 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ### Cambiado (CI)
 
+- **Code signing con SignPath.io Foundation** integrado en el workflow.
+  Se activa solo si el repo tiene configurado el secret
+  `SIGNPATH_API_TOKEN`. Cuando está, tras el build:
+  1. Sube el `.exe` sin firmar como artifact temporal.
+  2. SignPath descarga el binario, lo firma con el certificado OV de
+     SignPath Foundation y devuelve el firmado.
+  3. El firmado sustituye al unsigned en `dist/` antes de SHA-256 y
+     VirusTotal, así toda la integridad publicada corresponde al
+     binario firmado.
+  4. Las release notes indican si la build salió firmada o no.
+
+  Project slug (`COMANDANTE_ZEBRA`), signing policy slug
+  (`release_policy`) y organization ID están hardcodeados en el
+  workflow; lo único que necesita el repo es el secret del token de
+  API. Si SignPath falla o el secret no está, la build sigue y publica
+  el `.exe` sin firmar.
+
 - **Scan de VirusTotal automático** en cada build de Windows. Es
   opcional: solo se ejecuta si el repo tiene el secret
   `VIRUSTOTAL_API_KEY`. Cuando está, sube el `.exe`, espera el análisis

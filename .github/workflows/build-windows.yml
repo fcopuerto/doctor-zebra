@@ -48,6 +48,55 @@ jobs:
           }
           Get-Item "dist\ComandanteZebra.exe" | Select-Object Name, Length, LastWriteTime
 
+      # -----------------------------------------------------------------
+      # Code signing via SignPath.io Foundation (free for OSS).
+      #
+      # Activates when SIGNPATH_API_TOKEN secret is configured on the
+      # repo (Settings → Secrets and variables → Actions → New secret).
+      # The token must have "Submit signing requests" permission on
+      # the COMANDANTE_ZEBRA project.
+      #
+      # When configured, SignPath downloads the unsigned artifact, signs
+      # it with the Foundation OV cert, and returns the signed binary.
+      # We move it back over dist/ComandanteZebra.exe so the rest of the
+      # pipeline (SHA-256, VirusTotal, upload, release) runs on the
+      # signed binary.
+      # -----------------------------------------------------------------
+      - name: Upload unsigned binary (for SignPath to fetch)
+        if: env.SP_TOKEN != ''
+        id: upload-unsigned
+        env:
+          SP_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ComandanteZebra-unsigned
+          path: dist/ComandanteZebra.exe
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Sign with SignPath
+        if: env.SP_TOKEN != ''
+        id: signpath
+        env:
+          SP_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: 'f00bea23-b559-4e09-8c5f-85108bb4aa7d'
+          project-slug: 'COMANDANTE_ZEBRA'
+          signing-policy-slug: 'release_policy'
+          github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: 'dist/signed'
+
+      - name: Replace unsigned with signed binary
+        if: steps.signpath.outcome == 'success'
+        shell: pwsh
+        run: |
+          Move-Item -Force dist/signed/ComandanteZebra.exe dist/ComandanteZebra.exe
+          Write-Host "Replaced unsigned binary with SignPath-signed one."
+          Get-AuthenticodeSignature dist/ComandanteZebra.exe | Format-List
+
       - name: Compute SHA-256 checksum
         shell: pwsh
         run: |
@@ -105,5 +154,6 @@ jobs:
 
             ---
             **Integridad**
-            - SHA-256: `dist/ComandanteZebra.exe.sha256`
+            - Firma: ${{ steps.signpath.outcome == 'success' && '✅ Firmado por SignPath.io Foundation (OV)' || '⚠️ No firmado — Windows SmartScreen mostrará un aviso la primera vez' }}
+            - SHA-256: ver `ComandanteZebra.exe.sha256`
             - VirusTotal: ${{ steps.vt.outputs.analysis || '_(no scan: VIRUSTOTAL_API_KEY no configurado)_' }}
