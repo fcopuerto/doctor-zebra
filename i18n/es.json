@@ -283,5 +283,7 @@
   "network.diag.advice.publish_failed": "No hemos podido anunciar esta instancia por mDNS. Casi siempre es un firewall bloqueando el puerto UDP 5353 de salida. En Windows, permite Comandante Zebra (o `python.exe`) en Windows Defender Firewall — con la red Privada basta. En macOS no suele hacer falta hacer nada.",
   "network.diag.advice.no_peers_seen": "Estamos escuchando pero aún no ha aparecido nadie. Posibles causas: estás solo en esta LAN, tu firewall bloquea UDP/5353 entrante, o el otro equipo está en una subred distinta (mDNS es link-local, no cruza routers).",
   "network.diag.advice.no_lan_ip": "No se ha detectado una IP de LAN para esta máquina. Comprueba tu conexión de red — los equipos no pueden alcanzarte por una dirección de loopback.",
-  "network.diag.advice.not_publishing": "El listener está activo pero aún no nos estamos anunciando. Suele querer decir que el wrapper de escritorio no ha pasado el puerto de Flask todavía; reinicia la app o ejecuta vía `desktop.py`."
+  "network.diag.advice.not_publishing": "El listener está activo pero aún no nos estamos anunciando. Suele querer decir que el wrapper de escritorio no ha pasado el puerto de Flask todavía; reinicia la app o ejecuta vía `desktop.py`.",
+  "network.firewall.open_button": "Abrir firewall para mDNS",
+  "network.firewall.open_hint": "Añade reglas de entrada y salida para UDP 5353 (mDNS) para que otros equipos te encuentren. En Windows verás un aviso UAC — acéptalo. En macOS y Linux, ejecuta el comando de abajo a mano."
 }

@@ -283,5 +283,7 @@
   "network.diag.advice.publish_failed": "No hem pogut anunciar aquesta instància per mDNS. Gairebé sempre és un tallafocs bloquejant el port UDP 5353 de sortida. A Windows, permet Comandante Zebra (o `python.exe`) al Windows Defender Firewall — amb la xarxa Privada n'hi ha prou. A macOS normalment no cal fer res.",
   "network.diag.advice.no_peers_seen": "Estem escoltant però encara no ha aparegut ningú. Possibles causes: estàs sol en aquesta LAN, el teu tallafocs bloqueja UDP/5353 entrant, o l'altre equip està en una subxarxa diferent (mDNS és link-local, no creua routers).",
   "network.diag.advice.no_lan_ip": "No s'ha detectat una IP de LAN per a aquesta màquina. Comprova la teva connexió de xarxa — els equips no et poden arribar per una adreça de loopback.",
-  "network.diag.advice.not_publishing": "El listener està actiu però encara no ens estem anunciant. Sol voler dir que el wrapper d'escriptori no ha passat el port de Flask encara; reinicia l'app o executa via `desktop.py`."
+  "network.diag.advice.not_publishing": "El listener està actiu però encara no ens estem anunciant. Sol voler dir que el wrapper d'escriptori no ha passat el port de Flask encara; reinicia l'app o executa via `desktop.py`.",
+  "network.firewall.open_button": "Obrir tallafocs per a mDNS",
+  "network.firewall.open_hint": "Afegeix regles d'entrada i sortida per a UDP 5353 (mDNS) perquè altres equips et trobin. A Windows veuràs un avís UAC — accepta'l. A macOS i Linux, executa la comanda de baix a mà."
 }

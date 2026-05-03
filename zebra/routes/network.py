@@ -21,7 +21,7 @@ from flask import (
     Blueprint, current_app, jsonify, render_template, request, url_for,
 )
 
-from zebra import datasources, discovery, fields as fields_mod, network
+from zebra import datasources, discovery, fields as fields_mod, firewall, network
 from zebra.routes.config import _settings
 
 
@@ -81,7 +81,28 @@ def peers():
 @bp.route('/api/network/diagnostics')
 def diagnostics():
     """Status snapshot used by the Network page to surface mDNS issues."""
-    return jsonify(discovery.get_discovery().diagnostics())
+    diag = discovery.get_discovery().diagnostics()
+    diag['firewall'] = {
+        **firewall.os_info(),
+        'manual_instructions': firewall.manual_instructions(),
+    }
+    return jsonify(diag)
+
+
+@bp.route('/api/network/firewall/open', methods=['POST'])
+def open_firewall():
+    """Trigger an elevated PowerShell to add the mDNS firewall rule.
+
+    Windows-only. On other OSes returns 400 with manual instructions.
+    """
+    if not firewall.is_windows():
+        return jsonify({
+            'ok': False,
+            'message': 'Automatic firewall opening is Windows-only.',
+            'manual': firewall.manual_instructions(),
+        }), 400
+    launched, msg = firewall.open_mdns_windows()
+    return jsonify({'ok': launched, 'message': msg})
 
 
 # ---------------------------------------------------------------------------

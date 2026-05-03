@@ -7,6 +7,30 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.7.5] - 2026-05-03
+
+### Añadido
+
+- **Galones de comandante en el icono.** Tres chevrons dorados (estilo
+  rango militar) sobre el barcode/zebra del logo. La paleta queda:
+  fondo azul Norton Commander, etiqueta blanca, barras navy y galones
+  dorados (#C9A227) que cuentan claramente que es el "Comandante".
+  Regenerado `static/icon.png`, `icon.ico`, `icon.icns` y `logo.svg`.
+- **Apertura automática del firewall de Windows para mDNS.** Nuevo
+  módulo `zebra/firewall.py` con un helper que lanza PowerShell con
+  elevación UAC y crea (o refresca) reglas de entrada y salida en UDP
+  5353 con el nombre _"Comandante Zebra (mDNS)"_.
+- Endpoint `POST /api/network/firewall/open` (Windows-only — devuelve
+  400 + instrucciones manuales en otros sistemas).
+- Sección **Firewall** dentro del card de Diagnóstico en _Settings →
+  Red_:
+  - En Windows: botón **"Abrir firewall para mDNS"** que dispara el
+    helper elevado.
+  - En macOS: nota informativa de que no hace falta nada.
+  - En Linux: snippet copiable con los comandos para UFW, firewalld
+    e iptables.
+- Diagnostics endpoint amplía su payload con `firewall: { os, manual_instructions }`.
+
 ## [0.7.4] - 2026-05-03
 
 ### Arreglado (CI)
@@ -449,7 +473,8 @@ distribuye como `.exe` autónomo para Windows.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.4...HEAD
+[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.5...HEAD
+[0.7.5]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.4...v0.7.5
 [0.7.4]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.3...v0.7.4
 [0.7.3]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.2...v0.7.3
 [0.7.2]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.1...v0.7.2

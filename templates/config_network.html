@@ -96,6 +96,17 @@
         </div>
     </div>
     <div id="netDiagAdvice" class="net-diag__advice"></div>
+
+    <!-- Firewall helpers: only meaningful on Windows. JS shows/hides
+         the button based on the OS reported by /api/network/diagnostics. -->
+    <div id="netFirewall" class="net-firewall" hidden>
+        <button type="button" class="btn-secondary" id="netFwOpen">
+            🛡️ {{ t('network.firewall.open_button') }}
+        </button>
+        <p class="hint">{{ t('network.firewall.open_hint') }}</p>
+        <pre class="net-firewall__manual" id="netFwManual" hidden></pre>
+        <p class="test-result" id="netFwResult" aria-live="polite"></p>
+    </div>
 </div>
 
 <!-- ============================================================ -->

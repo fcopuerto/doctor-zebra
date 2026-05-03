@@ -29,6 +29,7 @@ BG_NC_BLUE = (0, 0, 170, 255)        # classic Norton Commander DOS blue
 BAR_DARK  = (15, 23, 42, 255)        # near-black for the zebra bars
 LABEL_WHITE = (255, 255, 255, 255)
 SHADOW = (0, 0, 0, 80)               # subtle drop shadow under the label
+GOLD = (201, 162, 39, 255)           # military gold for the commander chevrons
 
 SIZE = 1024  # master canvas
 
@@ -85,6 +86,25 @@ def draw_master() -> Image.Image:
             fill=BAR_DARK,
         )
         x += w + gap
+
+    # ---- Commander chevrons (▲ ▲ ▲) on top of the barcode ---------------
+    # Three V-shaped stripes in military gold, centered horizontally,
+    # stacked near the top of the label so they overlay the upper third
+    # of the bars without burying them.
+    cx = SIZE // 2
+    chevron_w = 280     # half-span left/right from peak
+    chevron_h = 60      # half-height (peak above to base below)
+    chevron_thickness = 30
+    chevron_y_start = 290
+    chevron_y_step = 78
+
+    for i in range(3):
+        cy = chevron_y_start + i * chevron_y_step
+        left  = (cx - chevron_w, cy + chevron_h)
+        peak  = (cx,             cy - chevron_h)
+        right = (cx + chevron_w, cy + chevron_h)
+        d.line([left, peak, right], fill=GOLD,
+               width=chevron_thickness, joint='curve')
 
     return img
 
@@ -163,6 +183,12 @@ SVG_TEMPLATE = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024
       <rect x="532" y="250" width="50" height="524" rx="4"/>
       <rect x="604" y="250" width="22" height="524" rx="4"/>
       <rect x="648" y="250" width="40" height="524" rx="4"/>
+    </g>
+    <!-- commander chevrons (▲ ▲ ▲) in military gold -->
+    <g fill="none" stroke="#C9A227" stroke-width="30" stroke-linejoin="round" stroke-linecap="round">
+      <polyline points="232,350 512,230 792,350"/>
+      <polyline points="232,428 512,308 792,428"/>
+      <polyline points="232,506 512,386 792,506"/>
     </g>
   </g>
 </svg>

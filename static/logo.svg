@@ -23,5 +23,11 @@
       <rect x="604" y="250" width="22" height="524" rx="4"/>
       <rect x="648" y="250" width="40" height="524" rx="4"/>
     </g>
+    <!-- commander chevrons (▲ ▲ ▲) in military gold -->
+    <g fill="none" stroke="#C9A227" stroke-width="30" stroke-linejoin="round" stroke-linecap="round">
+      <polyline points="232,350 512,230 792,350"/>
+      <polyline points="232,428 512,308 792,428"/>
+      <polyline points="232,506 512,386 792,506"/>
+    </g>
   </g>
 </svg>

@@ -100,7 +100,41 @@
             p.textContent = txt;
             cont.appendChild(p);
         });
+
+        // Firewall section: show automatic button on Windows, manual
+        // command snippet otherwise.
+        const fwBox = document.getElementById('netFirewall');
+        const fwManual = document.getElementById('netFwManual');
+        const fwBtn = document.getElementById('netFwOpen');
+        if (fwBox && d.firewall) {
+            fwBox.hidden = false;
+            const isWin = !!d.firewall.is_windows;
+            if (fwBtn) fwBtn.hidden = !isWin;
+            if (fwManual) {
+                const cmd = (d.firewall.manual_instructions || {}).command || '';
+                if (cmd) {
+                    fwManual.textContent = cmd;
+                    fwManual.hidden = false;
+                } else {
+                    fwManual.hidden = true;
+                }
+            }
+        }
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const fwBtn = document.getElementById('netFwOpen');
+        if (fwBtn) fwBtn.addEventListener('click', async function () {
+            try {
+                const r = await fetch('/api/network/firewall/open', { method: 'POST' });
+                const j = await r.json();
+                showResult(document.getElementById('netFwResult'), j.message || '', !j.ok);
+            } catch (e) {
+                showResult(document.getElementById('netFwResult'),
+                           'Failed to open firewall helper: ' + e, true);
+            }
+        });
+    });
 
     async function refreshPeers() {
         try {
