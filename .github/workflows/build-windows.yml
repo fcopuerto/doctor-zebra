@@ -88,6 +88,10 @@ jobs:
       - name: Sign with SignPath
         if: env.SP_TOKEN != ''
         id: signpath
+        # Don't abort the whole pipeline if signing fails — we still want
+        # an .exe (unsigned) in the Release. The release notes will mark
+        # it as ⚠️ No firmado so users can tell.
+        continue-on-error: true
         env:
           SP_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
         uses: signpath/github-action-submit-signing-request@v1

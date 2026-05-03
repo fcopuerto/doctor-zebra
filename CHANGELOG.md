@@ -7,6 +7,17 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.7.4] - 2026-05-03
+
+### Arreglado (CI)
+
+- Si SignPath falla por cualquier motivo (config en el panel, API caída,
+  timeout) el workflow **ya no aborta el job**: marcado el step con
+  `continue-on-error: true`. El SHA-256, VirusTotal, upload y release
+  vuelven a correr siempre, así que como mínimo se publica el `.exe`
+  sin firmar (con la nota `⚠️ No firmado` en las release notes) en
+  vez de no publicar nada.
+
 ## [0.7.3] - 2026-05-03
 
 ### Arreglado (CI)
@@ -438,7 +449,8 @@ distribuye como `.exe` autónomo para Windows.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.3...HEAD
+[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.4...HEAD
+[0.7.4]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.3...v0.7.4
 [0.7.3]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.2...v0.7.3
 [0.7.2]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.1...v0.7.2
 [0.7.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.0...v0.7.1

@@ -14,7 +14,7 @@ from zebra.settings import Settings
 
 LANG_COOKIE = 'comandante_zebra_lang'
 
-__version__ = '0.7.3'
+__version__ = '0.7.4'
 
 # Path to the package root (read-only assets when frozen with PyInstaller).
 PACKAGE_ROOT = Path(__file__).resolve().parent.parent
