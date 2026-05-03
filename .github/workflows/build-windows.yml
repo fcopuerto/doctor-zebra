@@ -11,6 +11,10 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    # The signing/scanning secrets live in the `copilot` environment
+    # (auto-created by GitHub Copilot when this repo was set up), not at
+    # repo level. Pin the job to that environment so they resolve.
+    environment: copilot
     permissions:
       contents: write   # needed to create/update GitHub Releases on tag push
 

@@ -7,6 +7,17 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.7.3] - 2026-05-03
+
+### Arreglado (CI)
+
+- El job ahora se ata al GitHub environment `copilot`, donde viven
+  realmente los secrets `SIGNPATH_API_TOKEN` y `VIRUSTOTAL_API_KEY`.
+  Estaban configurados ahí (auto-creado por GitHub Copilot) en vez de
+  a nivel de repo, así que en 0.7.2 aún se saltaban los steps. Con
+  esto, la firma y el scan de VT ya deberían ejecutarse en el siguiente
+  build/tag.
+
 ## [0.7.2] - 2026-05-03
 
 ### Arreglado (CI)
@@ -427,7 +438,8 @@ distribuye como `.exe` autónomo para Windows.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.2...HEAD
+[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.3...HEAD
+[0.7.3]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.2...v0.7.3
 [0.7.2]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.1...v0.7.2
 [0.7.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.6.1...v0.7.0
