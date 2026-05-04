@@ -350,5 +350,7 @@
   "versions.dialog.current": "actual",
   "versions.dialog.loading": "Carregant…",
   "versions.section.title": "Historial de versions",
-  "versions.section.subtitle": "Cada desada crea un snapshot. Prem una fila per veure el seu ZPL, compara dues referències per veure exactament què va canviar, o restaura qualsevol versió per desfer."
+  "versions.section.subtitle": "Cada desada crea un snapshot. Prem una fila per veure el seu ZPL, compara dues referències per veure exactament què va canviar, o restaura qualsevol versió per desfer.",
+  "versions.counter.label": "versions desades",
+  "versions.dialog.preview_failed": "(previsualització no disponible)"
 }

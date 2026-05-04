@@ -30,9 +30,22 @@
             versionsCache = data.versions || [];
             renderList(versionsCache);
             renderCompareDropdowns(versionsCache);
+            renderCounter(versionsCache.length);
         } catch (e) {
             $('versionsList').innerHTML = '<p class="muted">Error: ' + e + '</p>';
         }
+    }
+
+    function renderCounter(n) {
+        const badge = $('versionsCounter');
+        if (!badge) return;
+        if (n <= 0) {
+            badge.hidden = true;
+            return;
+        }
+        badge.hidden = false;
+        const v = $('versionsCounterValue');
+        if (v) v.textContent = n;
     }
 
     function renderList(versions) {
@@ -130,17 +143,25 @@
                 '/api/templates/' + encodeURIComponent(TEMPLATE) +
                 '/versions/compare?a=' + encodeURIComponent(a) + '&b=' + encodeURIComponent(b));
             const data = await r.json();
-            renderDiff(data);
+            renderDiff(data, a, b);
         } catch (e) {
             showResult('Error: ' + e, true);
         }
     }
 
-    function renderDiff(d) {
+    function renderDiff(d, refA, refB) {
         const box = $('versionsDiff');
         box.hidden = false;
         $('versionsDiffTitle').textContent =
             (d.a_label || '?') + '  →  ' + (d.b_label || '?');
+
+        // --- Side-by-side previews -----------------------------------
+        $('versionsPreviewALabel').textContent = d.a_label || '?';
+        $('versionsPreviewBLabel').textContent = d.b_label || '?';
+        loadPreviewInto('versionsPreviewA', refA);
+        loadPreviewInto('versionsPreviewB', refB);
+
+        // --- Unified diff text ---------------------------------------
         const out = $('versionsDiffBody');
         out.innerHTML = '';
         const lines = d.lines || [];
@@ -161,8 +182,34 @@
                 out.appendChild(span);
             });
         }
-        // Scroll the diff into view so the user actually sees the result.
         box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function loadPreviewInto(imgId, ref) {
+        const img = document.getElementById(imgId);
+        const empty = document.getElementById(imgId + 'Empty');
+        if (!img) return;
+        // Cache-bust so the same ref always re-fetches (Labelary may
+        // not have changed but we re-render every compare).
+        const url = '/api/templates/' + encodeURIComponent(TEMPLATE) +
+            '/preview?ref=' + encodeURIComponent(ref) + '&t=' + Date.now();
+        img.hidden = true;
+        if (empty) {
+            empty.hidden = false;
+            empty.textContent = I18N.loading || '…';
+        }
+        img.onload = () => {
+            img.hidden = false;
+            if (empty) empty.hidden = true;
+        };
+        img.onerror = () => {
+            img.hidden = true;
+            if (empty) {
+                empty.hidden = false;
+                empty.textContent = I18N.preview_failed || '(preview unavailable)';
+            }
+        };
+        img.src = url;
     }
 
     async function doRestore(ts) {

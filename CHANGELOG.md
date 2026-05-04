@@ -7,6 +7,31 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-05-05
+
+### Añadido
+
+- **Contador de versiones** visible en la cabecera de _Form Fields_:
+  un badge clickable tipo `📜 5 versiones guardadas` que enlaza con
+  scroll a la sección Historial. De un vistazo sabes cuánto has
+  iterado un template.
+- **Comparación visual con preview lado-a-lado.** Cuando comparas dos
+  refs, además del diff del ZPL ves **dos imágenes renderizadas**
+  (vía Labelary) una al lado de la otra, con su etiqueta de versión
+  encima:
+
+      ┌───── v3 (2026-05-04) ─────┬───── current ─────┐
+      │  [imagen renderizada]     │  [imagen]          │
+      └────────────────────────────┴────────────────────┘
+      ────── unified diff debajo ──────
+
+  Así puedes ver el cambio "de verdad" — qué se mueve, qué crece, qué
+  desaparece — no solo el diff de coordenadas en hex.
+- Endpoint nuevo `GET /api/templates/<n>/preview?ref=current|<ts>`
+  que renderiza el ZPL de la ref como PNG (placeholders vacíos para
+  inspección de diseño) y devuelve `image/png` directo, ideal para
+  meter en un `<img src=...>` sin escribir a disco.
+
 ## [0.11.1] - 2026-05-04
 
 ### Cambiado
@@ -593,7 +618,8 @@ distribuye como `.exe` autónomo para Windows.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.11.1...HEAD
+[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.12.0...HEAD
+[0.12.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.11.1...v0.12.0
 [0.11.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.9.0...v0.10.0

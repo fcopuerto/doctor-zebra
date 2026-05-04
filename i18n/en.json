@@ -350,5 +350,7 @@
   "versions.dialog.current": "current",
   "versions.dialog.loading": "Loading…",
   "versions.section.title": "Version history",
-  "versions.section.subtitle": "Every save creates a snapshot. Click a row to view its ZPL, compare two refs to see exactly what changed, restore any version to roll back."
+  "versions.section.subtitle": "Every save creates a snapshot. Click a row to view its ZPL, compare two refs to see exactly what changed, restore any version to roll back.",
+  "versions.counter.label": "saved versions",
+  "versions.dialog.preview_failed": "(preview unavailable)"
 }

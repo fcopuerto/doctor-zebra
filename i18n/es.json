@@ -350,5 +350,7 @@
   "versions.dialog.current": "actual",
   "versions.dialog.loading": "Cargando…",
   "versions.section.title": "Historial de versiones",
-  "versions.section.subtitle": "Cada guardado crea un snapshot. Pulsa una fila para ver su ZPL, compara dos referencias para ver exactamente qué cambió, o restaura cualquier versión para deshacer."
+  "versions.section.subtitle": "Cada guardado crea un snapshot. Pulsa una fila para ver su ZPL, compara dos referencias para ver exactamente qué cambió, o restaura cualquier versión para deshacer.",
+  "versions.counter.label": "versiones guardadas",
+  "versions.dialog.preview_failed": "(vista previa no disponible)"
 }

@@ -186,6 +186,39 @@ def template_version_compare(name):
     return jsonify(template_history.diff(path, a, b))
 
 
+@bp.route('/api/templates/<path:name>/preview')
+def template_preview(name):
+    """Render a template (or one of its versions) as PNG via Labelary.
+
+    Query params:
+        ref: 'current' (default) or a snapshot timestamp.
+
+    Returns image/png so the browser can use the URL directly in
+    ``<img src=...>``. Placeholders are left empty (SafeDict) so the
+    layout is visible even without real values — ideal for design
+    inspection and side-by-side compare.
+    """
+    from flask import Response
+    from zebra import template_history, zpl as zpl_mod, preview as preview_mod
+
+    path = _template_path(name)
+    if path is None or not path.is_file():
+        return jsonify({'error': 'Invalid template'}), 404
+
+    ref = (request.args.get('ref') or 'current').strip()
+    raw = template_history.get_zpl(path, ref)
+    if raw is None:
+        return jsonify({'error': 'Unknown ref'}), 404
+
+    # Render with empty values so placeholders disappear cleanly.
+    rendered = zpl_mod.render_text(raw, {}, label=f'{name}@{ref}')
+    png = preview_mod.zpl_to_png(rendered)
+    if not png:
+        return jsonify({'error': 'Preview service unavailable'}), 502
+    return Response(png, mimetype='image/png',
+                    headers={'Cache-Control': 'no-cache'})
+
+
 @bp.route('/api/templates/<path:name>/versions/<ts>/restore', methods=['POST'])
 def template_version_restore(name, ts):
     """Restore a saved version. The current file is snapshotted first."""

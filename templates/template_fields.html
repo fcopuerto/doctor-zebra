@@ -96,6 +96,11 @@
                 {{ t('tmpl.fields.section_fields_desc') }}
             </p>
         </div>
+        <a href="#versionsCard" id="versionsCounter" class="versions-counter" hidden>
+            <svg class="icon"><use href="#i-history" /></svg>
+            <span id="versionsCounterValue">0</span>
+            <span>{{ t('versions.counter.label') }}</span>
+        </a>
     </div>
 
     <div id="fieldsEditor"
@@ -218,6 +223,21 @@
             <h3 id="versionsDiffTitle"></h3>
             <button type="button" class="btn-ghost" id="versionsDiffClose" aria-label="Close">×</button>
         </header>
+
+        <!-- Side-by-side rendered preview (Labelary) -->
+        <div class="versions-diff__previews">
+            <figure class="versions-diff__preview">
+                <figcaption id="versionsPreviewALabel" class="muted"></figcaption>
+                <img id="versionsPreviewA" alt="Preview A" hidden>
+                <span id="versionsPreviewAEmpty" class="muted small">—</span>
+            </figure>
+            <figure class="versions-diff__preview">
+                <figcaption id="versionsPreviewBLabel" class="muted"></figcaption>
+                <img id="versionsPreviewB" alt="Preview B" hidden>
+                <span id="versionsPreviewBEmpty" class="muted small">—</span>
+            </figure>
+        </div>
+
         <div id="versionsDiffBody" class="diff-body"></div>
     </div>
 
@@ -247,6 +267,7 @@
     no_diff:              {{ t('versions.dialog.no_diff')|tojson }},
     current:              {{ t('versions.dialog.current')|tojson }},
     loading:              {{ t('versions.dialog.loading')|tojson }},
+    preview_failed:       {{ t('versions.dialog.preview_failed')|tojson }},
   };
 </script>
 <script src="{{ url_for('static', filename='fields-editor.js') }}"></script>
