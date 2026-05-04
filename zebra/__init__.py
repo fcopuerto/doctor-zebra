@@ -11,6 +11,8 @@ from zebra.cache_scheduler import start_scheduler
 from zebra.db import init_db
 from zebra.lookup_cache import init_cache
 from zebra.settings import Settings
+from zebra.routes._dev import register_if_enabled as _register_dev_routes
+
 
 LANG_COOKIE = 'comandante_zebra_lang'
 
@@ -87,6 +89,7 @@ def create_app(
     app.register_blueprint(network_bp)
     app.register_blueprint(tmpl_bp)
 
+
     # Needed for flash() messages.
     if not app.config.get('SECRET_KEY'):
         app.config['SECRET_KEY'] = 'zebra-labels-local'
@@ -119,6 +122,6 @@ def create_app(
             lang=lang,
             available_langs=i18n.available(),
         )
-
+    _register_dev_routes(app)
     logging.info('Zebra app initialized')
     return app
