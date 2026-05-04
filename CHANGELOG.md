@@ -7,6 +7,33 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-05-05
+
+### Añadido
+
+- **Tres modos visuales para comparar versiones** en la sección
+  Historial de Editar plantilla. Toolbar con botones tipo pestaña:
+  - **Lado a lado**: las dos imágenes una al lado de la otra (lo
+    que ya había).
+  - **Slider**: superpuestas, con un slider de 0–100 que controla la
+    opacidad de la imagen B → puedes hacer crossfade y ver
+    exactamente qué se mueve.
+  - **Diff visual**: superpuestas con `mix-blend-mode: difference`.
+    Las zonas iguales salen negras, las diferencias se iluminan —
+    detecta al instante elementos movidos, redimensionados o
+    nuevos sin tener que comparar pixel a pixel a ojo.
+- Mejor feedback en **Settings → Tools**: el endpoint `/api/tools/run`
+  ahora devuelve `target`, `backend` y `bytes` enviados, y el toast
+  de la UI los muestra. Si la impresora ignora el comando, el mensaje
+  recuerda revisar la cola de impresión y el modo (ZPL vs EPL).
+  El log ahora registra el ZPL exacto enviado (nivel INFO).
+
+### Cambiado
+
+- **Splash de vuelta a 7 s** (de 4.5 s) — sirve también como branding
+  visible. El warmup paralelo en background sigue activo, así que es
+  tiempo "gratis" sin penalizar la app.
+
 ## [0.12.1] - 2026-05-05
 
 ### Cambiado
@@ -634,7 +661,8 @@ distribuye como `.exe` autónomo para Windows.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.12.1...HEAD
+[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.13.0...HEAD
+[0.13.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.12.1...v0.13.0
 [0.12.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.11.1...v0.12.0
 [0.11.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.11.0...v0.11.1

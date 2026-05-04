@@ -224,8 +224,21 @@
             <button type="button" class="btn-ghost" id="versionsDiffClose" aria-label="Close">×</button>
         </header>
 
-        <!-- Side-by-side rendered preview (Labelary) -->
-        <div class="versions-diff__previews">
+        <!-- Visual compare: 3 modes (side / slider / diff) -->
+        <div class="versions-diff__modes" role="tablist">
+            <button type="button" class="diff-mode-btn active" data-mode="side">
+                {{ t('versions.diff.mode.side') }}
+            </button>
+            <button type="button" class="diff-mode-btn" data-mode="slider">
+                {{ t('versions.diff.mode.slider') }}
+            </button>
+            <button type="button" class="diff-mode-btn" data-mode="diff">
+                {{ t('versions.diff.mode.diff') }}
+            </button>
+        </div>
+
+        <!-- Side-by-side mode: two figures, native size -->
+        <div class="versions-diff__previews" id="diffModeSide" data-mode="side">
             <figure class="versions-diff__preview">
                 <figcaption id="versionsPreviewALabel" class="muted"></figcaption>
                 <img id="versionsPreviewA" alt="Preview A" hidden>
@@ -236,6 +249,30 @@
                 <img id="versionsPreviewB" alt="Preview B" hidden>
                 <span id="versionsPreviewBEmpty" class="muted small">—</span>
             </figure>
+        </div>
+
+        <!-- Slider mode: A and B stacked, slider controls B's opacity -->
+        <div class="versions-diff__overlay" id="diffModeSlider" data-mode="slider" hidden>
+            <div class="overlay-stack">
+                <img id="overlayA" alt="A">
+                <img id="overlayB" alt="B" class="overlay-stack__top">
+            </div>
+            <div class="overlay-slider-row">
+                <span class="muted small" id="overlaySliderALabel">A</span>
+                <input type="range" id="overlaySlider" min="0" max="100" value="50">
+                <span class="muted small" id="overlaySliderBLabel">B</span>
+            </div>
+        </div>
+
+        <!-- Diff mode: difference blend mode -->
+        <div class="versions-diff__overlay" id="diffModeDiff" data-mode="diff" hidden>
+            <div class="overlay-stack overlay-stack--diff">
+                <img id="diffA" alt="A">
+                <img id="diffB" alt="B" class="overlay-stack__top">
+            </div>
+            <p class="muted small" style="text-align:center; margin: var(--s-2) 0 0;">
+                {{ t('versions.diff.mode.diff.hint') }}
+            </p>
         </div>
 
         <div id="versionsDiffBody" class="diff-body"></div>

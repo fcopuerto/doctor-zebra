@@ -132,10 +132,10 @@ def _run_flask(host: str, port: int, base_dir: Path) -> None:
 
 
 # How long the splash holds the screen *at minimum*, even when Flask comes
-# up faster. Long enough for the loading steps to play out and for the
-# warmup HTTP requests to prime the lazy paths — short enough to not feel
-# like a punishment when you launch the app for the 100th time.
-SPLASH_MIN_MS = 4500
+# up faster. The splash doubles as branding/marketing, so we deliberately
+# keep it on screen long enough to register — the warmup HTTP requests
+# fire in parallel anyway, so this isn't blocking anything useful.
+SPLASH_MIN_MS = 7000
 SPLASH_STEP_COUNT = 8
 
 

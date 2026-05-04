@@ -155,11 +155,29 @@
         $('versionsDiffTitle').textContent =
             (d.a_label || '?') + '  →  ' + (d.b_label || '?');
 
-        // --- Side-by-side previews -----------------------------------
+        // --- Previews (used by all three visual modes) ---------------
         $('versionsPreviewALabel').textContent = d.a_label || '?';
         $('versionsPreviewBLabel').textContent = d.b_label || '?';
+        $('overlaySliderALabel').textContent = d.a_label || 'A';
+        $('overlaySliderBLabel').textContent = d.b_label || 'B';
         loadPreviewInto('versionsPreviewA', refA);
         loadPreviewInto('versionsPreviewB', refB);
+        // The slider and diff modes share the same image URLs as
+        // side-by-side; setting them up front avoids a flash on mode change.
+        const urlA = previewUrl(refA);
+        const urlB = previewUrl(refB);
+        document.getElementById('overlayA').src = urlA;
+        document.getElementById('overlayB').src = urlB;
+        document.getElementById('diffA').src = urlA;
+        document.getElementById('diffB').src = urlB;
+        // Reset slider to 50/50 each compare so the user sees both halves.
+        const slider = document.getElementById('overlaySlider');
+        if (slider) {
+            slider.value = 50;
+            applySliderValue(50);
+        }
+        // Default mode after a fresh compare: side-by-side.
+        setDiffMode('side');
 
         // --- Unified diff text ---------------------------------------
         const out = $('versionsDiffBody');
@@ -185,14 +203,16 @@
         box.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
+    function previewUrl(ref) {
+        return '/api/templates/' + encodeURIComponent(TEMPLATE) +
+            '/preview?ref=' + encodeURIComponent(ref) + '&t=' + Date.now();
+    }
+
     function loadPreviewInto(imgId, ref) {
         const img = document.getElementById(imgId);
         const empty = document.getElementById(imgId + 'Empty');
         if (!img) return;
-        // Cache-bust so the same ref always re-fetches (Labelary may
-        // not have changed but we re-render every compare).
-        const url = '/api/templates/' + encodeURIComponent(TEMPLATE) +
-            '/preview?ref=' + encodeURIComponent(ref) + '&t=' + Date.now();
+        const url = previewUrl(ref);
         img.hidden = true;
         if (empty) {
             empty.hidden = false;
@@ -210,6 +230,24 @@
             }
         };
         img.src = url;
+    }
+
+    /** Switch which visual diff mode is shown (side / slider / diff). */
+    function setDiffMode(mode) {
+        document.querySelectorAll('.diff-mode-btn').forEach((b) => {
+            b.classList.toggle('active', b.dataset.mode === mode);
+        });
+        document.querySelectorAll('[data-mode]').forEach((el) => {
+            if (!el.classList.contains('diff-mode-btn')) {
+                el.hidden = el.dataset.mode !== mode;
+            }
+        });
+    }
+
+    /** Slider value (0–100) → opacity of the top image in slider mode. */
+    function applySliderValue(v) {
+        const top = document.querySelector('#diffModeSlider .overlay-stack__top');
+        if (top) top.style.opacity = (v / 100).toString();
     }
 
     async function doRestore(ts) {
@@ -241,6 +279,13 @@
         if (close) close.addEventListener('click', () => {
             $('versionsDiff').hidden = true;
         });
+        // Visual diff mode buttons (side / slider / diff)
+        document.querySelectorAll('.diff-mode-btn').forEach((b) => {
+            b.addEventListener('click', () => setDiffMode(b.dataset.mode));
+        });
+        // Slider opacity control (slider mode)
+        const slider = $('overlaySlider');
+        if (slider) slider.addEventListener('input', () => applySliderValue(slider.value));
         loadAll();
     });
 })();

@@ -352,5 +352,9 @@
   "versions.section.title": "Version history",
   "versions.section.subtitle": "Every save creates a snapshot. Click a row to view its ZPL, compare two refs to see exactly what changed, restore any version to roll back.",
   "versions.counter.label": "saved versions",
-  "versions.dialog.preview_failed": "(preview unavailable)"
+  "versions.dialog.preview_failed": "(preview unavailable)",
+  "versions.diff.mode.side": "Side by side",
+  "versions.diff.mode.slider": "Slider",
+  "versions.diff.mode.diff": "Image diff",
+  "versions.diff.mode.diff.hint": "Equal areas show as black, differences light up. Useful for spotting moved or resized elements."
 }

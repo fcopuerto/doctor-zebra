@@ -17,7 +17,7 @@
 
 [project]
 name = "comandante_zebra"
-version = "0.12.1"
+version = "0.13.0"
 description = "Comandante Zebra — desktop app for printing labels on Zebra (ZPL) printers. Templates, offline lookup cache, multi-profile."
 readme = "README.md"
 license = { file = "LICENSE" }

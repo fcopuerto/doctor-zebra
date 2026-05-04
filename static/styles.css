@@ -3017,3 +3017,81 @@ tbody tr:hover {
 .versions-diff__preview .small {
     font-size: 11px;
 }
+
+/* Mode selector toolbar above the visual compare area */
+.versions-diff__modes {
+    display: inline-flex;
+    gap: 0;
+    margin: var(--s-3) var(--s-4) 0;
+    padding: 2px;
+    background: var(--surface-2, rgba(0, 0, 0, 0.04));
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: var(--r-md);
+}
+.diff-mode-btn {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-subtle);
+    border-radius: calc(var(--r-md) - 2px);
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+    font-family: inherit;
+}
+.diff-mode-btn:hover:not(.active) {
+    color: var(--text);
+    background: rgba(0, 0, 0, 0.04);
+}
+.diff-mode-btn.active {
+    background: var(--surface, #fff);
+    color: var(--text);
+    box-shadow: var(--sh-sm, 0 1px 2px rgba(0, 0, 0, 0.04));
+    cursor: default;
+}
+
+/* Slider + diff modes share a stacked-image layout */
+.versions-diff__overlay {
+    padding: var(--s-3) var(--s-4);
+    border-bottom: 1px solid var(--border, #e5e7eb);
+    background: #fafafa;
+}
+.overlay-stack {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 200px;
+    background: #000;
+    border-radius: var(--r-md);
+    overflow: hidden;
+}
+.overlay-stack img {
+    grid-area: 1 / 1;
+    max-width: 100%;
+    max-height: 320px;
+    display: block;
+}
+.overlay-stack__top {
+    /* Slider mode: opacity is set inline by JS. Diff mode: blend mode
+       overrides everything. */
+    opacity: 0.5;
+}
+.overlay-stack--diff img {
+    background: #000;
+}
+.overlay-stack--diff .overlay-stack__top {
+    mix-blend-mode: difference;
+    opacity: 1;
+}
+.overlay-slider-row {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    margin-top: var(--s-2);
+}
+.overlay-slider-row input[type="range"] {
+    flex: 1;
+    margin: 0;
+}

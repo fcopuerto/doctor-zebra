@@ -546,14 +546,27 @@ def tools_run():
             'message': 'No printer configured. Set one in Settings → Printers first.',
         }), 400
 
+    backend, _ = printer.parse_target(target)
+    bytes_sent = len(tool['zpl'].encode('utf-8'))
     try:
         printer.send_to_printer(target, tool['zpl'], copies=1)
     except printer.PrinterError as e:
         logging.warning(f'Tool {tool["id"]!r} failed on {target}: {e}')
         return jsonify({'ok': False, 'message': str(e)}), 500
 
-    logging.info(f'Tool {tool["id"]!r} sent to {target}')
-    return jsonify({'ok': True, 'message': f'Sent {tool["id"]} to {target}'})
+    logging.info(
+        f'Tool {tool["id"]!r} → {target} (backend={backend}, '
+        f'bytes={bytes_sent}, zpl={tool["zpl"]!r})'
+    )
+    return jsonify({
+        'ok':       True,
+        'message':  f'Sent {bytes_sent} bytes to {target} ({backend}). '
+                    f'If the printer ignores it, check job queue and '
+                    f'printer mode (must be ZPL, not EPL).',
+        'target':   target,
+        'backend':  backend,
+        'bytes':    bytes_sent,
+    })
 
 
 @bp.route('/setup', methods=['GET', 'POST'])
