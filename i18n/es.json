@@ -343,7 +343,12 @@
   "versions.dialog.has_sidecar": "con campos/ajustes",
   "versions.dialog.no_sidecar": "sin sidecar",
   "versions.dialog.compare": "Comparar",
-  "versions.dialog.compare_with_current": "Comparar con actual",
+  "versions.dialog.compare_with_current": "vs actual",
   "versions.dialog.compare_hint": "Marca hasta dos versiones para comparar, o una para comparar con la actual",
-  "versions.dialog.no_diff": "No hay diferencias."
+  "versions.dialog.no_diff": "No hay diferencias.",
+  "versions.dialog.restore_short": "Restaurar",
+  "versions.dialog.current": "actual",
+  "versions.dialog.loading": "Cargando…",
+  "versions.section.title": "Historial de versiones",
+  "versions.section.subtitle": "Cada guardado crea un snapshot. Pulsa una fila para ver su ZPL, compara dos referencias para ver exactamente qué cambió, o restaura cualquier versión para deshacer."
 }

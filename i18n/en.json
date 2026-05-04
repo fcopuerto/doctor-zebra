@@ -343,7 +343,12 @@
   "versions.dialog.has_sidecar": "with fields/settings",
   "versions.dialog.no_sidecar": "no sidecar",
   "versions.dialog.compare": "Compare",
-  "versions.dialog.compare_with_current": "Compare with current",
+  "versions.dialog.compare_with_current": "vs current",
   "versions.dialog.compare_hint": "Tick up to two versions to compare, or one to compare with current",
-  "versions.dialog.no_diff": "No differences."
+  "versions.dialog.no_diff": "No differences.",
+  "versions.dialog.restore_short": "Restore",
+  "versions.dialog.current": "current",
+  "versions.dialog.loading": "Loading…",
+  "versions.section.title": "Version history",
+  "versions.section.subtitle": "Every save creates a snapshot. Click a row to view its ZPL, compare two refs to see exactly what changed, restore any version to roll back."
 }

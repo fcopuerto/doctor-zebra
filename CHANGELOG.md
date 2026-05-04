@@ -7,6 +7,25 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.11.1] - 2026-05-04
+
+### Cambiado
+
+- **Versionado integrado en la página _Editar plantilla_** en vez de
+  escondido en un modal. Nueva tarjeta **"Historial de versiones"**
+  visible debajo de los campos del formulario, con:
+  - **Lista de versiones expandible**: click en una fila → muestra el
+    ZPL de esa versión inline (no abre nada nuevo).
+  - **Selector de comparación con dos dropdowns** (`A: [v3 ▾]  vs  B:
+    [current ▾]`) más botón Comparar → diff inline justo debajo, con
+    `+`/`-`/`@@` coloreados.
+  - **Botones por fila**: _vs current_ (compara directamente con el
+    archivo vivo) y _Restaurar_.
+  - El botón "Versiones" del breadcrumb ahora hace **scroll** a la
+    tarjeta en lugar de abrir un diálogo.
+- Modal `<dialog>` de versiones eliminado — toda la funcionalidad vive
+  ya en la página, sin overlays.
+
 ## [0.11.0] - 2026-05-04
 
 ### Añadido
@@ -574,7 +593,8 @@ distribuye como `.exe` autónomo para Windows.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.11.0...HEAD
+[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.11.1...HEAD
+[0.11.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.8.0...v0.9.0

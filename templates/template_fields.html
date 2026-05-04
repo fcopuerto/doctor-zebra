@@ -9,10 +9,10 @@
     <a href="{{ url_for('config.templates_list') }}">{{ t('templates_list.title') }}</a>
     <svg class="icon"><use href="#i-chevron-right" /></svg>
     <strong>{{ template_name }}</strong>
-    <button type="button" class="btn-ghost" id="versionsButton" style="margin-left:auto;">
+    <a href="#versionsCard" class="btn-ghost" id="versionsButton" style="margin-left:auto;">
         <svg class="icon"><use href="#i-history" /></svg>
         {{ t('versions.button') }}
-    </button>
+    </a>
 </nav>
 
 <!-- ============================================================ -->
@@ -190,41 +190,44 @@
 </div>
 
 <!-- ============================================================ -->
-<!-- Versions dialog                                              -->
+<!-- Version history (in-page card)                               -->
 <!-- ============================================================ -->
-<dialog id="versionsDialog" class="net-dialog net-dialog--wide">
-    <header class="net-dialog__head">
-        <h2>{{ t('versions.dialog.title') }}: <code>{{ template_name }}</code></h2>
-        <button type="button" class="btn-ghost" id="versionsClose" aria-label="Close">×</button>
-    </header>
-    <div class="net-dialog__body">
-        <div id="versionsList" class="versions-list" data-empty="{{ t('versions.dialog.empty') }}">
-            <p class="muted">{{ t('common.loading') }}</p>
-        </div>
-
-        <!-- Detail panel: shown after "View" -->
-        <div id="versionsDetail" hidden>
-            <h3 id="versionsDetailTitle"></h3>
-            <pre class="net-firewall__manual" id="versionsDetailZpl"></pre>
-            <div class="button-row">
-                <button type="button" class="btn-ghost" id="versionsBack">{{ t('common.back') }}</button>
-                <button type="button" class="btn-danger" id="versionsRestore">
-                    {{ t('versions.dialog.restore') }}
-                </button>
-            </div>
-            <p class="test-result" id="versionsResult" aria-live="polite"></p>
-        </div>
-
-        <!-- Diff panel: shown after "Compare" -->
-        <div id="versionsDiff" hidden>
-            <h3 id="versionsDiffTitle"></h3>
-            <div id="versionsDiffBody" class="diff-body"></div>
-            <div class="button-row" style="margin-top: var(--s-3);">
-                <button type="button" class="btn-ghost" id="versionsDiffBack">{{ t('common.back') }}</button>
-            </div>
+<div class="card" id="versionsCard">
+    <div class="card__header">
+        <div>
+            <h1 class="card__title" style="font-size:18px;">{{ t('versions.section.title') }}</h1>
+            <p class="card__subtitle">{{ t('versions.section.subtitle') }}</p>
         </div>
     </div>
-</dialog>
+
+    <!-- Compare bar: pick A and B from dropdowns + result inline -->
+    <div class="versions-compare-bar">
+        <label>
+            <span class="muted">A:</span>
+            <select id="versionsCompareA"></select>
+        </label>
+        <span class="muted">vs</span>
+        <label>
+            <span class="muted">B:</span>
+            <select id="versionsCompareB"></select>
+        </label>
+        <button type="button" id="versionsCompareBtn">{{ t('versions.dialog.compare') }}</button>
+    </div>
+    <div id="versionsDiff" class="versions-diff" hidden>
+        <header class="versions-diff__head">
+            <h3 id="versionsDiffTitle"></h3>
+            <button type="button" class="btn-ghost" id="versionsDiffClose" aria-label="Close">×</button>
+        </header>
+        <div id="versionsDiffBody" class="diff-body"></div>
+    </div>
+
+    <!-- List of saved versions; each row expands to show its ZPL inline -->
+    <div id="versionsList" class="versions-list versions-list--inline"
+         data-empty="{{ t('versions.dialog.empty') }}">
+        <p class="muted">{{ t('common.loading') }}</p>
+    </div>
+    <p class="test-result" id="versionsResult" aria-live="polite"></p>
+</div>
 
 {% endblock %}
 
@@ -232,12 +235,18 @@
 <script>
   window.TEMPLATE_NAME = {{ template_name|tojson }};
   window.VERSIONS_I18N = {
-    confirm_restore: {{ t('versions.dialog.confirm_restore')|tojson }},
-    restored:        {{ t('versions.dialog.restored')|tojson }},
-    restore_failed:  {{ t('versions.dialog.restore_failed')|tojson }},
-    view:            {{ t('versions.dialog.view')|tojson }},
-    has_sidecar:     {{ t('versions.dialog.has_sidecar')|tojson }},
-    no_sidecar:      {{ t('versions.dialog.no_sidecar')|tojson }},
+    confirm_restore:      {{ t('versions.dialog.confirm_restore')|tojson }},
+    restored:             {{ t('versions.dialog.restored')|tojson }},
+    restore_failed:       {{ t('versions.dialog.restore_failed')|tojson }},
+    restore_short:        {{ t('versions.dialog.restore_short')|tojson }},
+    view:                 {{ t('versions.dialog.view')|tojson }},
+    has_sidecar:          {{ t('versions.dialog.has_sidecar')|tojson }},
+    no_sidecar:           {{ t('versions.dialog.no_sidecar')|tojson }},
+    compare:              {{ t('versions.dialog.compare')|tojson }},
+    compare_with_current: {{ t('versions.dialog.compare_with_current')|tojson }},
+    no_diff:              {{ t('versions.dialog.no_diff')|tojson }},
+    current:              {{ t('versions.dialog.current')|tojson }},
+    loading:              {{ t('versions.dialog.loading')|tojson }},
   };
 </script>
 <script src="{{ url_for('static', filename='fields-editor.js') }}"></script>
