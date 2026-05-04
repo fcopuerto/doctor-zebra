@@ -124,6 +124,19 @@
         </button>
     </div>
 
+    <!-- Manual peer entry — fallback when mDNS multicast doesn't reach -->
+    <form class="net-add-peer" id="netAddPeerForm" autocomplete="off">
+        <input type="text" id="netAddPeerAddress" placeholder="192.168.1.50"
+               aria-label="{{ t('network.add_peer.address') }}">
+        <input type="number" id="netAddPeerPort" placeholder="9000" min="1" max="65535"
+               aria-label="{{ t('network.add_peer.port') }}">
+        <button type="submit">{{ t('network.add_peer.button') }}</button>
+        <p class="hint" style="flex-basis:100%; margin:4px 0 0;">
+            {{ t('network.add_peer.hint') }}
+        </p>
+        <p class="test-result" id="netAddPeerResult" aria-live="polite" style="flex-basis:100%;"></p>
+    </form>
+
     <div id="netPeersList" class="net-peers" data-empty="{{ t('network.peers.empty') }}">
         {% for p in peers %}
         <article class="net-peer" data-peer='{{ p|tojson }}'>

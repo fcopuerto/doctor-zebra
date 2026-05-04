@@ -79,20 +79,29 @@
         tab.overrides = readOverrides();
     }
 
-    /** Restore the given tab's values into the currently rendered fields. */
+    /** Restore the given tab's values into the currently rendered fields.
+     *
+     * If the tab carries no values yet (a brand-new tab), every input
+     * is cleared instead of keeping whatever the previous tab had —
+     * otherwise pressing Print on a fresh tab would print the leftover
+     * values, which is surprising.
+     */
     function applyValuesNow(tab) {
         const fc = fieldsCont();
         if (!fc || !tab) return;
-        Object.entries(tab.values || {}).forEach(([key, val]) => {
-            const row = fc.querySelector(`[data-field-key="${CSS.escape(key)}"]`);
-            const inp = row && row.querySelector('input,textarea,select');
-            if (inp) {
-                inp.value = val;
+        const stored = tab.values || {};
+        const hasStored = Object.keys(stored).length > 0;
+        fc.querySelectorAll('[data-field-key]').forEach((row) => {
+            const key = row.dataset.fieldKey;
+            const inp = row.querySelector('input,textarea,select');
+            if (!inp) return;
+            inp.value = (key in stored) ? stored[key] : '';
+            if (!hasStored || (key in stored)) {
                 inp.dispatchEvent(new Event('change', { bubbles: true }));
             }
         });
         const c = copiesIn();
-        if (c && tab.copies) c.value = tab.copies;
+        if (c) c.value = tab.copies || 1;
         if (tab.overrides) applyOverrides(tab.overrides);
     }
 

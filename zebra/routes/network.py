@@ -74,8 +74,78 @@ def regen_pin():
 
 @bp.route('/api/network/peers')
 def peers():
-    """Snapshot of peers currently visible on the LAN."""
-    return jsonify({'peers': [p.to_dict() for p in discovery.get_peers()]})
+    """Peers currently visible: mDNS-discovered + manually-added by IP.
+
+    Manual entries get ``manual: true`` so the UI can label them and
+    offer a Remove button.
+    """
+    discovered = [p.to_dict() for p in discovery.get_peers()]
+    for p in discovered:
+        p['manual'] = False
+
+    # Avoid duplicates: if a manual peer happens to also be discovered
+    # via mDNS, keep the discovered one (richer metadata) and drop the
+    # manual entry from the list (but not from storage — user might
+    # want it later if mDNS dies).
+    discovered_keys = {(p['address'], p['port']) for p in discovered}
+    manuals = [
+        {**m,
+         'url': f"http://{m['address']}:{m['port']}",
+         'version': '',
+         'profile': ''}
+        for m in network.manual_peers()
+        if (m['address'], m['port']) not in discovered_keys
+    ]
+    return jsonify({'peers': discovered + manuals})
+
+
+@bp.route('/api/network/peers/manual', methods=['POST'])
+def add_manual_peer():
+    """Probe an address/port pair, add it to the manual list if alive."""
+    import requests as _r
+    body = request.get_json(silent=True) or request.form.to_dict()
+    address = (body.get('address') or '').strip()
+    try:
+        port = int(body.get('port') or 0)
+    except (TypeError, ValueError):
+        port = 0
+    if not address or port <= 0:
+        return jsonify({'ok': False, 'error': 'address and port required'}), 400
+
+    # Probe /api/peer/info — fast sanity check that something
+    # comandante-zebra-shaped is listening there.
+    name = ''
+    try:
+        r = _r.get(f'http://{address}:{port}/api/peer/info', timeout=3)
+        if r.status_code == 200:
+            data = r.json()
+            name = (data or {}).get('peer_name', '') or ''
+        else:
+            return jsonify({
+                'ok': False,
+                'error': f'HTTP {r.status_code} from {address}:{port}',
+            }), 400
+    except Exception as e:  # noqa: BLE001
+        return jsonify({
+            'ok': False,
+            'error': f'Could not reach {address}:{port}: {e}',
+        }), 400
+
+    saved = network.add_manual_peer(address, port, name)
+    return jsonify({'ok': True, 'peer': saved})
+
+
+@bp.route('/api/network/peers/manual', methods=['DELETE'])
+def remove_manual_peer():
+    """Body or query: { address, port }."""
+    body = request.get_json(silent=True) or request.args.to_dict()
+    address = (body.get('address') or '').strip()
+    try:
+        port = int(body.get('port') or 0)
+    except (TypeError, ValueError):
+        port = 0
+    removed = network.remove_manual_peer(address, port)
+    return jsonify({'ok': removed})
 
 
 @bp.route('/api/network/diagnostics')

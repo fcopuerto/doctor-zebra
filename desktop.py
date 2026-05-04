@@ -322,7 +322,17 @@ def _kick_warmup(base_url: str) -> None:
         '/healthz',                  # cheap; primes Flask request path
         '/',                         # home (templates + printer status)
         '/dashboard',                # KPI queries against label_prints
+        '/history',                  # label_prints SELECT
+        '/config',                   # settings hub (templates + counts)
+        '/config/printers',          # winspool / cups enumeration
+        '/config/templates',         # template list + sidecar reads
+        '/config/connections',       # datasources list
+        '/config/profiles',          # profile listing
+        '/config/network',           # discovery + diagnostics
+        '/config/tools',             # tools page
+        '/setup',                    # wizard (Jinja compile)
         '/api/network/diagnostics',  # mDNS snapshot, firewall info
+        '/api/network/peers',        # discovered + manual peers
         '/api/update/check',         # GitHub API call (cached server-side)
     ]
 

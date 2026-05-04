@@ -264,6 +264,10 @@
   "network.peers.refresh": "Refresh",
   "network.peers.empty": "No peers discovered yet.",
   "network.peers.browse": "Browse",
+  "network.add_peer.address": "IP or hostname",
+  "network.add_peer.port": "Port",
+  "network.add_peer.button": "Add by IP",
+  "network.add_peer.hint": "If mDNS is blocked on your network (common on guest wifi or AP isolation), add the peer manually using its IP and the port shown in its own Network page.",
 
   "network.pull.title": "Browse peer",
   "network.pull.pin_prompt": "Enter the 6-digit PIN displayed on that peer's Network page:",

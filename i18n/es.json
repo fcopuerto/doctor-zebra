@@ -264,6 +264,10 @@
   "network.peers.refresh": "Actualizar",
   "network.peers.empty": "Aún no se ha descubierto ningún equipo.",
   "network.peers.browse": "Explorar",
+  "network.add_peer.address": "IP o hostname",
+  "network.add_peer.port": "Puerto",
+  "network.add_peer.button": "Añadir por IP",
+  "network.add_peer.hint": "Si mDNS está bloqueado en tu red (típico en wifi de invitado o con aislamiento AP), añade el equipo manualmente con su IP y el puerto que aparece en su propia página de Red.",
 
   "network.pull.title": "Explorar equipo",
   "network.pull.pin_prompt": "Introduce el PIN de 6 dígitos que aparece en la página Red del otro equipo:",

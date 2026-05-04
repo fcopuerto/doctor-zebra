@@ -7,6 +7,48 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.13.1] - 2026-05-05
+
+### Añadido
+
+- **Añadir peers manualmente por IP** — fallback cuando mDNS no
+  funciona (wifi de invitado, AP isolation, redes con multicast
+  bloqueado). Nuevo formulario en _Configuración → Red_: introduces
+  IP + puerto del otro equipo, la app le hace `GET /api/peer/info`
+  para verificar que responde, y si todo va bien lo añade. Los peers
+  manuales se muestran en la lista con badge `· manual` y un botón ×
+  para quitarlos. Se persisten en `network.json`.
+- Endpoints nuevos:
+  - `POST /api/network/peers/manual` `{address, port}` — probe + add.
+  - `DELETE /api/network/peers/manual` `{address, port}`.
+- `/api/network/peers` fusiona descubiertos por mDNS + manuales (sin
+  duplicar si una IP coincide).
+
+### Arreglado
+
+- **Pestaña nueva ya no hereda los valores de la anterior.** Pulsar
+  `+` en la barra de pestañas crea una pestaña limpia: los inputs se
+  resetean en lugar de quedar mostrando lo del trabajo anterior. Si
+  quieres clonar el trabajo actual, próximamente habrá un botón
+  _Duplicar pestaña_ explícito.
+- **El badge "actualización disponible" ya no avisa eternamente** tras
+  haber actualizado la app. El cache del updater detecta cuando
+  `__version__` ha cambiado desde la última comprobación y fuerza un
+  refresh, así que la primera apertura tras instalar una versión
+  nueva ya muestra el estado real (sin esperar 24 h al TTL).
+
+### Cambiado (rendimiento)
+
+- **Cache de `printer_status`** con TTL de 5 s. La consulta a
+  `lpstat`/`winspool` cuesta 50-300 ms y se hacía en cada render del
+  sidebar. Cacheada queda en ~0 ms para requests sucesivos. La app
+  se nota mucho más fluida después del splash.
+- **Más rutas en el warmup paralelo** durante el splash: incluye
+  ahora `/history`, `/config` y todas sus subpáginas, `/config/tools`
+  y `/setup`. Así Jinja compila todas las plantillas mientras el
+  splash sigue en pantalla y el primer click en cualquier tab es
+  instantáneo, no solo en las que ya estaban en el warmup.
+
 ## [0.13.0] - 2026-05-05
 
 ### Añadido
@@ -661,7 +703,8 @@ distribuye como `.exe` autónomo para Windows.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.13.0...HEAD
+[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.13.1...HEAD
+[0.13.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.13.0...v0.13.1
 [0.13.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.12.1...v0.13.0
 [0.12.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.11.1...v0.12.0

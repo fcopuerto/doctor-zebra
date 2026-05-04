@@ -2585,6 +2585,39 @@ tbody tr:hover {
     flex-wrap: wrap;
     margin-top: 2px;
 }
+.net-peer__manual {
+    color: var(--primary, #0000aa);
+    font-weight: 600;
+}
+.net-peer__actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+.net-peer__actions [data-action="remove"] {
+    font-size: 16px;
+    line-height: 1;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border-radius: 50%;
+}
+
+/* Manual peer entry form (mDNS fallback) */
+.net-add-peer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2);
+    align-items: center;
+    margin-bottom: var(--s-3);
+    padding: var(--s-3);
+    border: 1px dashed var(--border, #cbd5e1);
+    border-radius: var(--r-md);
+    background: var(--surface-2, rgba(0, 0, 0, 0.02));
+}
+.net-add-peer input[type="text"] { flex: 2; min-width: 180px; }
+.net-add-peer input[type="number"] { flex: 1; min-width: 90px; }
+.net-add-peer button { padding: 6px 14px; }
 
 /* Pull dialog */
 .net-dialog {

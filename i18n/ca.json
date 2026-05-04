@@ -264,6 +264,10 @@
   "network.peers.refresh": "Actualitzar",
   "network.peers.empty": "Encara no s'ha descobert cap equip.",
   "network.peers.browse": "Explorar",
+  "network.add_peer.address": "IP o hostname",
+  "network.add_peer.port": "Port",
+  "network.add_peer.button": "Afegir per IP",
+  "network.add_peer.hint": "Si mDNS està bloquejat a la teva xarxa (típic en wifi de convidats o amb aïllament AP), afegeix l'equip manualment amb la seva IP i el port que apareix a la seva pròpia pàgina de Xarxa.",
 
   "network.pull.title": "Explorar equip",
   "network.pull.pin_prompt": "Introdueix el PIN de 6 dígits que apareix a la pàgina Xarxa de l'altre equip:",

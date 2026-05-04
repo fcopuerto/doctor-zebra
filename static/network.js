@@ -51,6 +51,10 @@
         // Browse buttons on each peer card.
         document.querySelectorAll('#netPeersList [data-action="browse"]').forEach(wireBrowse);
 
+        // Manual peer form (mDNS fallback)
+        const addForm = document.getElementById('netAddPeerForm');
+        if (addForm) addForm.addEventListener('submit', addManualPeer);
+
         // Auto-refresh peers every 5s — mDNS announcements arrive over time.
         setInterval(refreshPeers, 5000);
 
@@ -166,9 +170,13 @@
                         <code></code>
                         <span class="net-peer__profile" hidden></span>
                         <span class="net-peer__version" hidden></span>
+                        <span class="net-peer__manual" hidden>· manual</span>
                     </div>
                 </div>
-                <button type="button" class="btn" data-action="browse">Browse →</button>`;
+                <div class="net-peer__actions">
+                    <button type="button" class="btn-ghost" data-action="remove" hidden aria-label="Remove">×</button>
+                    <button type="button" class="btn" data-action="browse">Browse →</button>
+                </div>`;
             card.querySelector('.net-peer__name').textContent = peer.name || '(unnamed)';
             card.querySelector('code').textContent = `${peer.address}:${peer.port}`;
             if (peer.profile) {
@@ -181,9 +189,56 @@
                 sv.textContent = '· v' + peer.version;
                 sv.hidden = false;
             }
+            if (peer.manual) {
+                card.querySelector('.net-peer__manual').hidden = false;
+                const rm = card.querySelector('[data-action="remove"]');
+                rm.hidden = false;
+                rm.addEventListener('click', () => removeManualPeer(peer.address, peer.port));
+            }
             wireBrowse(card.querySelector('[data-action="browse"]'));
             list.appendChild(card);
         });
+    }
+
+    async function addManualPeer(ev) {
+        ev.preventDefault();
+        const addr = document.getElementById('netAddPeerAddress').value.trim();
+        const port = parseInt(document.getElementById('netAddPeerPort').value, 10) || 0;
+        const out = document.getElementById('netAddPeerResult');
+        if (!addr || !port) {
+            showResult(out, 'Address + port required', true);
+            return;
+        }
+        showResult(out, 'Probing…', false);
+        try {
+            const r = await fetch('/api/network/peers/manual', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ address: addr, port: port }),
+            });
+            const data = await r.json();
+            if (!r.ok || !data.ok) {
+                showResult(out, data.error || ('HTTP ' + r.status), true);
+                return;
+            }
+            showResult(out, 'Added: ' + (data.peer.name || addr), false);
+            document.getElementById('netAddPeerAddress').value = '';
+            document.getElementById('netAddPeerPort').value = '';
+            await refreshPeers();
+        } catch (e) {
+            showResult(out, 'Network error: ' + e, true);
+        }
+    }
+
+    async function removeManualPeer(address, port) {
+        try {
+            await fetch('/api/network/peers/manual', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ address, port }),
+            });
+            await refreshPeers();
+        } catch (e) { /* swallow */ }
     }
 
     // ------------------------------------------------------------------

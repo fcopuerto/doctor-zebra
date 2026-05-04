@@ -165,8 +165,18 @@ def check(current_version: str, force: bool = False) -> dict:
     with _LOCK:
         state = _load_state()
         last_check = state.get('last_check_utc')
+
+        # Force refresh whenever our own version moved since the last
+        # check — otherwise an outdated cache that said "0.13 is
+        # available" keeps shouting at users who just installed 0.13.
+        version_changed = (
+            state.get('current_when_checked')
+            and state['current_when_checked'] != current_version
+        )
+
         cached = (
             not force
+            and not version_changed
             and last_check
             and _seconds_since(last_check) < CACHE_TTL_SECONDS
             and state.get('latest_seen')
@@ -174,11 +184,12 @@ def check(current_version: str, force: bool = False) -> dict:
         if not cached:
             data = _fetch_latest_release()
             if data is not None:
-                state['latest_seen']      = (data.get('tag_name') or '').lstrip('v')
-                state['latest_url']       = data.get('html_url') or RELEASES_HTML
-                state['latest_notes']     = data.get('body') or ''
-                state['latest_published'] = data.get('published_at') or ''
-                state['last_check_utc']   = _utcnow_iso()
+                state['latest_seen']         = (data.get('tag_name') or '').lstrip('v')
+                state['latest_url']          = data.get('html_url') or RELEASES_HTML
+                state['latest_notes']        = data.get('body') or ''
+                state['latest_published']    = data.get('published_at') or ''
+                state['last_check_utc']      = _utcnow_iso()
+                state['current_when_checked'] = current_version
                 _save_state(state)
             elif not last_check:
                 # First-ever check failed; remember so we don't retry every

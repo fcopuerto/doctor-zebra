@@ -18,7 +18,17 @@ import logging
 import socket
 import subprocess
 import sys
+import time
+from threading import Lock
 from typing import Optional
+
+# Status lookups (lpstat / winspool) are surprisingly expensive — 50-300 ms
+# each — and the sidebar's `inject_printer_info` context processor calls
+# `printer_status` on EVERY request. Cache the answer for a few seconds so
+# back-to-back page loads don't pay the bill repeatedly.
+_STATUS_CACHE: dict[str, tuple[float, tuple[str, str]]] = {}
+_STATUS_CACHE_TTL = 5.0  # seconds
+_STATUS_CACHE_LOCK = Lock()
 
 IS_WINDOWS = sys.platform.startswith('win')
 DEFAULT_ZPL_PORT = 9100
@@ -170,10 +180,30 @@ def print_test_label(target: str) -> None:
 
 
 def printer_status(target: str) -> tuple[str, str]:
-    """Return ``(status_text, color)`` for UI display."""
+    """Return ``(status_text, color)`` for UI display, cached for ~5s.
+
+    Each backend's underlying status call (lpstat, winspool, TCP probe)
+    can take 50-300 ms; running it on every page render kept the sidebar
+    feeling sluggish. Successive calls within the TTL get the cached
+    result; a stale entry triggers a fresh probe.
+    """
     if not target:
         return ('Not configured', 'gray')
 
+    now = time.monotonic()
+    with _STATUS_CACHE_LOCK:
+        hit = _STATUS_CACHE.get(target)
+        if hit and (now - hit[0]) < _STATUS_CACHE_TTL:
+            return hit[1]
+
+    result = _printer_status_uncached(target)
+    with _STATUS_CACHE_LOCK:
+        _STATUS_CACHE[target] = (now, result)
+    return result
+
+
+def _printer_status_uncached(target: str) -> tuple[str, str]:
+    """The actual backend dispatch, without the cache."""
     backend, remainder = _parse_target(target)
 
     if backend == 'tcp':

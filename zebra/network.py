@@ -34,6 +34,7 @@ DEFAULTS = {
     'pin':               '',     # generated on first boot
     'share_templates':   True,
     'share_connections': False,
+    'manual_peers':      [],     # [{address, port, name?}, ...]
 }
 
 # Single in-process state — Flask reads/writes this dict from multiple
@@ -73,6 +74,8 @@ def init(base_dir: Path) -> dict:
         state['pin'] = _gen_pin()
     state['share_templates']   = bool(state.get('share_templates', True))
     state['share_connections'] = bool(state.get('share_connections', False))
+    if not isinstance(state.get('manual_peers'), list):
+        state['manual_peers'] = []
 
     with _LOCK:
         _STATE = state
@@ -160,6 +163,77 @@ def update(patch: dict) -> dict:
         except OSError as e:
             logging.warning(f'Could not persist network.json: {e}')
         return dict(new)
+
+
+def manual_peers() -> list[dict]:
+    """List of peers added manually by IP — fallback when mDNS is blocked."""
+    raw = snapshot().get('manual_peers') or []
+    out: list[dict] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        addr = str(item.get('address', '')).strip()
+        port = int(item.get('port', 0) or 0)
+        if not addr or port <= 0:
+            continue
+        out.append({
+            'address': addr,
+            'port':    port,
+            'name':    str(item.get('name', '') or ''),
+            'manual':  True,
+        })
+    return out
+
+
+def add_manual_peer(address: str, port: int, name: str = '') -> dict:
+    """Persist a new manual peer. Idempotent on (address, port)."""
+    address = (address or '').strip()
+    port = int(port or 0)
+    if not address or port <= 0:
+        raise ValueError('address and port are required')
+    with _LOCK:
+        peers = list(_STATE.get('manual_peers') or [])
+        # Skip duplicates (same ip:port pair).
+        for existing in peers:
+            if (str(existing.get('address')) == address
+                    and int(existing.get('port', 0)) == port):
+                if name and not existing.get('name'):
+                    existing['name'] = name
+                _persist_locked()
+                return {'address': address, 'port': port,
+                        'name': existing.get('name', ''), 'manual': True}
+        new = {'address': address, 'port': port, 'name': name or ''}
+        peers.append(new)
+        _STATE['manual_peers'] = peers
+        _persist_locked()
+        return {**new, 'manual': True}
+
+
+def remove_manual_peer(address: str, port: int) -> bool:
+    """Drop a manual peer. Returns True if it existed."""
+    address = (address or '').strip()
+    try:
+        port = int(port or 0)
+    except (TypeError, ValueError):
+        return False
+    with _LOCK:
+        peers = list(_STATE.get('manual_peers') or [])
+        keep = [p for p in peers
+                if not (str(p.get('address')) == address
+                        and int(p.get('port', 0)) == port)]
+        if len(keep) == len(peers):
+            return False
+        _STATE['manual_peers'] = keep
+        _persist_locked()
+        return True
+
+
+def _persist_locked() -> None:
+    """Write current _STATE to disk. Caller must hold _LOCK."""
+    try:
+        _file().write_text(json.dumps(_STATE, indent=2) + '\n', encoding='utf-8')
+    except OSError as e:
+        logging.warning(f'Could not persist network.json: {e}')
 
 
 def regenerate_pin() -> str:
