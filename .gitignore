@@ -30,6 +30,7 @@ secrets.cfg
 *.local.cfg
 network.json
 lang.txt
+update.json
 
 # Printer captures / samples (will be curated and added back later)
 *.prn
