@@ -1,17 +1,18 @@
 """Take screenshots of Comandante Zebra for the README / docs.
 
-Run locally:
-    uv run python scripts/take_screenshots.py
+Auto-discovers routes by hitting /_routes (only available when the
+ZEBRA_DEV_ROUTES env var is set, see zebra/routes/_dev.py).
 
-Run in CI: see .github/workflows/screenshots.yml
-
-The script assumes the Flask app is already running at BASE_URL.
-It writes PNGs to docs/screenshots/.
+No hardcoded URL list to maintain — when you add a new page to the app,
+the next CI run picks it up automatically.
 """
 
 from __future__ import annotations
 
+import json
+import re
 import sys
+import urllib.request
 from pathlib import Path
 
 from playwright.sync_api import Page, sync_playwright
@@ -24,46 +25,91 @@ BASE_URL = "http://127.0.0.1:5000"
 OUT_DIR = Path("docs/screenshots")
 VIEWPORT = {"width": 1440, "height": 900}
 
-# Each entry: (output filename, path on the app, optional setup callback)
-#
-# 👉 Adjust these paths to match your real Flask routes.
-#    Inspect zebra/routes/ to find the actual URLs registered by each blueprint.
-#    Pages that need data (filled labels, populated template list) should wait
-#    until the demo seed profile lands — keep this list to data-free screens
-#    for now (Phase 1).
-SHOTS: list[tuple[str, str]] = [
-    ("01-home.png", "/"),
-    ("02-templates.png", "/templates"),
-    ("03-template-editor.png", "/templates/new"),
-    ("04-settings.png", "/settings"),
-    ("05-network.png", "/settings/network"),
-    ("06-wizard.png", "/settings/wizard"),
+# Routes we never want to screenshot, even if /_routes returns them.
+# Add any internal/API/JSON-only endpoints here.
+SKIP_PATTERNS = [
+    r"^/api(/|$)",
+    r"^/healthz?$",
+    r"\.json$",
+    r"\.zpl$",
+    r"^/print(/|$)",          # printing endpoints — not visual
+    r"^/download(/|$)",
+    r"^/export(/|$)",
 ]
+
+SKIP_RE = re.compile("|".join(SKIP_PATTERNS))
 
 # ---------------------------------------------------------------------------
 
 
-def take_shot(page: Page, filename: str, path: str) -> None:
-    url = f"{BASE_URL}{path}"
+def discover_routes() -> list[str]:
+    """Fetch the route list from the running app's /_routes endpoint."""
+    url = f"{BASE_URL}/_routes"
+    print(f"Discovering routes from {url} ...")
+    with urllib.request.urlopen(url, timeout=10) as resp:
+        data = json.loads(resp.read())
+
+    routes = []
+    for entry in data:
+        rule = entry["rule"]
+        if SKIP_RE.search(rule):
+            print(f"  · skip {rule}")
+            continue
+        routes.append(rule)
+
+    print(f"  {len(routes)} route(s) selected for screenshots.")
+    return routes
+
+
+def slug_for(rule: str) -> str:
+    """Turn /settings/network into 'settings-network'."""
+    if rule == "/":
+        return "home"
+    return rule.strip("/").replace("/", "-") or "root"
+
+
+def take_shot(page: Page, index: int, rule: str) -> bool:
+    filename = f"{index:02d}-{slug_for(rule)}.png"
+    url = f"{BASE_URL}{rule}"
     print(f"  → {filename}  ({url})")
     try:
-        page.goto(url, wait_until="networkidle", timeout=15_000)
-    except Exception as exc:  # pragma: no cover - best effort
+        response = page.goto(url, wait_until="networkidle", timeout=15_000)
+    except Exception as exc:
         print(f"    ⚠️  navigation failed: {exc}")
-        return
+        return False
 
-    # Give any client-side JS / fonts / theme a beat to settle.
-    page.wait_for_timeout(500)
+    status = response.status if response else 0
+    if status >= 400:
+        print(f"    ⚠️  HTTP {status} — skipping")
+        return False
 
+    page.wait_for_timeout(500)  # let fonts/JS settle
     out_path = OUT_DIR / filename
     page.screenshot(path=str(out_path), full_page=True)
     size_kb = out_path.stat().st_size // 1024
     print(f"    ✓ saved ({size_kb} KB)")
+    return True
 
 
 def main() -> int:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
+    # Wipe stale screenshots so removed pages don't linger in docs/.
+    for old in OUT_DIR.glob("*.png"):
+        old.unlink()
+
+    try:
+        routes = discover_routes()
+    except Exception as exc:
+        print(f"❌ Could not reach /_routes: {exc}")
+        print("   Make sure the app is running and ZEBRA_DEV_ROUTES=1.")
+        return 1
+
+    if not routes:
+        print("❌ No routes returned. Nothing to screenshot.")
+        return 1
+
+    saved = 0
     with sync_playwright() as p:
         browser = p.chromium.launch()
         context = browser.new_context(
@@ -73,20 +119,20 @@ def main() -> int:
         )
         page = context.new_page()
 
-        # Surface JS errors so a broken page doesn't silently produce a blank shot.
         page.on("pageerror", lambda e: print(f"    [pageerror] {e}"))
         page.on(
             "console",
             lambda msg: msg.type == "error" and print(f"    [console.error] {msg.text}"),
         )
 
-        for filename, path in SHOTS:
-            take_shot(page, filename, path)
+        for i, rule in enumerate(routes, start=1):
+            if take_shot(page, i, rule):
+                saved += 1
 
         browser.close()
 
-    print(f"\nDone. {len(SHOTS)} shots in {OUT_DIR}/")
-    return 0
+    print(f"\nDone. {saved}/{len(routes)} shots saved to {OUT_DIR}/")
+    return 0 if saved else 1
 
 
 if __name__ == "__main__":
