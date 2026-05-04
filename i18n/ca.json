@@ -285,5 +285,12 @@
   "network.diag.advice.no_lan_ip": "No s'ha detectat una IP de LAN per a aquesta màquina. Comprova la teva connexió de xarxa — els equips no et poden arribar per una adreça de loopback.",
   "network.diag.advice.not_publishing": "El listener està actiu però encara no ens estem anunciant. Sol voler dir que el wrapper d'escriptori no ha passat el port de Flask encara; reinicia l'app o executa via `desktop.py`.",
   "network.firewall.open_button": "Obrir tallafocs per a mDNS",
-  "network.firewall.open_hint": "Afegeix regles d'entrada i sortida per a UDP 5353 (mDNS) perquè altres equips et trobin. A Windows veuràs un avís UAC — accepta'l. A macOS i Linux, executa la comanda de baix a mà."
+  "network.firewall.open_hint": "Afegeix regles d'entrada i sortida per a UDP 5353 (mDNS) perquè altres equips et trobin. A Windows veuràs un avís UAC — accepta'l. A macOS i Linux, executa la comanda de baix a mà.",
+
+  "update.dialog.title": "Actualització disponible",
+  "update.dialog.you_have": "Tens:",
+  "update.dialog.latest": "Última:",
+  "update.dialog.release_notes": "Notes del release",
+  "update.dialog.dismiss": "Saltar aquesta versió",
+  "update.dialog.download": "Descarregar"
 }

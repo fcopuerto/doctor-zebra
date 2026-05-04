@@ -132,7 +132,11 @@
                 </a>
             </nav>
             <div class="sidebar__footer">
-                v{{ app_version }} · {{ t('nav.footer.local_only') }}
+                <span>v{{ app_version }} · {{ t('nav.footer.local_only') }}</span>
+                <button type="button" id="updateBadge" class="update-badge" hidden>
+                    <span class="update-badge__dot"></span>
+                    <span class="update-badge__label"></span>
+                </button>
             </div>
         </aside>
 
@@ -179,7 +183,35 @@
     </div>
 
     <div id="toast" role="status" aria-live="polite"></div>
+
+    <!-- Update available dialog (populated + opened by updater.js) -->
+    <dialog id="updateDialog" class="net-dialog">
+        <header class="net-dialog__head">
+            <h2 id="updateDialogTitle">{{ t('update.dialog.title') }}</h2>
+            <button type="button" class="btn-ghost" id="updateDialogClose" aria-label="Close">×</button>
+        </header>
+        <div class="net-dialog__body">
+            <p>
+                <strong>{{ t('update.dialog.you_have') }}</strong>
+                <code id="updateCurrent">v{{ app_version }}</code>
+                <br>
+                <strong>{{ t('update.dialog.latest') }}</strong>
+                <code id="updateLatest">—</code>
+                <span class="muted" id="updatePublished"></span>
+            </p>
+            <details>
+                <summary>{{ t('update.dialog.release_notes') }}</summary>
+                <pre id="updateNotes" class="net-firewall__manual"></pre>
+            </details>
+            <div class="button-row" style="margin-top: var(--s-4);">
+                <button type="button" class="btn-ghost" id="updateDismiss">{{ t('update.dialog.dismiss') }}</button>
+                <a href="#" id="updateDownload" class="btn">{{ t('update.dialog.download') }}</a>
+            </div>
+        </div>
+    </dialog>
+
     <script src="{{ url_for('static', filename='theme.js') }}"></script>
+    <script src="{{ url_for('static', filename='updater.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>
 

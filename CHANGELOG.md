@@ -7,6 +7,26 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-05-04
+
+### Añadido
+
+- **Notificación de actualizaciones disponibles.** La app consulta
+  `api.github.com/repos/fcopuerto/comandante_zebra/releases/latest`
+  cada 24 h (caché en `~/.comandante_zebra/update.json` para no
+  saturar la API). Si hay una versión más nueva, aparece un **badge
+  dorado pulsante** _"→ vX.Y.Z"_ en el footer del sidebar.
+- Click en el badge → modal con tu versión, la última, fecha de
+  publicación y notas del release. Botón **"Descargar"** que abre el
+  Release en el navegador.
+- Botón **"Saltar esta versión"** que silencia el badge hasta que
+  aparezca otra versión más nueva (persistido en `update.json`).
+- Endpoints nuevos: `GET /api/update/check`, `POST /api/update/dismiss`.
+- Sin descarga ni reemplazo automático del `.exe` — ese es el F2 que
+  requiere matar el proceso, sustituir el binario en uso, relanzar y
+  manejar errores. Se queda como ampliación futura si hace falta; F1
+  cubre el 95% del valor con cero riesgo.
+
 ## [0.7.5] - 2026-05-03
 
 ### Añadido
@@ -473,7 +493,8 @@ distribuye como `.exe` autónomo para Windows.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.5...HEAD
+[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.5...v0.8.0
 [0.7.5]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.4...v0.7.5
 [0.7.4]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.3...v0.7.4
 [0.7.3]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.2...v0.7.3

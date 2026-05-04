@@ -285,5 +285,12 @@
   "network.diag.advice.no_lan_ip": "Couldn't detect a LAN IP for this machine. Check your network connection — peers can't reach you over a loopback address.",
   "network.diag.advice.not_publishing": "Browser is up but we're not announcing ourselves yet. This usually means the desktop wrapper hasn't told us which port Flask is on; restart the app or run via `desktop.py`.",
   "network.firewall.open_button": "Open firewall for mDNS",
-  "network.firewall.open_hint": "Adds inbound + outbound rules for UDP 5353 (mDNS) so peers can find you. On Windows you'll get a UAC prompt — accept it. On macOS and Linux, run the command below by hand."
+  "network.firewall.open_hint": "Adds inbound + outbound rules for UDP 5353 (mDNS) so peers can find you. On Windows you'll get a UAC prompt — accept it. On macOS and Linux, run the command below by hand.",
+
+  "update.dialog.title": "Update available",
+  "update.dialog.you_have": "You have:",
+  "update.dialog.latest": "Latest:",
+  "update.dialog.release_notes": "Release notes",
+  "update.dialog.dismiss": "Skip this version",
+  "update.dialog.download": "Download"
 }

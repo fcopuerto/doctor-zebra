@@ -6,7 +6,7 @@ from pathlib import Path
 
 from flask import Flask, g, request
 
-from zebra import discovery, i18n, network, printer, profiles
+from zebra import discovery, i18n, network, printer, profiles, updater
 from zebra.cache_scheduler import start_scheduler
 from zebra.db import init_db
 from zebra.lookup_cache import init_cache
@@ -14,7 +14,7 @@ from zebra.settings import Settings
 
 LANG_COOKIE = 'comandante_zebra_lang'
 
-__version__ = '0.7.5'
+__version__ = '0.8.0'
 
 # Path to the package root (read-only assets when frozen with PyInstaller).
 PACKAGE_ROOT = Path(__file__).resolve().parent.parent
@@ -59,6 +59,7 @@ def create_app(
     init_cache(app.config['DB_PATH'])
     i18n.load_all(PACKAGE_ROOT / 'i18n')
     network.init(base)
+    updater.init(base)
 
     # Start mDNS discovery. The browser is always on so we can list
     # other peers on the LAN; we only publish ourselves once desktop.py

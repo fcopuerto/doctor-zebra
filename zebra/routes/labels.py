@@ -10,7 +10,7 @@ from flask import (
 
 from zebra import (
     LANG_COOKIE, cache_scheduler, datasources, db, fields as fields_mod,
-    i18n, lookup_cache, preview, zpl,
+    i18n, lookup_cache, preview, updater, zpl,
 )
 from zebra.constants import MAX_COPIES
 from zebra.datasources.base import DataSourceError
@@ -323,6 +323,25 @@ def generate_zpl():
 def history():
     records = db.list_all(_db_path())
     return render_template('history.html', records=records)
+
+
+@bp.route('/api/update/check')
+def update_check():
+    """Return current update status. Cached server-side; cheap to call."""
+    from zebra import __version__
+    force = request.args.get('force', '').lower() in ('1', 'true', 'yes')
+    return jsonify(updater.check(__version__, force=force))
+
+
+@bp.route('/api/update/dismiss', methods=['POST'])
+def update_dismiss():
+    """Tell the app to stop nagging about a specific version."""
+    body = request.get_json(silent=True) or {}
+    version = body.get('version') or ''
+    if not version:
+        return jsonify({'ok': False, 'error': 'version required'}), 400
+    updater.dismiss(version)
+    return jsonify({'ok': True, 'dismissed': version.lstrip('v')})
 
 
 @bp.route('/healthz')
