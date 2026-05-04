@@ -2805,3 +2805,56 @@ tbody tr:hover {
 .version-row__main .muted {
     font-size: 11px;
 }
+.version-row__pick {
+    margin: 0;
+    flex-shrink: 0;
+}
+.versions-tools {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    flex-wrap: wrap;
+    margin-bottom: var(--s-2);
+    font-size: 12px;
+}
+.versions-tools button {
+    padding: 4px 10px;
+    font-size: 12px;
+}
+.net-dialog--wide {
+    width: min(720px, 96vw);
+}
+
+/* Unified diff view */
+.diff-body {
+    max-height: 50vh;
+    overflow: auto;
+    background: var(--surface-2, rgba(0, 0, 0, 0.04));
+    border-radius: var(--r-md);
+    padding: var(--s-2);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+    line-height: 1.45;
+}
+.diff-line {
+    white-space: pre;
+    padding: 0 6px;
+    border-left: 3px solid transparent;
+}
+.diff-line.diff-meta { color: var(--text-subtle); font-style: italic; }
+.diff-line.diff-hunk {
+    color: var(--primary, #0000aa);
+    background: rgba(0, 0, 170, 0.06);
+    border-left-color: var(--primary, #0000aa);
+    margin: 4px 0 2px;
+}
+.diff-line.diff-add {
+    color: #0a7c2f;
+    background: rgba(10, 124, 47, 0.08);
+    border-left-color: #0a7c2f;
+}
+.diff-line.diff-del {
+    color: #b91c1c;
+    background: rgba(185, 28, 28, 0.08);
+    border-left-color: #b91c1c;
+}

@@ -7,6 +7,36 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-05-04
+
+### Añadido
+
+- **Números de versión secuenciales** (v1, v2, v3…) además del
+  timestamp. Se calculan al snapshotear y se guardan en `meta.json`.
+  Los snapshots viejos sin número se infieren del orden cronológico.
+- **Comparar dos versiones** con diff unificado:
+  - Endpoint `GET /api/templates/<name>/versions/compare?a=…&b=…` que
+    acepta timestamps o `current` y devuelve `{a_label, b_label, lines}`
+    con el diff en formato unified-diff estándar.
+  - En el modal de Versiones: checkbox por fila, botón **Comparar**
+    (con dos seleccionadas) y **Comparar con actual** (con una
+    seleccionada). El resultado se pinta inline con `+` verde, `-`
+    rojo y `@@ … @@` resaltado.
+- **Imprimir desde una versión específica:**
+  - `GET /api/fields/<template>?version=<ts>` lee los campos del
+    sidecar de esa versión.
+  - `POST /generate` acepta `version_ts`. Si no es `current`, usa el
+    ZPL del snapshot y los campos del sidecar de esa versión.
+  - Nuevo selector **Versión** en la pantalla _Imprimir_, al lado de
+    Plantilla. Al cambiar de versión, el formulario se reconstruye
+    con los campos correspondientes a esa versión.
+  - Cada **pestaña** de impresión guarda su propia versión elegida en
+    `sessionStorage`, así que dos tabs pueden imprimir el mismo
+    template en versiones distintas a la vez.
+- `zpl.render_text(zpl, fields)` para renderizar ZPL ya cargado en
+  memoria (necesario para imprimir desde snapshots sin tocar el
+  archivo vivo).
+
 ## [0.10.0] - 2026-05-04
 
 ### Añadido
@@ -544,7 +574,8 @@ distribuye como `.exe` autónomo para Windows.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.5...v0.8.0

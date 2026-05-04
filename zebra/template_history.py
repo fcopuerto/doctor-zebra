@@ -25,6 +25,7 @@ small enough that even years of edits won't be a problem in practice.
 
 from __future__ import annotations
 
+import difflib
 import json
 import logging
 import shutil
@@ -56,6 +57,21 @@ def _sidecar_path(template_path: Path) -> Path:
 # Snapshot
 # ---------------------------------------------------------------------------
 
+def _next_version_number(template_path: Path) -> int:
+    """Return the version number to assign to a brand-new snapshot.
+
+    Counts existing version directories, including those created by
+    earlier code that didn't record a number (so the count is always
+    "what the user would call the next version", not a max+1 of stored
+    numbers).
+    """
+    root = _versions_root(template_path)
+    if not root.is_dir():
+        return 1
+    existing = [p for p in root.iterdir() if p.is_dir() and (p / 'template.zpl').is_file()]
+    return len(existing) + 1
+
+
 def snapshot(template_path: Path, reason: str = 'edit') -> str | None:
     """Save the current state of ``template_path`` (+ sidecar if present).
 
@@ -67,6 +83,7 @@ def snapshot(template_path: Path, reason: str = 'edit') -> str | None:
     if not template_path.is_file():
         return None
     try:
+        version = _next_version_number(template_path)
         ts = _utc_stamp()
         dest = _versions_root(template_path) / ts
         dest.mkdir(parents=True, exist_ok=True)
@@ -77,6 +94,7 @@ def snapshot(template_path: Path, reason: str = 'edit') -> str | None:
             shutil.copy2(sc, dest / 'sidecar.json')
 
         meta = {
+            'version':      version,
             'reason':       reason,
             'snapshot_at':  datetime.now(timezone.utc).isoformat(),
             'source':       template_path.name,
@@ -95,13 +113,21 @@ def snapshot(template_path: Path, reason: str = 'edit') -> str | None:
 # ---------------------------------------------------------------------------
 
 def list_versions(template_path: Path) -> list[dict]:
-    """Return ``[{timestamp, has_sidecar, size_bytes, reason, ts_human}, ...]``
-    sorted newest first."""
+    """Return list of versions sorted newest first.
+
+    Each entry: ``{version, timestamp, ts_human, has_sidecar,
+    size_bytes, reason}``. Older snapshots that lack a stored
+    ``version`` get one inferred from chronological position so the UI
+    can still label them v1/v2/...
+    """
     root = _versions_root(template_path)
     if not root.is_dir():
         return []
-    out: list[dict] = []
-    for entry in sorted(root.iterdir(), reverse=True):
+
+    # Collect chronologically (oldest first) so we can stamp inferred
+    # version numbers consistently, then reverse for the API output.
+    chronological: list[dict] = []
+    for entry in sorted(root.iterdir()):
         if not entry.is_dir():
             continue
         zpl = entry / 'template.zpl'
@@ -115,13 +141,24 @@ def list_versions(template_path: Path) -> list[dict]:
                 meta = json.loads(meta_path.read_text(encoding='utf-8'))
             except (OSError, ValueError):
                 meta = {}
-        out.append({
+        chronological.append({
             'timestamp':  entry.name,
             'has_sidecar': sc.is_file(),
             'size_bytes': zpl.stat().st_size,
             'reason':     meta.get('reason', ''),
             'ts_human':   _human_ts(entry.name),
+            '_meta_version': meta.get('version'),
         })
+
+    out: list[dict] = []
+    for idx, item in enumerate(chronological, start=1):
+        version = item.pop('_meta_version')
+        if not isinstance(version, int) or version <= 0:
+            version = idx  # inferred from chronological position
+        item['version'] = version
+        out.append(item)
+
+    out.sort(key=lambda v: v['version'], reverse=True)
     return out
 
 
@@ -186,6 +223,74 @@ def restore_version(template_path: Path, timestamp: str) -> bool:
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
+def get_zpl(template_path: Path, ref: str) -> str | None:
+    """Read the ZPL identified by ``ref``.
+
+    ``ref`` may be ``"current"`` (the live file) or a snapshot timestamp.
+    """
+    if ref == 'current':
+        if not template_path.is_file():
+            return None
+        try:
+            return template_path.read_text(encoding='utf-8')
+        except OSError:
+            return None
+    data = get_version(template_path, ref)
+    return data['zpl'] if data else None
+
+
+def get_sidecar(template_path: Path, ref: str) -> str | None:
+    """Like :func:`get_zpl` but for the sidecar JSON. ``None`` if absent."""
+    if ref == 'current':
+        sc = _sidecar_path(template_path)
+        if not sc.is_file():
+            return None
+        try:
+            return sc.read_text(encoding='utf-8')
+        except OSError:
+            return None
+    data = get_version(template_path, ref)
+    return data.get('sidecar') if data else None
+
+
+def label_for(template_path: Path, ref: str) -> str:
+    """Human label for a ref: ``"current"`` or ``"v3 (2026-05-04 …)"``."""
+    if ref == 'current':
+        return 'current'
+    for v in list_versions(template_path):
+        if v['timestamp'] == ref:
+            return f"v{v['version']} ({v['ts_human']})"
+    return ref
+
+
+def diff(
+    template_path: Path,
+    a_ref: str,
+    b_ref: str,
+    n_context: int = 3,
+) -> dict:
+    """Unified diff between two refs.
+
+    Refs are either ``"current"`` or a snapshot timestamp. Returns
+    ``{a_label, b_label, lines: [...]}`` where each line is a string in
+    the standard unified-diff format (``"--- a"``, ``"+++ b"``,
+    ``"@@ … @@"``, ``" ctx"``, ``"-removed"``, ``"+added"``).
+    """
+    a_text = get_zpl(template_path, a_ref) or ''
+    b_text = get_zpl(template_path, b_ref) or ''
+    a_label = label_for(template_path, a_ref)
+    b_label = label_for(template_path, b_ref)
+    lines = list(difflib.unified_diff(
+        a_text.splitlines(keepends=False),
+        b_text.splitlines(keepends=False),
+        fromfile=a_label,
+        tofile=b_label,
+        n=n_context,
+        lineterm='',
+    ))
+    return {'a_label': a_label, 'b_label': b_label, 'lines': lines}
+
 
 def _is_valid_ts(s: str) -> bool:
     try:

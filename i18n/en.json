@@ -77,6 +77,8 @@
   "form.no_fields_hint": "This template has no editable fields. Press Print to send it as-is.",
   "form.lookup.placeholder": "Type to search the database…",
   "form.lookup.starts_with_prefix": "Starts with… (use * for any) —",
+  "form.version": "Version",
+  "form.version.current": "— current —",
   "form.tabs.aria_label": "Open print jobs",
   "form.tabs.new": "New tab",
   "form.tabs.close": "Close tab",
@@ -339,5 +341,9 @@
   "versions.dialog.restored": "Restored. Reloading…",
   "versions.dialog.restore_failed": "Restore failed",
   "versions.dialog.has_sidecar": "with fields/settings",
-  "versions.dialog.no_sidecar": "no sidecar"
+  "versions.dialog.no_sidecar": "no sidecar",
+  "versions.dialog.compare": "Compare",
+  "versions.dialog.compare_with_current": "Compare with current",
+  "versions.dialog.compare_hint": "Tick up to two versions to compare, or one to compare with current",
+  "versions.dialog.no_diff": "No differences."
 }

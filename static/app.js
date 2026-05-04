@@ -164,19 +164,59 @@
     async function onTemplateChange() {
         const tpl = document.getElementById('template_file');
         if (!tpl || !tpl.value) return;
+        // Reload the version dropdown for the new template, then load
+        // fields for whichever version is selected.
+        await refreshVersionDropdown(tpl.value);
+        await loadFieldsForCurrentVersion();
+    }
+
+    async function refreshVersionDropdown(templateFile) {
+        const sel = document.getElementById('template_version');
+        if (!sel) return;
+        // Default option is always "current"; saved versions get
+        // appended in newest-first order.
+        sel.innerHTML = '<option value="current">— current —</option>';
         try {
-            const res = await fetch('/api/fields/' + encodeURIComponent(tpl.value));
+            const r = await fetch('/api/templates/' + encodeURIComponent(templateFile) + '/versions');
+            if (!r.ok) return;
+            const data = await r.json();
+            (data.versions || []).forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v.timestamp;
+                opt.textContent = 'v' + v.version + ' · ' + (v.ts_human || v.timestamp);
+                sel.appendChild(opt);
+            });
+        } catch (e) { /* offline → only current */ }
+    }
+
+    async function loadFieldsForCurrentVersion() {
+        const tpl = document.getElementById('template_file');
+        const ver = document.getElementById('template_version');
+        const hiddenVer = document.getElementById('labelVersionTs');
+        if (!tpl || !tpl.value) return;
+        const versionTs = (ver && ver.value) || 'current';
+        if (hiddenVer) hiddenVer.value = versionTs;
+        const url = '/api/fields/' + encodeURIComponent(tpl.value) +
+            (versionTs && versionTs !== 'current' ? '?version=' + encodeURIComponent(versionTs) : '');
+        try {
+            const res = await fetch(url);
             if (!res.ok) { showToast('Could not load template fields', true); return; }
             const data = await res.json();
             renderFields(data.fields || [], tpl.value);
-            // Pre-fill the per-job overrides with the template's stored
-            // defaults so the user sees what would be sent if they don't
-            // touch anything (and so per-tab restoration has a sane baseline).
             applyPrintSettings(data.print_settings || {});
         } catch (err) {
             showToast('Failed to fetch fields: ' + err, true);
         }
     }
+
+    // Wire the version selector to reload fields when the user changes it.
+    document.addEventListener('DOMContentLoaded', () => {
+        const ver = document.getElementById('template_version');
+        if (ver) ver.addEventListener('change', loadFieldsForCurrentVersion);
+        // First-load: populate dropdown for the initial template.
+        const tpl = document.getElementById('template_file');
+        if (tpl && tpl.value) refreshVersionDropdown(tpl.value);
+    });
 
     function applyPrintSettings(ps) {
         // Media type

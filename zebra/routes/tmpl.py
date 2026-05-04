@@ -164,7 +164,26 @@ def template_version_get(name, ts):
     data = template_history.get_version(path, ts)
     if data is None:
         return jsonify({'error': 'Unknown version'}), 404
+    # Decorate with the version number from list_versions so the
+    # preview UI can show "v3" instead of just the timestamp.
+    for v in template_history.list_versions(path):
+        if v['timestamp'] == ts:
+            data['version'] = v['version']
+            data['ts_human'] = v['ts_human']
+            break
     return jsonify(data)
+
+
+@bp.route('/api/templates/<path:name>/versions/compare')
+def template_version_compare(name):
+    """Unified diff between two refs (?a=ts|current&b=ts|current)."""
+    path = _template_path(name)
+    if path is None or not path.is_file():
+        return jsonify({'error': 'Invalid template'}), 404
+    a = (request.args.get('a') or 'current').strip()
+    b = (request.args.get('b') or 'current').strip()
+    from zebra import template_history
+    return jsonify(template_history.diff(path, a, b))
 
 
 @bp.route('/api/templates/<path:name>/versions/<ts>/restore', methods=['POST'])

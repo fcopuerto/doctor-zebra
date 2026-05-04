@@ -14,13 +14,21 @@
 
         <form id="previewForm" action="{{ url_for('labels.preview_label') }}" method="post"
             data-fields-api="/api/fields/">
-            <div class="field-row">
-                <label for="template_file">{{ t('form.template') }}</label>
-                <select id="template_file" name="template_file" required>
-                    {% for tmpl in templates %}
-                    <option value="{{ tmpl }}" {% if tmpl==template_file %}selected{% endif %}>{{ tmpl }}</option>
-                    {% endfor %}
-                </select>
+            <div class="field-row" style="display:grid; grid-template-columns:2fr 1fr; gap:var(--s-3);">
+                <div>
+                    <label for="template_file">{{ t('form.template') }}</label>
+                    <select id="template_file" name="template_file" required>
+                        {% for tmpl in templates %}
+                        <option value="{{ tmpl }}" {% if tmpl==template_file %}selected{% endif %}>{{ tmpl }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="template_version">{{ t('form.version') }}</label>
+                    <select id="template_version" name="version_ts">
+                        <option value="current" selected>{{ t('form.version.current') }}</option>
+                    </select>
+                </div>
             </div>
 
             <div id="fieldsContainer" data-template="{{ template_file }}">
@@ -66,6 +74,7 @@
 
         <form id="labelForm" action="{{ url_for('labels.generate_zpl') }}" method="post">
             <input type="hidden" name="template_file" value="{{ template_file }}">
+            <input type="hidden" name="version_ts" id="labelVersionTs" value="current">
             <div id="labelHiddenMirror">
                 {% for f in template_fields %}
                 <input type="hidden" name="{{ f.key }}" value="{{ field_values.get(f.key, '') }}">

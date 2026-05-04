@@ -10,7 +10,7 @@ from flask import (
 
 from zebra import (
     LANG_COOKIE, cache_scheduler, datasources, db, fields as fields_mod,
-    i18n, lookup_cache, preview, updater, zpl,
+    i18n, lookup_cache, preview, template_history, updater, zpl,
 )
 from zebra.constants import MAX_COPIES
 from zebra.datasources.base import DataSourceError
@@ -181,17 +181,50 @@ def _safe(v):
 def api_fields(template_file):
     """Return the field spec + print settings for a template.
 
-    The print_settings block is the template's stored defaults. Each
-    print job can override them in the form before pressing Print
-    (handled in /generate below).
+    Optional ``?version=<ts>`` reads the spec from the snapshot
+    sidecar instead of the live one — used by the print form when
+    the user picks an older version of a template to print.
     """
     path = _resolve(template_file)
     if path is None:
         return jsonify({'error': 'Invalid template'}), 404
+    version = (request.args.get('version') or '').strip()
+
+    if version and version != 'current':
+        # Build specs from the snapshot's sidecar, falling back to
+        # autodetect against the snapshot's ZPL if no sidecar was saved.
+        snap = template_history.get_version(path, version)
+        if snap is None:
+            return jsonify({'error': 'Unknown version'}), 404
+        sidecar_text = snap.get('sidecar')
+        ps = {}
+        if sidecar_text:
+            try:
+                import json as _json
+                doc = _json.loads(sidecar_text)
+                raw_fields = doc.get('fields') if isinstance(doc, dict) else None
+                if isinstance(raw_fields, list):
+                    specs = [fields_mod.FieldSpec.from_dict(f) for f in raw_fields]
+                else:
+                    specs = fields_mod.autodetect_from_zpl(snap['zpl'])
+                ps = fields_mod._coerce_print_settings(
+                    doc.get('print_settings') if isinstance(doc, dict) else None
+                )
+            except Exception:  # noqa: BLE001
+                specs = fields_mod.autodetect_from_zpl(snap['zpl'])
+        else:
+            specs = fields_mod.autodetect_from_zpl(snap['zpl'])
+        return jsonify({
+            'template_file':  template_file,
+            'fields':         [s.to_dict() for s in specs],
+            'print_settings': ps,
+            'version':        version,
+        })
+
     specs = fields_mod.load_fields(path)
     return jsonify({
-        'template_file': template_file,
-        'fields': [s.to_dict() for s in specs],
+        'template_file':  template_file,
+        'fields':         [s.to_dict() for s in specs],
         'print_settings': fields_mod.load_print_settings(path),
     })
 
@@ -252,7 +285,34 @@ def generate_zpl():
     except (TypeError, ValueError):
         copies = 1
 
-    specs = fields_mod.load_fields(path)
+    # Optional: print from a specific saved version of this template,
+    # not the live file. Used by the version selector on /print.
+    version_ts = (request.form.get('version_ts') or '').strip()
+
+    if version_ts and version_ts != 'current':
+        snap = template_history.get_version(path, version_ts)
+        if snap is None:
+            return jsonify({'message': 'Unknown template version'}), 400
+        # Build specs from snapshot's sidecar (or autodetect from its ZPL).
+        sidecar_text = snap.get('sidecar')
+        if sidecar_text:
+            try:
+                import json as _json
+                doc = _json.loads(sidecar_text)
+                raw_fields = doc.get('fields') if isinstance(doc, dict) else None
+                if isinstance(raw_fields, list):
+                    specs = [fields_mod.FieldSpec.from_dict(f) for f in raw_fields]
+                else:
+                    specs = fields_mod.autodetect_from_zpl(snap['zpl'])
+            except Exception:  # noqa: BLE001
+                specs = fields_mod.autodetect_from_zpl(snap['zpl'])
+        else:
+            specs = fields_mod.autodetect_from_zpl(snap['zpl'])
+        zpl_source = snap['zpl']
+    else:
+        specs = fields_mod.load_fields(path)
+        zpl_source = None  # use live file via zpl.render below
+
     values = fields_mod.sanitize_values(specs, request.form)
 
     # Required-field validation
@@ -260,7 +320,11 @@ def generate_zpl():
     if missing:
         return jsonify({'message': f'Missing required fields: {", ".join(missing)}'}), 400
 
-    rendered = zpl.render(path, values)
+    if zpl_source is not None:
+        rendered = zpl.render_text(zpl_source, values,
+                                    label=f'{template_file}@{version_ts}')
+    else:
+        rendered = zpl.render(path, values)
 
     # Print settings: form overrides win over sidecar defaults. If the form
     # didn't include them at all we keep the template's defaults.

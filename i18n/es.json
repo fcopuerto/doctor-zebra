@@ -77,6 +77,8 @@
   "form.no_fields_hint": "Esta plantilla no tiene campos editables. Pulsa Imprimir para enviarla tal cual.",
   "form.lookup.placeholder": "Escribe para buscar en la base de datos…",
   "form.lookup.starts_with_prefix": "Empieza por… (usa * como comodín) —",
+  "form.version": "Versión",
+  "form.version.current": "— actual —",
   "form.tabs.aria_label": "Trabajos de impresión abiertos",
   "form.tabs.new": "Nueva pestaña",
   "form.tabs.close": "Cerrar pestaña",
@@ -339,5 +341,9 @@
   "versions.dialog.restored": "Restaurado. Recargando…",
   "versions.dialog.restore_failed": "Restauración fallida",
   "versions.dialog.has_sidecar": "con campos/ajustes",
-  "versions.dialog.no_sidecar": "sin sidecar"
+  "versions.dialog.no_sidecar": "sin sidecar",
+  "versions.dialog.compare": "Comparar",
+  "versions.dialog.compare_with_current": "Comparar con actual",
+  "versions.dialog.compare_hint": "Marca hasta dos versiones para comparar, o una para comparar con la actual",
+  "versions.dialog.no_diff": "No hay diferencias."
 }

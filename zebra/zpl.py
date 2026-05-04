@@ -111,10 +111,15 @@ def resolve_template(templates_dir: Path, template_file: str) -> Path | None:
 
 
 def render(template_path: Path, fields: dict) -> str:
-    raw = template_path.read_text()
+    return render_text(template_path.read_text(), fields,
+                       label=template_path.name)
+
+
+def render_text(raw: str, fields: dict, label: str = '<inline>') -> str:
+    """Render a ZPL string (already loaded) with the given field map."""
     safe = {k: clean_field(v) for k, v in fields.items()}
     try:
         return raw.format_map(_SafeDict(safe))
     except (IndexError, ValueError) as e:
-        logging.error(f"Malformed ZPL template {template_path.name}: {e}")
+        logging.error(f"Malformed ZPL template {label}: {e}")
         return raw

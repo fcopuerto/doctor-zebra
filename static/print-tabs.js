@@ -62,6 +62,8 @@
         if (!tab) return;
         const tpl = tplSelect();
         if (tpl) tab.template = tpl.value || tab.template;
+        const verSel = document.getElementById('template_version');
+        if (verSel) tab.version_ts = verSel.value || 'current';
         const c = copiesIn();
         if (c) tab.copies = Math.max(1, parseInt(c.value, 10) || 1);
         const vals = {};

@@ -192,7 +192,7 @@
 <!-- ============================================================ -->
 <!-- Versions dialog                                              -->
 <!-- ============================================================ -->
-<dialog id="versionsDialog" class="net-dialog">
+<dialog id="versionsDialog" class="net-dialog net-dialog--wide">
     <header class="net-dialog__head">
         <h2>{{ t('versions.dialog.title') }}: <code>{{ template_name }}</code></h2>
         <button type="button" class="btn-ghost" id="versionsClose" aria-label="Close">×</button>
@@ -202,7 +202,7 @@
             <p class="muted">{{ t('common.loading') }}</p>
         </div>
 
-        <!-- Detail panel populated when the user clicks "View" -->
+        <!-- Detail panel: shown after "View" -->
         <div id="versionsDetail" hidden>
             <h3 id="versionsDetailTitle"></h3>
             <pre class="net-firewall__manual" id="versionsDetailZpl"></pre>
@@ -213,6 +213,15 @@
                 </button>
             </div>
             <p class="test-result" id="versionsResult" aria-live="polite"></p>
+        </div>
+
+        <!-- Diff panel: shown after "Compare" -->
+        <div id="versionsDiff" hidden>
+            <h3 id="versionsDiffTitle"></h3>
+            <div id="versionsDiffBody" class="diff-body"></div>
+            <div class="button-row" style="margin-top: var(--s-3);">
+                <button type="button" class="btn-ghost" id="versionsDiffBack">{{ t('common.back') }}</button>
+            </div>
         </div>
     </div>
 </dialog>

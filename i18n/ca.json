@@ -77,6 +77,8 @@
   "form.no_fields_hint": "Aquesta plantilla no té camps editables. Prem Imprimir per enviar-la tal com està.",
   "form.lookup.placeholder": "Escriu per cercar a la base de dades…",
   "form.lookup.starts_with_prefix": "Comença per… (usa * com a comodí) —",
+  "form.version": "Versió",
+  "form.version.current": "— actual —",
   "form.tabs.aria_label": "Treballs d'impressió oberts",
   "form.tabs.new": "Nova pestanya",
   "form.tabs.close": "Tancar pestanya",
@@ -339,5 +341,9 @@
   "versions.dialog.restored": "Restaurat. Recarregant…",
   "versions.dialog.restore_failed": "Restauració fallida",
   "versions.dialog.has_sidecar": "amb camps/ajustos",
-  "versions.dialog.no_sidecar": "sense sidecar"
+  "versions.dialog.no_sidecar": "sense sidecar",
+  "versions.dialog.compare": "Comparar",
+  "versions.dialog.compare_with_current": "Comparar amb actual",
+  "versions.dialog.compare_hint": "Marca fins a dues versions per comparar, o una per comparar amb l'actual",
+  "versions.dialog.no_diff": "No hi ha diferències."
 }
