@@ -7,6 +7,22 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.12.1] - 2026-05-05
+
+### Cambiado
+
+- **Warmup en paralelo durante el splash.** En cuanto Flask responde,
+  `desktop.py` lanza GETs en threads daemon (uno por endpoint) a las
+  rutas que el usuario suele tocar primero: `/healthz`, `/`,
+  `/dashboard`, `/api/network/diagnostics` y `/api/update/check`. Como
+  son threads paralelos, el más lento (típicamente la consulta a
+  GitHub para el update check) no bloquea al resto. Cuando el splash
+  termina, las pantallas principales ya están "calientes" — el primer
+  click cuesta menos.
+- **Splash más corto**: `SPLASH_MIN_MS` baja de 6.5 s a 4.5 s. Con el
+  warmup paralelo no hace falta tanto tiempo en pantalla; el intervalo
+  entre los 8 pasos de carga se ajusta automáticamente.
+
 ## [0.12.0] - 2026-05-05
 
 ### Añadido
@@ -618,7 +634,8 @@ distribuye como `.exe` autónomo para Windows.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.12.0...HEAD
+[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.12.1...HEAD
+[0.12.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.11.1...v0.12.0
 [0.11.1]: https://github.com/fcopuerto/comandante_zebra/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.10.0...v0.11.0

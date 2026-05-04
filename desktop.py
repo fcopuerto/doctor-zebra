@@ -132,9 +132,10 @@ def _run_flask(host: str, port: int, base_dir: Path) -> None:
 
 
 # How long the splash holds the screen *at minimum*, even when Flask comes
-# up faster. Long enough for the seven loading steps to play out and for
-# the brand to register — short enough to not feel like a punishment.
-SPLASH_MIN_MS = 6500
+# up faster. Long enough for the loading steps to play out and for the
+# warmup HTTP requests to prime the lazy paths — short enough to not feel
+# like a punishment when you launch the app for the 100th time.
+SPLASH_MIN_MS = 4500
 SPLASH_STEP_COUNT = 8
 
 
@@ -307,6 +308,35 @@ def _splash_html(version: str) -> str:
 """
 
 
+def _kick_warmup(base_url: str) -> None:
+    """Fire-and-forget GETs to the pages the user is most likely to
+    open right after the splash, so their slow first-load work happens
+    while the splash is still on screen.
+
+    Each request runs on its own daemon thread, so the slowest one
+    (typically /api/update/check, which polls api.github.com) doesn't
+    serialise behind the others. Failures are silent — warmup is best
+    effort, never blocking.
+    """
+    paths = [
+        '/healthz',                  # cheap; primes Flask request path
+        '/',                         # home (templates + printer status)
+        '/dashboard',                # KPI queries against label_prints
+        '/api/network/diagnostics',  # mDNS snapshot, firewall info
+        '/api/update/check',         # GitHub API call (cached server-side)
+    ]
+
+    def _hit(path: str) -> None:
+        try:
+            urlopen(base_url + path.lstrip('/'), timeout=4.0).read()
+        except Exception:  # noqa: BLE001
+            pass  # offline / 4xx / whatever — irrelevant for warmup
+
+    for p in paths:
+        threading.Thread(target=_hit, args=(p,), daemon=True).start()
+    logging.info(f'Warmup kicked off for {len(paths)} endpoints')
+
+
 def main() -> int:
     try:
         import webview  # type: ignore
@@ -355,6 +385,13 @@ def main() -> int:
             except Exception:  # noqa: BLE001
                 pass
             return
+
+        # Warm up the lazy paths in parallel. The splash already keeps
+        # us on screen for SPLASH_MIN_MS — let's pay for the slow first
+        # render of the home page, the dashboard's stats query, the
+        # network diagnostics scan and the update check now, instead of
+        # making the user wait the first time they navigate to each.
+        _kick_warmup(url)
 
         # Hold the splash for at least SPLASH_MIN_MS so it actually registers.
         elapsed_ms = (time.monotonic() - splash_started_at) * 1000
