@@ -2775,3 +2775,33 @@ tbody tr:hover {
     width: fit-content;
     margin-top: 2px;
 }
+
+/* Versions dialog list */
+.versions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.version-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-3);
+    padding: var(--s-3) var(--s-4);
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: var(--r-md);
+    font-size: 13px;
+}
+.version-row__main {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+.version-row__main strong {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+}
+.version-row__main .muted {
+    font-size: 11px;
+}

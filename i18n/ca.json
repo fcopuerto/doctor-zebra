@@ -328,5 +328,16 @@
   "tools.reset_printer.title": "Reiniciar Impressora",
   "tools.reset_printer.desc": "Reboot per software de la impressora. Demana confirmació. Els treballs pendents es perden.",
   "tools.test_label.title": "Imprimir Etiqueta de Prova",
-  "tools.test_label.desc": "Envia una etiqueta petita amb \"Comandante Zebra OK\" usant les dimensions persistents de la impressora. Ideal com a smoke test."
+  "tools.test_label.desc": "Envia una etiqueta petita amb \"Comandante Zebra OK\" usant les dimensions persistents de la impressora. Ideal com a smoke test.",
+
+  "versions.button": "Versions",
+  "versions.dialog.title": "Historial de versions",
+  "versions.dialog.empty": "Encara no hi ha versions desades — se'n crearà una en editar.",
+  "versions.dialog.view": "Veure",
+  "versions.dialog.restore": "Restaurar aquesta versió",
+  "versions.dialog.confirm_restore": "Reemplaçar la plantilla actual amb aquesta versió? L'estat actual es desarà primer com una nova versió, així que podràs desfer.",
+  "versions.dialog.restored": "Restaurat. Recarregant…",
+  "versions.dialog.restore_failed": "Restauració fallida",
+  "versions.dialog.has_sidecar": "amb camps/ajustos",
+  "versions.dialog.no_sidecar": "sense sidecar"
 }

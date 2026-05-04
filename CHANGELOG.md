@@ -7,6 +7,33 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-05-04
+
+### Añadido
+
+- **Versionado de plantillas con restore.** Cada vez que guardas un
+  cambio en una plantilla (campos, ajustes de impresión o el ZPL en
+  bruto), la app **automáticamente snapshotea el estado anterior** a
+  `<perfil>/templates_zpl/.versions/<plantilla>/<timestamp>/` antes de
+  escribir nada.
+- Botón **"Versiones"** en la cabecera de la página _Editar plantilla_
+  (Settings → Plantillas → Editar). Abre un modal con la lista de
+  snapshots ordenados del más reciente al más antiguo, mostrando
+  fecha/hora UTC, tamaño, si tenía sidecar de campos asociado y el
+  motivo del snapshot (`edit`, `zpl_edit`, `restore`).
+- Botón **"Ver"** por versión → muestra el ZPL guardado en la propia
+  modal para que puedas confirmar antes de restaurar.
+- Botón **"Restaurar esta versión"** con confirmación. **Antes de
+  pisar el archivo actual, lo snapshotea** con motivo `restore`, así
+  que también puedes deshacer un restore si te equivocas.
+- Endpoints nuevos:
+  - `GET  /api/templates/<name>/versions`
+  - `GET  /api/templates/<name>/versions/<ts>`
+  - `POST /api/templates/<name>/versions/<ts>/restore`
+- Nuevo módulo `zebra/template_history.py` con la lógica de snapshot,
+  list, get y restore. La carpeta `.versions/` es oculta para que no
+  ensucie el explorador de plantillas.
+
 ## [0.9.0] - 2026-05-04
 
 ### Añadido
@@ -517,7 +544,8 @@ distribuye como `.exe` autónomo para Windows.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.5...v0.8.0
 [0.7.5]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.4...v0.7.5

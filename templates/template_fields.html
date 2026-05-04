@@ -9,6 +9,10 @@
     <a href="{{ url_for('config.templates_list') }}">{{ t('templates_list.title') }}</a>
     <svg class="icon"><use href="#i-chevron-right" /></svg>
     <strong>{{ template_name }}</strong>
+    <button type="button" class="btn-ghost" id="versionsButton" style="margin-left:auto;">
+        <svg class="icon"><use href="#i-history" /></svg>
+        {{ t('versions.button') }}
+    </button>
 </nav>
 
 <!-- ============================================================ -->
@@ -184,8 +188,49 @@
         <p class="test-result" id="fieldsResult" aria-live="polite"></p>
     </div>
 </div>
+
+<!-- ============================================================ -->
+<!-- Versions dialog                                              -->
+<!-- ============================================================ -->
+<dialog id="versionsDialog" class="net-dialog">
+    <header class="net-dialog__head">
+        <h2>{{ t('versions.dialog.title') }}: <code>{{ template_name }}</code></h2>
+        <button type="button" class="btn-ghost" id="versionsClose" aria-label="Close">×</button>
+    </header>
+    <div class="net-dialog__body">
+        <div id="versionsList" class="versions-list" data-empty="{{ t('versions.dialog.empty') }}">
+            <p class="muted">{{ t('common.loading') }}</p>
+        </div>
+
+        <!-- Detail panel populated when the user clicks "View" -->
+        <div id="versionsDetail" hidden>
+            <h3 id="versionsDetailTitle"></h3>
+            <pre class="net-firewall__manual" id="versionsDetailZpl"></pre>
+            <div class="button-row">
+                <button type="button" class="btn-ghost" id="versionsBack">{{ t('common.back') }}</button>
+                <button type="button" class="btn-danger" id="versionsRestore">
+                    {{ t('versions.dialog.restore') }}
+                </button>
+            </div>
+            <p class="test-result" id="versionsResult" aria-live="polite"></p>
+        </div>
+    </div>
+</dialog>
+
 {% endblock %}
 
 {% block scripts %}
+<script>
+  window.TEMPLATE_NAME = {{ template_name|tojson }};
+  window.VERSIONS_I18N = {
+    confirm_restore: {{ t('versions.dialog.confirm_restore')|tojson }},
+    restored:        {{ t('versions.dialog.restored')|tojson }},
+    restore_failed:  {{ t('versions.dialog.restore_failed')|tojson }},
+    view:            {{ t('versions.dialog.view')|tojson }},
+    has_sidecar:     {{ t('versions.dialog.has_sidecar')|tojson }},
+    no_sidecar:      {{ t('versions.dialog.no_sidecar')|tojson }},
+  };
+</script>
 <script src="{{ url_for('static', filename='fields-editor.js') }}"></script>
+<script src="{{ url_for('static', filename='versions.js') }}"></script>
 {% endblock %}

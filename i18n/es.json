@@ -328,5 +328,16 @@
   "tools.reset_printer.title": "Reiniciar Impresora",
   "tools.reset_printer.desc": "Reboot por software de la impresora. Pide confirmación. Los trabajos pendientes se pierden.",
   "tools.test_label.title": "Imprimir Etiqueta de Prueba",
-  "tools.test_label.desc": "Envía una etiqueta pequeña con \"Comandante Zebra OK\" usando las dimensiones persistentes de la impresora. Ideal como smoke test."
+  "tools.test_label.desc": "Envía una etiqueta pequeña con \"Comandante Zebra OK\" usando las dimensiones persistentes de la impresora. Ideal como smoke test.",
+
+  "versions.button": "Versiones",
+  "versions.dialog.title": "Historial de versiones",
+  "versions.dialog.empty": "Aún no hay versiones guardadas — se creará la primera al editar.",
+  "versions.dialog.view": "Ver",
+  "versions.dialog.restore": "Restaurar esta versión",
+  "versions.dialog.confirm_restore": "¿Reemplazar la plantilla actual con esta versión? El estado actual se guardará primero como una nueva versión, así que podrás deshacer.",
+  "versions.dialog.restored": "Restaurado. Recargando…",
+  "versions.dialog.restore_failed": "Restauración fallida",
+  "versions.dialog.has_sidecar": "con campos/ajustes",
+  "versions.dialog.no_sidecar": "sin sidecar"
 }

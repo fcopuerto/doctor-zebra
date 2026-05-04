@@ -144,6 +144,41 @@ def fields(name):
     )
 
 
+@bp.route('/api/templates/<path:name>/versions')
+def template_versions(name):
+    """List saved versions for a template, newest first."""
+    path = _template_path(name)
+    if path is None or not path.is_file():
+        return jsonify({'error': 'Invalid template'}), 404
+    from zebra import template_history
+    return jsonify({'versions': template_history.list_versions(path)})
+
+
+@bp.route('/api/templates/<path:name>/versions/<ts>')
+def template_version_get(name, ts):
+    """Return the contents of one version (for preview)."""
+    path = _template_path(name)
+    if path is None:
+        return jsonify({'error': 'Invalid template'}), 404
+    from zebra import template_history
+    data = template_history.get_version(path, ts)
+    if data is None:
+        return jsonify({'error': 'Unknown version'}), 404
+    return jsonify(data)
+
+
+@bp.route('/api/templates/<path:name>/versions/<ts>/restore', methods=['POST'])
+def template_version_restore(name, ts):
+    """Restore a saved version. The current file is snapshotted first."""
+    path = _template_path(name)
+    if path is None or not path.is_file():
+        return jsonify({'error': 'Invalid template'}), 404
+    from zebra import template_history
+    if not template_history.restore_version(path, ts):
+        return jsonify({'ok': False, 'error': 'Could not restore'}), 400
+    return jsonify({'ok': True, 'restored': ts})
+
+
 @bp.route('/templates/<path:name>/print_settings', methods=['POST'])
 def save_template_print_settings(name):
     """Persist per-template printer overrides (media type, speed, darkness)."""
@@ -177,6 +212,10 @@ def source(name):
         zpl_text = request.form.get('zpl', '')
         if not zpl_text.strip():
             return jsonify({'ok': False, 'error': 'ZPL cannot be empty'}), 400
+        # Snapshot the current file before overwriting so the user can
+        # restore from Settings → Templates → Edit → Versions.
+        from zebra import template_history
+        template_history.snapshot(path, reason='zpl_edit')
         path.write_text(zpl_text, encoding='utf-8')
         logging.info(f"Saved ZPL source for {path.name}")
         return jsonify({'ok': True, 'bytes': len(zpl_text)})

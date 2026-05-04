@@ -328,5 +328,16 @@
   "tools.reset_printer.title": "Reset Printer",
   "tools.reset_printer.desc": "Software reboot of the printer. Asks for confirmation. Pending jobs are lost.",
   "tools.test_label.title": "Print Test Label",
-  "tools.test_label.desc": "Sends a small \"Comandante Zebra OK\" label using the printer's persistent dimensions. Ideal as a smoke test."
+  "tools.test_label.desc": "Sends a small \"Comandante Zebra OK\" label using the printer's persistent dimensions. Ideal as a smoke test.",
+
+  "versions.button": "Versions",
+  "versions.dialog.title": "Version history",
+  "versions.dialog.empty": "No previous versions saved yet — the first edit will create one.",
+  "versions.dialog.view": "View",
+  "versions.dialog.restore": "Restore this version",
+  "versions.dialog.confirm_restore": "Replace the current template with this version? The current state will be saved as a new version first, so you can undo this.",
+  "versions.dialog.restored": "Restored. Reloading…",
+  "versions.dialog.restore_failed": "Restore failed",
+  "versions.dialog.has_sidecar": "with fields/settings",
+  "versions.dialog.no_sidecar": "no sidecar"
 }

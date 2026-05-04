@@ -165,7 +165,14 @@ def _read_sidecar_data(template_path: Path) -> dict:
 
 
 def _write_sidecar_data(template_path: Path, data: dict) -> None:
-    """Write the sidecar dict back as pretty JSON."""
+    """Write the sidecar dict back as pretty JSON.
+
+    Snapshots the current template + sidecar to .versions/ before writing
+    so the user can roll back any field/print-settings change.
+    """
+    # Late import: template_history would otherwise circular-import via zebra.
+    from zebra import template_history
+    template_history.snapshot(template_path, reason='edit')
     sidecar_path(template_path).write_text(
         json.dumps(data, indent=2, ensure_ascii=False) + '\n',
         encoding='utf-8',
