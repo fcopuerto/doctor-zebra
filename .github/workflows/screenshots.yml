@@ -1,0 +1,96 @@
+name: Screenshots
+
+on:
+  # Manual trigger from the Actions tab
+  workflow_dispatch:
+
+  # Auto-run when UI files change on main
+  push:
+    branches: [main]
+    paths:
+      - "templates/**"
+      - "static/**"
+      - "zebra/routes/**"
+      - "scripts/take_screenshots.py"
+      - ".github/workflows/screenshots.yml"
+
+permissions:
+  contents: write   # needed to commit screenshots back to the repo
+
+jobs:
+  screenshots:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install app dependencies
+        # Pure-python MSSQL driver — no system ODBC needed on the runner.
+        # If your screenshot flows don't touch the DB at all you can drop --extra mssql-pure.
+        run: uv sync --extra mssql-pure
+
+      - name: Install Playwright (Chromium only)
+        run: |
+          uv pip install playwright
+          uv run playwright install --with-deps chromium
+
+      - name: Start Flask app in background
+        env:
+          FLASK_DEBUG: "0"
+          # Point the app at a throwaway profile dir so the runner doesn't
+          # touch ~/.comandante_zebra and we always start from a clean state.
+          HOME: ${{ runner.temp }}
+        run: |
+          nohup uv run python app.py > flask.log 2>&1 &
+          echo "FLASK_PID=$!" >> "$GITHUB_ENV"
+
+      - name: Wait for app to be ready
+        run: |
+          for i in {1..30}; do
+            if curl -sf http://127.0.0.1:5000/ > /dev/null; then
+              echo "App is up"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "App did not start in time. Flask log:"
+          cat flask.log
+          exit 1
+
+      - name: Take screenshots
+        run: uv run python scripts/take_screenshots.py
+
+      - name: Stop Flask app
+        if: always()
+        run: kill $FLASK_PID || true
+
+      - name: Upload screenshots as artifact (always, even on PRs)
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: docs/screenshots/*.png
+          if-no-files-found: error
+
+      - name: Commit screenshots back to main
+        # Only auto-commit on pushes to main, not on workflow_dispatch from
+        # other branches and not on PRs.
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/screenshots
+          if git diff --cached --quiet; then
+            echo "No screenshot changes."
+            exit 0
+          fi
+          git commit -m "docs: refresh screenshots [skip ci]"
+          git push
