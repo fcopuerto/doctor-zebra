@@ -46,12 +46,15 @@ jobs:
       - name: Start Flask app in background
         env:
           FLASK_DEBUG: "0"
-          # Point the app at a throwaway profile dir so the runner doesn't
-          # touch ~/.comandante_zebra and we always start from a clean state.
           HOME: ${{ runner.temp }}
+          ZEBRA_DEV_ROUTES: "1"
         run: |
+          export ZEBRA_DEV_ROUTES=1
+          export FLASK_DEBUG=0
+          echo "Starting Flask with ZEBRA_DEV_ROUTES=$ZEBRA_DEV_ROUTES"
           nohup uv run python app.py > flask.log 2>&1 &
           echo "FLASK_PID=$!" >> "$GITHUB_ENV"
+
 
       - name: Wait for app to be ready
         run: |
