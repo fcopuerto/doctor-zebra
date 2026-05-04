@@ -60,14 +60,24 @@ jobs:
         run: |
           for i in {1..30}; do
             if curl -sf http://127.0.0.1:5000/ > /dev/null; then
-              echo "App is up"
-              exit 0
+              echo "App is up after ${i}s"
+              break
             fi
             sleep 1
           done
-          echo "App did not start in time. Flask log:"
-          cat flask.log
-          exit 1
+
+          echo "--- Checking /_routes endpoint ---"
+          if curl -sf http://127.0.0.1:5000/_routes > /tmp/routes.json; then
+            echo "✓ /_routes responded"
+            cat /tmp/routes.json | head -c 500
+            echo
+          else
+            echo "✗ /_routes returned an error"
+            echo "--- Flask log ---"
+            cat flask.log
+            exit 1
+          fi
+
 
       - name: Take screenshots
         run: uv run python scripts/take_screenshots.py
