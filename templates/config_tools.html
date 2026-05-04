@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}{{ t('tools.title') }} · {{ t('settings.title') }}{% endblock %}
+{% block topbar_title %}{{ t('tools.title') }}{% endblock %}
+
+{% block content %}
+{% include "_settings_tabs.html" %}
+
+<div class="card">
+    <div class="card__header">
+        <div>
+            <h1 class="card__title" style="font-size:18px;">{{ t('tools.title') }}</h1>
+            <p class="card__subtitle">{{ t('tools.subtitle') }}</p>
+        </div>
+        <div class="card__status">
+            <span class="muted">{{ t('tools.target') }}:</span>
+            {% if default_target %}
+            <code>{{ default_target }}</code>
+            {% else %}
+            <span class="muted">{{ t('tools.no_target') }}</span>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if not default_target %}
+    <p class="muted dashboard__empty">{{ t('tools.no_target_hint') }}</p>
+    {% else %}
+    {% for group_id in groups %}
+    {% set tools_in_group = tools_by_group.get(group_id) %}
+    {% if tools_in_group %}
+    <section class="tools-group">
+        <h2 class="tools-group__title">{{ t('tools.group.' + group_id) }}</h2>
+        <p class="tools-group__desc muted">{{ t('tools.group.' + group_id + '.desc') }}</p>
+        <div class="tools-grid">
+            {% for tool in tools_in_group %}
+            <button type="button"
+                    class="tool-card"
+                    data-tool="{{ tool.id }}"
+                    {% if tool.confirm %}data-confirm="1"{% endif %}>
+                <span class="tool-card__icon">
+                    <svg class="icon"><use href="#{{ tool.icon or 'i-printer' }}" /></svg>
+                </span>
+                <span class="tool-card__body">
+                    <span class="tool-card__title">{{ t('tools.' + tool.id + '.title') }}</span>
+                    <span class="tool-card__desc">{{ t('tools.' + tool.id + '.desc') }}</span>
+                    <code class="tool-card__zpl">{{ tool.zpl.split('\n')[0] }}</code>
+                </span>
+            </button>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    {% endfor %}
+    {% endif %}
+
+    <p class="test-result" id="toolResult" aria-live="polite"></p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Pre-translated confirmation messages used by tools.js (so we don't
+  // need a client-side i18n catalog).
+  window.TOOLS_I18N = {
+    confirm: {{ t('tools.confirm.generic')|tojson }},
+    sending: {{ t('tools.sending')|tojson }},
+    error:   {{ t('tools.error')|tojson }},
+  };
+</script>
+<script src="{{ url_for('static', filename='tools.js') }}"></script>
+{% endblock %}

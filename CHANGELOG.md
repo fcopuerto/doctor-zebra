@@ -7,6 +7,30 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-05-04
+
+### Añadido
+
+- **Pestaña Herramientas** en Configuración. Botones de un solo clic
+  que disparan comandos ZPL administrativos contra la impresora por
+  defecto, agrupados por categoría:
+
+  | Grupo | Tools |
+  |---|---|
+  | Diagnóstico | Print Configuration Label (`~WC`), Print Sensor Profile (`~JG`), Print Network Config (`~WL`) |
+  | Calibración | Calibrar Sensor de Papel (`~JC` + `^JUS`), Detectar Longitud de Etiqueta (`~JL`) |
+  | Mantenimiento | Form Feed (`^XA^XZ`), Guardar Ajustes en Flash (`^JUS`), Reiniciar Impresora (`~JR`, con confirmación) |
+  | Test | Imprimir Etiqueta de Prueba |
+
+  Cada tarjeta enseña el comando ZPL real para que se vea qué se está
+  enviando.
+- Endpoint nuevo `POST /api/tools/run` con body `{ tool_id, target? }`.
+  Si `target` no se especifica usa la impresora por defecto del perfil.
+- Nuevo módulo `zebra/printer_tools.py` con el catálogo de tools (id,
+  grupo, ZPL, icono, flag de confirmación). Sumar tools nuevas es
+  añadir una entrada al diccionario.
+- Icono `i-wrench` en el sprite SVG para la nueva pestaña.
+
 ## [0.8.0] - 2026-05-04
 
 ### Añadido
@@ -493,7 +517,8 @@ distribuye como `.exe` autónomo para Windows.
   Las instalaciones previas que usaban `~/.zebra_labels/` se renombran
   automáticamente en el primer arranque sin perder datos.
 
-[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/fcopuerto/comandante_zebra/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.5...v0.8.0
 [0.7.5]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.4...v0.7.5
 [0.7.4]: https://github.com/fcopuerto/comandante_zebra/compare/v0.7.3...v0.7.4

@@ -2696,3 +2696,82 @@ tbody tr:hover {
     white-space: pre-wrap;
     overflow-x: auto;
 }
+
+/* ========================================================================
+   Settings → Tools (one-shot ZPL utilities)
+   ======================================================================== */
+.tools-group {
+    margin: var(--s-5) 0;
+}
+.tools-group__title {
+    margin: 0 0 4px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+}
+.tools-group__desc {
+    margin: 0 0 var(--s-3);
+    font-size: 12px;
+}
+.tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--s-3);
+}
+.tool-card {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--s-3);
+    padding: var(--s-4);
+    text-align: left;
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: var(--r-md);
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+    transition: border-color 0.12s, box-shadow 0.12s, transform 0.12s;
+}
+.tool-card:hover:not(:disabled) {
+    border-color: var(--primary, #0000aa);
+    box-shadow: var(--sh-sm, 0 1px 2px rgba(0, 0, 0, 0.04));
+    transform: translateY(-1px);
+}
+.tool-card:disabled { opacity: 0.55; cursor: progress; }
+
+.tool-card__icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    background: var(--primary-soft, rgba(0, 0, 170, 0.08));
+    color: var(--primary, #0000aa);
+    border-radius: var(--r-md);
+}
+.tool-card__icon .icon { width: 18px; height: 18px; }
+.tool-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+.tool-card__title {
+    font-weight: 600;
+    font-size: 14px;
+}
+.tool-card__desc {
+    font-size: 12px;
+    color: var(--text-subtle);
+    line-height: 1.4;
+}
+.tool-card__zpl {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    color: var(--text-subtle);
+    background: var(--surface-2, rgba(0, 0, 0, 0.04));
+    padding: 2px 6px;
+    border-radius: 4px;
+    width: fit-content;
+    margin-top: 2px;
+}

@@ -11,7 +11,7 @@ from pathlib import Path
 
 from zebra import (
     cache_scheduler, datasources, fields as fields_mod, lookup_cache,
-    printer, profiles, zpl,
+    printer, printer_tools, profiles, zpl,
 )
 from zebra.datasources.base import ConnectionConfig, DataSourceError
 
@@ -509,6 +509,51 @@ def profiles_delete():
     except (ValueError, FileNotFoundError) as e:
         return jsonify({'ok': False, 'message': str(e)}), 400
     return jsonify({'ok': True, 'message': f'Profile "{name}" deleted'})
+
+
+# ---------------------------------------------------------------------------
+# Settings → Tools (one-shot ZPL utilities)
+# ---------------------------------------------------------------------------
+
+@bp.route('/config/tools')
+def tools_page():
+    """Render the Tools tab with all printer utilities grouped."""
+    settings = _settings()
+    settings.reload()
+    return render_template(
+        'config_tools.html',
+        groups=printer_tools.GROUP_ORDER,
+        tools_by_group=printer_tools.grouped(),
+        default_target=settings.default_printer,
+    )
+
+
+@bp.route('/api/tools/run', methods=['POST'])
+def tools_run():
+    """Send a tool's ZPL to the chosen printer (or the default).
+
+    Body: { "tool_id": "config_label", "target": "win://Foo" (optional) }
+    """
+    body = request.get_json(silent=True) or request.form.to_dict()
+    tool = printer_tools.by_id((body.get('tool_id') or '').strip())
+    if not tool:
+        return jsonify({'ok': False, 'message': 'unknown tool'}), 400
+
+    target = (body.get('target') or '').strip() or _settings().default_printer
+    if not target:
+        return jsonify({
+            'ok': False,
+            'message': 'No printer configured. Set one in Settings → Printers first.',
+        }), 400
+
+    try:
+        printer.send_to_printer(target, tool['zpl'], copies=1)
+    except printer.PrinterError as e:
+        logging.warning(f'Tool {tool["id"]!r} failed on {target}: {e}')
+        return jsonify({'ok': False, 'message': str(e)}), 500
+
+    logging.info(f'Tool {tool["id"]!r} sent to {target}')
+    return jsonify({'ok': True, 'message': f'Sent {tool["id"]} to {target}'})
 
 
 @bp.route('/setup', methods=['GET', 'POST'])

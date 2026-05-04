@@ -1,0 +1,7 @@
+{
+  "latest_seen": "0.7.5",
+  "latest_url": "https://github.com/fcopuerto/comandante_zebra/releases/tag/v0.7.5",
+  "latest_notes": "\n---\n**Integridad**\n- Firma: \u26a0\ufe0f No firmado \u2014 Windows SmartScreen mostrar\u00e1 un aviso la primera vez\n- SHA-256: ver `ComandanteZebra.exe.sha256`\n- VirusTotal: dist/ComandanteZebra.exe=https://www.virustotal.com/gui/file-analysis/ZTViOWRhN2RkOGI3MWRhNDkzMDA0YjIxYTliNTgyMGE6MTc3NzgyMjgwMw==/detection\n",
+  "latest_published": "2026-05-03T15:40:11Z",
+  "last_check_utc": "2026-05-04T07:21:15Z"
+}
