@@ -58,6 +58,20 @@ def _render_form(template_file: str = '', values: dict | None = None,
     defaults = fields_mod.specs_to_defaults(specs)
     merged = {**defaults, **(values or {})}
 
+    # Lookup fields are meant to be searched, not pre-filled from history:
+    # showing an old SKU paired with description/barcode that the user
+    # didn't reconfirm leads to mis-prints. Reset both the lookup field
+    # itself and every field it would autofill, so the user has to pick
+    # a row (or override manually after picking).
+    if values:
+        reset_keys: set[str] = set()
+        for s in specs:
+            if s.type == 'lookup':
+                reset_keys.add(s.key)
+                reset_keys.update((s.autofill or {}).keys())
+        for key in reset_keys:
+            merged[key] = defaults.get(key, '')
+
     return render_template(
         'form.html',
         templates=templates,
@@ -90,14 +104,20 @@ def load_label(label_id):
 
 @bp.route('/api/lookup/<path:template_file>/<field_key>')
 def api_lookup(template_file, field_key):
-    """Search a lookup field against the local cache.
+    """Search a lookup field, cache-first with a live DB fallback.
 
-    The cache is populated by ``POST /api/connections/<name>/sync_table``;
-    this endpoint never hits SQL Server live, so the print form keeps
-    working when the database is unreachable.
+    Behaviour:
+      1. Search the local SQLite cache (offline-first, instant).
+      2. If the cache returns 0 rows AND we have a working connection
+         config, fall through to a live ``DataSource.search()`` call so
+         users find recently-added records without waiting for the next
+         scheduled sync.
+      3. If the live attempt fails the failure is recorded so the offline
+         badge appears in the UI; the cache results (empty in this case)
+         are returned.
 
-    Returns ``{rows, value_column, autofill, display_columns, cache: {...}}``
-    where ``cache`` describes the freshness of the local data.
+    Returns ``{rows, value_column, autofill, display_columns, cache,
+    live?}`` — ``live`` is set when results came straight from the DB.
     """
     path = _resolve(template_file)
     if path is None:
@@ -108,10 +128,21 @@ def api_lookup(template_file, field_key):
         return jsonify({'error': 'Not a lookup field'}), 404
 
     meta = lookup_cache.get_meta(_db_path(), spec.source, spec.table)
-    cache_info = {
-        'last_sync': meta['last_sync'] if meta else None,
-        'row_count': meta['row_count'] if meta else 0,
-    }
+
+    def _build_cache_info():
+        """Snapshot of cache + connection state (re-read after each attempt)."""
+        ps = cache_scheduler.get_pair_status(spec.source, spec.table)
+        return {
+            'last_sync': meta['last_sync'] if meta else None,
+            'row_count': meta['row_count'] if meta else 0,
+            # connection_status:
+            #   'live'    → most recent attempt succeeded
+            #   'offline' → most recent attempt failed
+            #   'unknown' → no sync attempt has finished yet
+            'connection_status': _classify_connection(ps),
+            'last_failure': ps['last_failure'],
+            'syncing_now': ps['in_progress'],
+        }
 
     q = (request.args.get('q') or '').strip()
     if not q:
@@ -120,34 +151,7 @@ def api_lookup(template_file, field_key):
             'value_column': spec.value_column,
             'autofill': spec.autofill,
             'display_columns': spec.display_columns or spec.search_columns,
-            'cache': cache_info,
-        })
-
-    if not meta:
-        # Auto-sync should normally have populated this on startup.
-        # If we still have no meta, kick a one-shot background sync and
-        # tell the user to retry in a moment.
-        status = cache_scheduler.get_status()
-        already_running = [spec.source, spec.table] in status.get('in_progress', [])
-        if not already_running:
-            import threading
-            threading.Thread(
-                target=cache_scheduler.sync_one,
-                args=(current_app._get_current_object(), spec.source, spec.table),
-                daemon=True,
-            ).start()
-        return jsonify({
-            'rows': [],
-            'value_column': spec.value_column,
-            'autofill': spec.autofill,
-            'display_columns': spec.display_columns or spec.search_columns,
-            'cache': cache_info,
-            'warning': (
-                'Cache is being prepared in the background — retry in a few seconds.'
-                if already_running else
-                'Cache is being prepared now. Retry in a few seconds.'
-            ),
-            'syncing': True,
+            'cache': _build_cache_info(),
         })
 
     return_cols = list(dict.fromkeys(
@@ -156,25 +160,143 @@ def api_lookup(template_file, field_key):
         + list(spec.autofill.values())
     )) or list(spec.search_columns)
 
-    rows = lookup_cache.search(
-        _db_path(), spec.source, spec.table,
-        spec.search_columns, q,
-        return_columns=return_cols, limit=25,
-    )
+    # 1) Cache first — instant, works offline.
+    rows = []
+    if meta:
+        rows = lookup_cache.search(
+            _db_path(), spec.source, spec.table,
+            spec.search_columns, q,
+            return_columns=return_cols, limit=25,
+        )
+
+    # 2) Live fallback — runs when cache is empty (never synced) or when
+    # the user's query didn't match anything cached. Catches the "added
+    # an item after the last sync" case the user reported.
+    live = False
+    if not rows:
+        live_rows = _try_live_search(spec, q, return_cols)
+        if live_rows is not None:
+            rows = live_rows
+            live = True
+
+    # 3) No rows + no live response: surface the right empty-state.
+    if not rows and not live:
+        pair_status = cache_scheduler.get_pair_status(spec.source, spec.table)
+        if not meta:
+            # Cache empty AND live unreachable: user can keep typing manually.
+            if pair_status['last_failure'] and not pair_status['in_progress']:
+                return jsonify({
+                    'rows': [],
+                    'value_column': spec.value_column,
+                    'autofill': spec.autofill,
+                    'display_columns': spec.display_columns or spec.search_columns,
+                    'cache': _build_cache_info(),
+                    'no_cache': True,
+                })
+            # Initial sync still pending: tell the UI to retry shortly.
+            if not pair_status['in_progress']:
+                import threading
+                threading.Thread(
+                    target=cache_scheduler.sync_one,
+                    args=(current_app._get_current_object(), spec.source, spec.table),
+                    daemon=True,
+                ).start()
+            return jsonify({
+                'rows': [],
+                'value_column': spec.value_column,
+                'autofill': spec.autofill,
+                'display_columns': spec.display_columns or spec.search_columns,
+                'cache': _build_cache_info(),
+                'syncing': True,
+            })
+
     safe_rows = [{k: _safe(v) for k, v in row.items()} for row in rows]
-    return jsonify({
+    response = {
         'rows': safe_rows,
         'display_columns': spec.display_columns or spec.search_columns,
         'value_column': spec.value_column,
         'autofill': spec.autofill,
-        'cache': cache_info,
-    })
+        'cache': _build_cache_info(),
+    }
+    if live:
+        response['live'] = True
+    return jsonify(response)
+
+
+def _try_live_search(spec, query: str, return_cols: list) -> list | None:
+    """Run a one-off live search against the data source.
+
+    Returns the row list on success (possibly empty), or ``None`` if the
+    backend isn't configured or the query failed. Failures are recorded
+    in the cache scheduler so the UI can show the offline state.
+    """
+    settings = _settings()
+    cfg = datasources.get_connection(settings, spec.source)
+    if cfg is None:
+        return None
+    pair_key = (spec.source, spec.table)
+    try:
+        password = settings.get_connection_password(spec.source)
+        ds = datasources.build_datasource(cfg, password=password)
+        rows = ds.search(
+            spec.table, spec.search_columns, query,
+            return_columns=return_cols, limit=25,
+        )
+        cache_scheduler.record_outcome(pair_key, ok=True)
+        return rows
+    except DataSourceError as e:
+        logging.info(f'Live lookup {spec.source}/{spec.table} failed: {e}')
+        cache_scheduler.record_outcome(pair_key, ok=False, error=str(e))
+        return None
+    except Exception as e:  # defensive — never block a search on an obscure error
+        logging.exception(f'Live lookup {spec.source}/{spec.table} crashed')
+        cache_scheduler.record_outcome(
+            pair_key, ok=False, error=str(e) or e.__class__.__name__,
+        )
+        return None
 
 
 def _safe(v):
     if v is None or isinstance(v, (str, int, float, bool)):
         return v
     return str(v)
+
+
+def _values_for_preview(specs, form) -> dict[str, str]:
+    """Like ``sanitize_values`` but never produces an empty value.
+
+    Used only for the preview path: when a field is empty in the form we
+    fall back to its ``default``, and if that's empty too we render the
+    placeholder token (``{key}``) literally so the user can see *where*
+    each field will land on the label even before filling it in.
+    """
+    out: dict[str, str] = {}
+    for s in specs:
+        v = str(form.get(s.key) or '').strip()
+        if not v:
+            v = (s.default or '').strip()
+        if not v:
+            v = '{' + s.key + '}'
+        out[s.key] = v
+    return out
+
+
+def _classify_connection(pair_status: dict) -> str:
+    """Convert per-pair sync history into a single connection-state label.
+
+    A failure that came after the last success means we lost connectivity;
+    the opposite ordering means we recovered. With no history we can't say
+    so we report 'unknown' and let the UI decide whether to bother the user.
+    """
+    success = pair_status.get('last_success') or {}
+    failure = pair_status.get('last_failure') or {}
+    s_at = success.get('at')
+    f_at = failure.get('at')
+    if not s_at and not f_at:
+        return 'unknown'
+    if f_at and (not s_at or f_at > s_at):
+        return 'offline'
+    return 'live'
 
 
 @bp.route('/api/fields/<path:template_file>')
@@ -261,7 +383,7 @@ def preview_label():
         return jsonify({'error': 'Invalid template'}), 400
 
     specs = fields_mod.load_fields(path)
-    values = fields_mod.sanitize_values(specs, request.form)
+    values = _values_for_preview(specs, request.form)
 
     png = preview.zpl_to_png(zpl.render(path, values))
     if not png:

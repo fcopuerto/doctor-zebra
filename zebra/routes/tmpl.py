@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import logging
 import re
+import shutil
 from pathlib import Path
 
 from flask import (
@@ -32,7 +33,7 @@ from zebra import zpl_parser
 
 bp = Blueprint('tmpl', __name__)
 
-_NAME_RE = re.compile(r'^[a-zA-Z0-9][a-zA-Z0-9_\- ]{0,60}$')
+_NAME_RE = re.compile(r'^[A-Za-z0-9À-ɏ][A-Za-z0-9À-ɏ_\- ]{0,60}$')
 
 
 def _settings():
@@ -85,6 +86,11 @@ def new():
 
     # POST: first pass — parse the uploaded/pasted ZPL → show mapping
     source = (request.form.get('source') or 'paste').strip()
+    if source == 'duplicate':
+        return _duplicate_template(
+            src_name=(request.form.get('duplicate_source') or '').strip(),
+            new_name=(request.form.get('template_name') or '').strip(),
+        )
     if source == 'upload':
         file = request.files.get('file')
         if not file:
@@ -392,6 +398,35 @@ def _existing_keys(template_name: str) -> list[str]:
         return []
     specs = fields_mod.load_fields(path)
     return [s.key for s in specs]
+
+
+def _duplicate_template(src_name: str, new_name: str):
+    """Copy an existing template (.zpl + sidecar JSON) under a new name.
+
+    Skips the mapping editor: the source's field map and print settings carry
+    over verbatim, so the user lands on the fields page ready to tweak.
+    """
+    src = _template_path(src_name)
+    dst = _template_path(new_name)
+    if src is None or not src.is_file():
+        flash('Source template not found.', 'error')
+        return redirect(url_for('tmpl.new'))
+    if dst is None:
+        flash('Invalid template name.', 'error')
+        return redirect(url_for('tmpl.new'))
+    if dst.is_file():
+        flash(f'"{dst.name}" already exists — pick a different name.', 'error')
+        return redirect(url_for('tmpl.new'))
+
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(src, dst)
+    src_sidecar = fields_mod.sidecar_path(src)
+    if src_sidecar.is_file():
+        shutil.copy2(src_sidecar, fields_mod.sidecar_path(dst))
+
+    logging.info(f"Duplicated template {src.name} → {dst.name}")
+    flash(f'Duplicated {src.name} as {dst.name}', 'success')
+    return redirect(url_for('tmpl.fields', name=dst.stem))
 
 
 def _map_error(message: str, name: str, zpl_text: str):

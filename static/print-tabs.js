@@ -309,7 +309,19 @@
             }
         });
         document.addEventListener('change', (e) => {
-            if (e.target && (e.target.id === 'template_file' || e.target.id === 'copies')) {
+            if (!e.target) return;
+            if (e.target.id === 'template_file') {
+                // The tab label is derived from .template, so update it
+                // synchronously on a template switch — otherwise users see
+                // a tab named "X" while the form actually shows "Y".
+                const all = loadState();
+                const cur = all.find((t) => t.id === loadActive());
+                if (cur) {
+                    cur.template = e.target.value || cur.template;
+                    saveState(all);
+                    renderBar();
+                }
+            } else if (e.target.id === 'copies') {
                 persistDebounced();
             }
         });

@@ -40,6 +40,10 @@ _state: dict = {
     'last_run': None,
     'last_summary': None,
     'in_progress': set(),
+    # Per-pair history: {(conn, table): {at, error}} — kept separate so a
+    # successful sync clears the failure record and vice-versa.
+    'last_success': {},
+    'last_failure': {},
 }
 
 
@@ -50,6 +54,21 @@ def get_status() -> dict:
             'last_run': _state['last_run'],
             'last_summary': _state['last_summary'],
             'in_progress': sorted(list(_state['in_progress'])),
+        }
+
+
+def get_pair_status(connection: str, table: str) -> dict:
+    """Last sync outcome for one (connection, table).
+
+    Returns ``{last_success, last_failure, in_progress}`` where the success
+    and failure entries are ``{at, error?}`` dicts (or None).
+    """
+    key = (connection, table)
+    with _state_lock:
+        return {
+            'last_success': _state['last_success'].get(key),
+            'last_failure': _state['last_failure'].get(key),
+            'in_progress': key in _state['in_progress'],
         }
 
 
@@ -87,16 +106,30 @@ def sync_one(app, connection_name: str, table: str) -> bool:
         logging.info(
             f'Auto-sync {connection_name}/{table}: {result["row_count"]} rows'
         )
+        record_outcome(key, ok=True)
         return True
     except DataSourceError as e:
         logging.warning(f'Auto-sync {connection_name}/{table} failed: {e}')
+        record_outcome(key, ok=False, error=str(e))
         return False
     except Exception as e:  # defensive — never let a bad row crash the loop
         logging.exception(f'Auto-sync {connection_name}/{table} crashed: {e}')
+        record_outcome(key, ok=False, error=str(e) or e.__class__.__name__)
         return False
     finally:
         with _state_lock:
             _state['in_progress'].discard(key)
+
+
+def record_outcome(key: tuple, ok: bool, error: str = '') -> None:
+    """Persist the sync result for a pair so the UI can render its state."""
+    now = datetime.now(timezone.utc).isoformat(timespec='seconds')
+    with _state_lock:
+        if ok:
+            _state['last_success'][key] = {'at': now}
+            _state['last_failure'].pop(key, None)
+        else:
+            _state['last_failure'][key] = {'at': now, 'error': error}
 
 
 def sync_all(app) -> dict:

@@ -34,3 +34,7 @@ update.json
 
 # Printer captures / samples (will be curated and added back later)
 *.prn
+
+# Runtime-generated preview images (rewritten by /api/preview on each call)
+static/preview.png
+static/preview_raw.png

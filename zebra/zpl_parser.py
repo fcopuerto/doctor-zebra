@@ -157,8 +157,11 @@ def blocks_to_sidecar_fields(
 ) -> list[dict]:
     """Build a sidecar ``fields`` list from the user's selection.
 
-    The original literal becomes both the default and placeholder so the
-    form is pre-populated with something sensible on first render.
+    The original literal becomes the placeholder so the form has a hint
+    of what should go there. ``default`` stays empty so the field is
+    blank on first render and the user has to type/pick a value — except
+    when the source ZPL already had a ``{placeholder}`` token, which is
+    not a sensible default to show in the form.
     """
     out: list[dict] = []
     seen: set[str] = set()
@@ -167,11 +170,12 @@ def blocks_to_sidecar_fields(
         if not key or key in seen:
             continue
         seen.add(key)
+        placeholder = '' if already_parameterised(block) else block.data
         field = {
             'key': key,
             'label': _humanise(key),
-            'default': block.data,
-            'placeholder': block.data,
+            'default': '',
+            'placeholder': placeholder,
             'required': False,
             'multiline': '\n' in block.data,
         }

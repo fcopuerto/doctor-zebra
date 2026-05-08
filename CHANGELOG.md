@@ -7,6 +7,108 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-05-09
+
+### Añadido
+
+- **Live fallback en lookups** — cuando el caché local no encuentra
+  resultados para tu búsqueda, se consulta automáticamente la BD en
+  vivo (`DataSource.search`). Si responde, las filas aparecen marcadas
+  con un chip azul "Resultados en vivo desde la BD"; si falla, se
+  registra el fallo (badge offline) y se devuelve vacío. Cubre el caso
+  típico de "acabo de añadir un artículo y no aparece" sin esperar al
+  sync periódico.
+- **Estado de conexión por par `(connection, table)`** en
+  `cache_scheduler`. Cada intento (auto, manual o live) graba
+  `last_success`/`last_failure` con timestamp y mensaje de error. La
+  API `/api/lookup` lo expone en `cache.connection_status`
+  (`live` / `offline` / `unknown`).
+- **Badge offline bajo el campo lookup** cuando el último intento de
+  sync falló: chip ámbar con texto "BD no accesible · usando cache de
+  hace X" o "sin caché — escribe el valor manualmente". Tooltip con
+  el error real.
+- **Mensaje "no_cache"** cuando el caché está vacío y la BD no
+  responde: en lugar del bucle "Cache is being prepared, retrying…"
+  ahora se ve "No hay caché disponible y la BD no responde. Puedes
+  escribir el valor directamente y seguir imprimiendo." El formulario
+  ya admitía valores escritos a mano; ahora se le dice al usuario.
+- **Auto-preview en el formulario de impresión** — el PNG se actualiza
+  solo en cuanto cambias un valor (debounced 600 ms, dedup por
+  contenido). En la primera carga ya se ve el layout con los valores
+  por defecto, o el literal `{nombre_del_campo}` si no hay default,
+  para que se vea dónde irá cada cosa antes incluso de teclear.
+- **Botón "Descargar PNG"** debajo del preview: descarga el render
+  actual como `<plantilla>_<timestamp>.png`, listo para mandar por
+  WhatsApp/email antes de imprimir.
+- **Duplicar plantilla** en _Nueva plantilla_ — cuarta opción además de
+  upload/paste/skeleton: eliges una plantilla existente del dropdown,
+  pones un nombre nuevo, y se copia el `.zpl` + el sidecar JSON
+  íntegros. Aterrizas directamente en el editor de campos.
+- **Plantilla `WIFI_QR.zpl`** (50×50 mm) — etiqueta para imprimir un
+  QR que conecta automáticamente a una red WiFi. Campos:
+  `title`, `ssid`, `password`, `security` (default `WPA`). Payload
+  estándar `WIFI:S:…;T:…;P:…;H:false;;`. La contraseña va dentro del
+  QR pero no se imprime visible.
+
+### Cambiado
+
+- **Labelary recibe el tamaño real del label** en la URL en vez del
+  fijo `4x4` pulgadas. `preview.py` parsea `^PW`/`^LL` con
+  `zpl.label_dimensions_mm()` y construye `…/labels/{w}x{h}/0/`. Los
+  PNGs ya no traen el hueco blanco de relleno; las proporciones
+  coinciden con la etiqueta física.
+- **Campos lookup arrancan vacíos** al cargar `/print`. El `_render_form`
+  resetea el campo lookup y todos sus targets de autofill, en lugar de
+  heredarlos de la última impresión. La idea: forzar al usuario a
+  buscar (o teclear) en lugar de imprimir un SKU viejo por descuido.
+- **Plantillas nuevas se generan con `default=""`** en el sidecar
+  (antes `default="{nombre_del_key}"`, que parecía un valor real y
+  hacía que "borrar el default" no surtiera efecto visible). El
+  literal del campo se usa ahora sólo como `placeholder`.
+- **Pattern del nombre de plantilla acepta acentos y `ñ`** (Latin
+  Extended-A). Antes "Pequeña" o "café" disparaban el "Match the
+  requested format" del navegador. Backend y HTML5 actualizados a la
+  vez con el mismo rango de caracteres.
+
+### Arreglado
+
+- **Enter en un lookup ya no borra tu texto.** Dos bugs encadenados:
+  - `pick()` ponía `input.value = ''` cuando el campo no tenía
+    `value_column` configurado (caso típico cuando los resultados se
+    reparten en otros campos vía `autofill`). Ahora hay tres niveles
+    de fallback: `value_column` → `autofill[fieldKey]` → primera
+    columna de display.
+  - `render()` auto-seleccionaba la primera fila al pintar resultados,
+    así que pulsar Enter picaba esa fila silenciosamente. Quitado: el
+    usuario opta in con flechas o clic; si no, Enter cae al submit
+    normal del formulario y el texto se conserva.
+- **Título de la pestaña sigue a la plantilla activa.** Al cambiar
+  el dropdown la barra de pestañas se redibuja en el acto. Antes el
+  label se quedaba con el nombre antiguo aunque la plantilla
+  seleccionada fuera otra (el bug de "ETIQUETA_MEDIANA mostrando
+  PEQUEÑA" en la captura).
+
+### Limpieza del repo
+
+- Eliminados ficheros huérfanos no referenciados desde el código:
+  `label.zpl`, `zpl_mode.zpl` (samples del primer commit),
+  `templates/nav.html` (sustituido por nav inline en `base.html`).
+- Eliminados `static/preview.png` y `static/preview_raw.png` del
+  control de versiones; eran artefactos generados en cada llamada
+  a `/api/preview*`. Añadidos al `.gitignore`.
+- Pequeño refactor en `cache_scheduler`: `_record_outcome` ahora es
+  público (`record_outcome`) porque el live fallback de `labels.py` lo
+  usa para grabar fallos.
+
+### Plantilla `ETIQUETA_PEQUEÑA` (50×20 mm)
+
+- Reescrita para 50×20 mm reales (`^PW400 ^LL160`) con detección de
+  gap (`^MNY`) y `^CI28` (UTF-8 para descripciones con `ñ`/acentos).
+- Marco fino alrededor del label (`^FO0,0^GB400,160,2^FS`).
+- Código de barras EAN-13 con módulo `^BY2`: dígitos legibles más
+  pequeños (los firmware Zebra dimensionan la línea humana según el
+  módulo, no según `^CF`).
+
 ## [0.13.1] - 2026-05-05
 
 ### Añadido

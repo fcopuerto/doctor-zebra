@@ -993,6 +993,15 @@ tbody tr:hover {
     text-align: left;
 }
 
+.lookup-empty--live {
+    background: var(--primary-soft);
+    color: var(--primary);
+    text-align: left;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--border);
+}
+
 .lookup-empty--warn a {
     display: inline-block;
     margin-top: 4px;
@@ -1040,6 +1049,34 @@ tbody tr:hover {
 /* Lookup input on the print form: search icon + dropdown wrapper */
 .lookup-input {
     position: relative;
+}
+
+.lookup-status {
+    margin-top: 4px;
+    padding: 4px 8px;
+    background: var(--warning-soft);
+    color: var(--text);
+    border-radius: 4px;
+    font-size: 12px;
+    line-height: 1.4;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: help;
+}
+
+.lookup-status__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--warning, #d97706);
+    flex-shrink: 0;
+    animation: pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.4; }
 }
 
 .lookup-input__icon {

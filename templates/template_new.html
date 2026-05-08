@@ -45,6 +45,16 @@
                                 header commands.</small>
                         </span>
                     </label>
+                    <label class="radio card"
+                        {% if not existing_names %}style="opacity:.5;pointer-events:none;"{% endif %}>
+                        <input type="radio" name="source" value="duplicate"
+                            {% if not existing_names %}disabled{% endif %}>
+                        <span>
+                            <strong>Duplicate an existing template</strong>
+                            <small>Copy another label's ZPL, fields and print settings
+                                under a new name. {% if not existing_names %}<em>No templates yet.</em>{% endif %}</small>
+                        </span>
+                    </label>
                 </div>
             </div>
         </div>
@@ -52,7 +62,9 @@
         <div class="field-row">
             <label for="template_name">Template name</label>
             <input type="text" id="template_name" name="template_name" required
-                pattern="[a-zA-Z0-9][a-zA-Z0-9_\- ]*" placeholder="shipping_box">
+                pattern="[A-Za-z0-9À-ɏ][A-Za-z0-9À-ɏ_\- ]*"
+                title="Letras (incluye acentos y ñ), números, guiones, guiones bajos y espacios. Empieza con letra o número."
+                placeholder="etiqueta_pequeña">
             <p class="hint">
                 Used as the filename (<code>.zpl</code> extension added automatically).
                 Existing names: {% for n in existing_names %}<code>{{ n }}</code>{% if not loop.last %}, {% endif %}{% else %}<em>none</em>{% endfor %}.
@@ -98,6 +110,21 @@
             <p class="hint">
                 203 DPI ≈ 8 dots/mm. 4×6" ≈ 800×1200 dots; 100×100mm ≈ 800×800 dots.
             </p>
+        </div>
+
+        <div class="backend-panel" data-backend="duplicate">
+            <div class="field-row">
+                <label for="duplicate_source">Template to duplicate</label>
+                <select id="duplicate_source" name="duplicate_source">
+                    {% for n in existing_names %}
+                    <option value="{{ n }}">{{ n }}</option>
+                    {% endfor %}
+                </select>
+                <p class="hint">
+                    The ZPL, fields and print settings will be copied verbatim.
+                    You can edit them right after.
+                </p>
+            </div>
         </div>
 
         <div class="button-row">

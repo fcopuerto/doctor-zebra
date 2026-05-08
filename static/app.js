@@ -30,6 +30,18 @@
         }
     }
 
+    function formatCacheAge(iso) {
+        if (!iso) return '';
+        const t = Date.parse(iso);
+        if (isNaN(t)) return '';
+        const min = Math.max(0, Math.round((Date.now() - t) / 60000));
+        if (min < 1) return 'menos de 1 min';
+        if (min < 60) return min + ' min';
+        const h = Math.round(min / 60);
+        if (h < 24) return h + ' h';
+        return Math.round(h / 24) + ' d';
+    }
+
     function currentFields() {
         return Array.from(container().querySelectorAll('[data-field-key]')).map((row) => ({
             key: row.dataset.fieldKey,
@@ -254,6 +266,30 @@
         const key = row.dataset.fieldKey;
         if (!input || !results || !tpl || !key) return;
 
+        const wrap = input.closest('.lookup-input');
+        const statusEl = document.createElement('div');
+        statusEl.className = 'lookup-status';
+        statusEl.hidden = true;
+        if (wrap) wrap.appendChild(statusEl);
+
+        function updateConnectionStatus(cache) {
+            if (!cache || cache.connection_status !== 'offline') {
+                statusEl.hidden = true;
+                return;
+            }
+            const age = formatCacheAge(cache.last_sync);
+            const reason = (cache.last_failure && cache.last_failure.error) || '';
+            statusEl.title = reason
+                ? 'Último error: ' + reason
+                : 'No se ha podido contactar con la BD en el último intento.';
+            const tail = cache.row_count
+                ? ' · usando cache' + (age ? ' de hace ' + age : '')
+                : ' · sin caché — escribe el valor manualmente';
+            statusEl.innerHTML = '<span class="lookup-status__dot"></span>'
+                + 'BD no accesible' + tail;
+            statusEl.hidden = false;
+        }
+
         let timer = null;
         let activeIdx = -1;
         let lastRows = [];
@@ -273,10 +309,22 @@
         }
 
         function pick(row_data) {
-            const val = lastMeta.value_column ? row_data[lastMeta.value_column] : '';
-            input.value = val == null ? '' : String(val);
+            // value_column is the canonical target for the lookup input
+            // itself. If the user didn't configure one, fall back to:
+            //  1) the autofill entry pointing at this same field (covers
+            //     the common pattern of separate lookup + visible field),
+            //  2) the first display column,
+            // so picking never wipes the input to empty.
+            const af = lastMeta.autofill || {};
+            let val = lastMeta.value_column ? row_data[lastMeta.value_column] : null;
+            if (val == null && af[key]) val = row_data[af[key]];
+            if (val == null && lastMeta.display_columns && lastMeta.display_columns.length) {
+                val = row_data[lastMeta.display_columns[0]];
+            }
+            if (val != null) input.value = String(val);
+
             // Autofill other fields
-            Object.entries(lastMeta.autofill || {}).forEach(([targetKey, dbCol]) => {
+            Object.entries(af).forEach(([targetKey, dbCol]) => {
                 const targetRow = container().querySelector(`[data-field-key="${CSS.escape(targetKey)}"]`);
                 if (!targetRow) return;
                 const targetInput = targetRow.querySelector('input, textarea');
@@ -289,7 +337,7 @@
             input.dispatchEvent(new Event('change', { bubbles: true }));
         }
 
-        function render(rows, meta, error) {
+        function render(rows, meta, error, isLive) {
             results.innerHTML = '';
             if (error) {
                 const e = document.createElement('div');
@@ -304,6 +352,12 @@
                 results.appendChild(e);
                 results.hidden = false;
                 return;
+            }
+            if (isLive) {
+                const tag = document.createElement('div');
+                tag.className = 'lookup-empty lookup-empty--live';
+                tag.textContent = 'Resultados en vivo desde la BD';
+                results.appendChild(tag);
             }
             const cols = meta.display_columns && meta.display_columns.length
                 ? meta.display_columns
@@ -323,7 +377,10 @@
                 results.appendChild(item);
             });
             results.hidden = false;
-            setActive(0);
+            // No auto-highlight on first row — Enter would otherwise replace
+            // the user's typed query with that row's value silently. The
+            // user opts in by ArrowDown or by clicking.
+            activeIdx = -1;
         }
 
         let _syncRetryTimer = null;
@@ -336,6 +393,11 @@
                 );
                 const data = await res.json().catch(() => ({}));
                 if (!res.ok) { render([], {}, data.error || 'Lookup failed'); return; }
+                updateConnectionStatus(data.cache);
+                if (data.no_cache) {
+                    renderNoCache();
+                    return;
+                }
                 if (data.syncing) {
                     renderSyncing(q);
                     return;
@@ -348,7 +410,7 @@
                     autofill: data.autofill || {},
                     display_columns: data.display_columns || [],
                 };
-                render(lastRows, lastMeta);
+                render(lastRows, lastMeta, '', !!data.live);
             } catch (err) {
                 render([], {}, 'Lookup failed: ' + err);
             }
@@ -366,6 +428,17 @@
             _syncRetryTimer = setTimeout(() => {
                 if (input.value.trim() === q) search(q);
             }, 3000);
+        }
+
+        function renderNoCache() {
+            results.innerHTML = '';
+            const w = document.createElement('div');
+            w.className = 'lookup-empty lookup-empty--warn';
+            w.innerHTML = 'No hay caché disponible y la BD no responde. '
+                + 'Puedes escribir el valor directamente y seguir imprimiendo.';
+            results.appendChild(w);
+            results.hidden = false;
+            clearTimeout(_syncRetryTimer);
         }
 
         function renderWarning(msg) {
@@ -449,6 +522,40 @@
         });
     }
 
+    // Auto-preview: fire whenever the form changes, debounced to avoid
+    // hammering Labelary. Empty fields render as `{key}` server-side so
+    // the layout is visible before the user types anything.
+    let _autoPreviewKey = '';
+    let _autoPreviewTimer = null;
+    let _autoPreviewInFlight = false;
+    async function autoPreview() {
+        const form = previewForm();
+        if (!form) return;
+        const fd = new FormData(form);
+        const entries = [];
+        fd.forEach((v, k) => entries.push(k + '=' + v));
+        const key = entries.sort().join('&');
+        if (key === _autoPreviewKey) return;        // nothing changed
+        if (_autoPreviewInFlight) return;            // wait for the in-flight one
+        _autoPreviewKey = key;
+        _autoPreviewInFlight = true;
+        try {
+            const res = await fetch(form.action, { method: 'POST', body: fd });
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data.image_url) updatePreviewImage(data.image_url);
+        } catch (err) { /* silent — manual button still works */ }
+        finally {
+            _autoPreviewInFlight = false;
+            // If something changed mid-flight, re-fire once.
+            schedulePreview();
+        }
+    }
+    function schedulePreview(immediate) {
+        clearTimeout(_autoPreviewTimer);
+        _autoPreviewTimer = setTimeout(autoPreview, immediate ? 0 : 600);
+    }
+
     async function submitPrint(e) {
         e.preventDefault();
         const form = e.target;
@@ -464,16 +571,48 @@
         });
     }
 
+    async function downloadPreview() {
+        const img = document.querySelector('#preview_image_holder img.label-preview-img');
+        if (!img || !img.src) {
+            showToast('No hay preview todavía — espera a que se genere.', true);
+            return;
+        }
+        try {
+            const res = await fetch(img.src, { cache: 'no-store' });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const tpl = document.getElementById('template_file');
+            const name = (tpl && tpl.value || 'label').replace(/\.zpl$/i, '');
+            const ts = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 19);
+            const a = document.createElement('a');
+            a.href = url; a.download = `${name}_${ts}.png`;
+            document.body.appendChild(a); a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        } catch (err) {
+            showToast('No se pudo descargar: ' + err, true);
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         const p = previewForm();
         const l = labelForm();
         if (!p || !l) return;
-        p.addEventListener('input', syncMirrorAndPreview);
+        p.addEventListener('input', () => { syncMirrorAndPreview(); schedulePreview(); });
         const tpl = document.getElementById('template_file');
         if (tpl) tpl.addEventListener('change', onTemplateChange);
         syncMirrorAndPreview();
         attachLookups();
         p.addEventListener('submit', submitPreview);
         l.addEventListener('submit', submitPrint);
+        const dl = document.getElementById('downloadPreviewBtn');
+        if (dl) dl.addEventListener('click', downloadPreview);
+        // Re-render the preview every time the field set is rebuilt
+        // (template change, version change, tab activate).
+        const fc = container();
+        if (fc) fc.addEventListener('fields:rendered', () => schedulePreview());
+        // First paint right after load so the user always sees something.
+        schedulePreview(true);
     });
 })();

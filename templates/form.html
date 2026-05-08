@@ -160,6 +160,12 @@
             <p class="muted">{{ t('form.preview.help')|safe }}</p>
             {% endif %}
         </div>
+        <div class="button-row" style="margin-top:var(--s-3); justify-content:flex-end;">
+            <button type="button" id="downloadPreviewBtn" class="btn-secondary"
+                title="Descarga el PNG actual del preview para compartir">
+                Descargar PNG
+            </button>
+        </div>
     </div>
 </div>
 {% endblock %}
