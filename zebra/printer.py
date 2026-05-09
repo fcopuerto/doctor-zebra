@@ -114,17 +114,25 @@ def _split_host_port(remainder: str) -> tuple[str, int]:
 # ---------------------------------------------------------------------------
 
 def send_to_printer(target: str, zpl: str, copies: int = 1) -> None:
-    """Send raw ZPL to ``target``. Raises :class:`PrinterError` on failure."""
+    """Send raw ZPL to ``target``. Raises :class:`PrinterError` on failure.
+
+    Repetition is delegated to the printer via ``^PQ`` instead of
+    re-sending the ZPL N times: the format goes once over the wire and
+    the firmware emits the requested number of copies.
+    """
+    from zebra import zpl as zpl_mod
+
     backend, remainder = _parse_target(target)
     copies = max(1, int(copies or 1))
+    payload = zpl_mod.with_print_quantity(zpl, copies)
 
     if backend == 'tcp':
         host, port = _split_host_port(remainder)
-        _send_tcp(host, port, zpl, copies)
+        _send_tcp(host, port, payload)
     elif backend == 'windows':
-        _send_windows(remainder, zpl, copies)
+        _send_windows(remainder, payload)
     elif backend == 'cups':
-        _send_cups(remainder, zpl, copies)
+        _send_cups(remainder, payload)
     else:
         raise PrinterError('No printer target configured')
 
@@ -220,8 +228,8 @@ def _printer_status_uncached(target: str) -> tuple[str, str]:
 # TCP backend (port 9100)
 # ---------------------------------------------------------------------------
 
-def _send_tcp(host: str, port: int, zpl: str, copies: int) -> None:
-    payload = (zpl * copies).encode('utf-8')
+def _send_tcp(host: str, port: int, zpl: str) -> None:
+    payload = zpl.encode('utf-8')
     try:
         with socket.create_connection((host, port), timeout=TCP_TIMEOUT) as sock:
             sock.sendall(payload)
@@ -252,9 +260,9 @@ def _load_win32print():
         ) from e
 
 
-def _send_windows(name: str, zpl: str, copies: int) -> None:
+def _send_windows(name: str, zpl: str) -> None:
     win32print = _load_win32print()
-    payload = (zpl * copies).encode('utf-8')
+    payload = zpl.encode('utf-8')
     try:
         handle = win32print.OpenPrinter(name)
     except Exception as e:  # pywin32 raises pywintypes.error
@@ -342,10 +350,10 @@ def _windows_status(name: str) -> tuple[str, str]:
 # CUPS backend (macOS / Linux)
 # ---------------------------------------------------------------------------
 
-def _send_cups(name: str, zpl: str, copies: int) -> None:
+def _send_cups(name: str, zpl: str) -> None:
     try:
         subprocess.run(
-            ['lp', '-d', name, '-o', 'raw', '-n', str(copies)],
+            ['lp', '-d', name, '-o', 'raw'],
             input=zpl.encode('utf-8'),
             check=True,
         )

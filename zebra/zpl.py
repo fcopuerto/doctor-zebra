@@ -15,6 +15,36 @@ _MM_PER_INCH = 25.4
 
 _PW_RE = re.compile(r'\^PW(\d+)', re.IGNORECASE)
 _LL_RE = re.compile(r'\^LL(\d+)', re.IGNORECASE)
+_PQ_RE = re.compile(r'(\^PQ)(\d+)', re.IGNORECASE)
+_XZ_RE = re.compile(r'\^XZ', re.IGNORECASE)
+
+
+def with_print_quantity(zpl: str, copies: int) -> str:
+    """Return ``zpl`` annotated with ``^PQn`` so the printer prints n copies.
+
+    Sending the format string N times forces the printer to re-parse and
+    re-render every copy, which is wasteful and noticeably slow on
+    USB/network links. ``^PQ`` tells the firmware to keep the buffered
+    label and emit ``copies`` of it — one wire payload, one parse, N
+    physical labels.
+
+    Behaviour:
+      * ``copies <= 1`` → returned unchanged.
+      * Existing ``^PQ`` → only the quantity argument is rewritten;
+        any pause/replicate/override params (``,p,r,o``) are preserved.
+      * No ``^PQ`` → ``^PQ<copies>`` is inserted right before the last
+        ``^XZ``. If the input has no ``^XZ`` (malformed), the command
+        is appended at the end.
+    """
+    if copies is None or copies <= 1:
+        return zpl
+    if _PQ_RE.search(zpl):
+        return _PQ_RE.sub(rf'\g<1>{copies}', zpl, count=1)
+    matches = list(_XZ_RE.finditer(zpl))
+    if matches:
+        pos = matches[-1].start()
+        return zpl[:pos] + f'^PQ{copies}\n' + zpl[pos:]
+    return zpl + f'\n^PQ{copies}'
 
 
 def inject_print_settings(zpl: str, settings: dict | None) -> str:
