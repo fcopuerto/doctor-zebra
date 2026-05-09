@@ -7,6 +7,26 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.14.1] - 2026-05-09
+
+### Añadido
+
+- **Plantilla `ETIQUETA_GRANDE.zpl`** (98×55 mm landscape) en
+  `seed_profiles/default/templates_zpl/`. Layout horizontal con
+  `codigo_articulo` grande arriba, dos descripciones debajo y EAN-13
+  centrado abajo. Borde alrededor del label.
+- **Plantilla `ETIQUETA_MEDIANA_MANGOS.zpl`** (40×80 mm portrait) —
+  variante para etiquetas de mangos que se imprimen en formato
+  vertical pero se leen al rotarlas 90° una vez puestas. Mismos
+  campos y configuración de lookup que `ETIQUETA_MEDIANA`
+  (lookup contra `dbo.CIA_V_ARTICULOS_33`, autofill de las
+  cuatro columnas de descripción/código).
+
+Ambas plantillas usan los mismos cuatro campos parametrizables que
+MEDIANA: `codigo_articulo`, `descripcion_parte_1`,
+`descripcion_parte_2`, `codigo_de_barras` — el lookup
+`CodigoArticulo` los autorrellena al elegir un artículo de Sage.
+
 ## [0.14.0] - 2026-05-09
 
 ### Añadido
