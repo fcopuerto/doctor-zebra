@@ -270,11 +270,15 @@ def source(name):
         zpl_text = request.form.get('zpl', '')
         if not zpl_text.strip():
             return jsonify({'ok': False, 'error': 'ZPL cannot be empty'}), 400
+        # Browsers submit textareas with CRLF; normalise to LF and write with
+        # newline='\n' so Windows doesn't translate \n→\r\n and turn each
+        # round-trip into \r\r\n (which then reads back as a blank line).
+        zpl_text = zpl_text.replace('\r\n', '\n').replace('\r', '\n')
         # Snapshot the current file before overwriting so the user can
         # restore from Settings → Templates → Edit → Versions.
         from zebra import template_history
         template_history.snapshot(path, reason='zpl_edit')
-        path.write_text(zpl_text, encoding='utf-8')
+        path.write_text(zpl_text, encoding='utf-8', newline='\n')
         logging.info(f"Saved ZPL source for {path.name}")
         return jsonify({'ok': True, 'bytes': len(zpl_text)})
 
@@ -310,7 +314,7 @@ def edit(name):
 @bp.route('/templates/save', methods=['POST'])
 def save():
     name = (request.form.get('template_name') or '').strip()
-    zpl_text = request.form.get('zpl', '')
+    zpl_text = request.form.get('zpl', '').replace('\r\n', '\n').replace('\r', '\n')
     edit_mode = bool(request.form.get('edit_mode'))
 
     path = _template_path(name)
@@ -342,7 +346,7 @@ def save():
     # Write the parameterised template
     path.parent.mkdir(parents=True, exist_ok=True)
     rewritten = zpl_parser.rewrite_with_placeholders(zpl_text, selected)
-    path.write_text(rewritten, encoding='utf-8')
+    path.write_text(rewritten, encoding='utf-8', newline='\n')
 
     # Build + save sidecar (only when we actually created variables)
     if selected:
