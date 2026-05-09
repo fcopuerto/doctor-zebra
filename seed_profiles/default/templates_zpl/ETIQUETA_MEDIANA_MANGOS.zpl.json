@@ -1,0 +1,97 @@
+{
+  "fields": [
+    {
+      "key": "CodigoArticulo",
+      "label": "CodigoArticulo",
+      "default": "",
+      "placeholder": "",
+      "required": false,
+      "multiline": false,
+      "barcode": "",
+      "type": "lookup",
+      "source": "sage",
+      "table": "dbo.CIA_V_ARTICULOS_33",
+      "search_columns": [
+        "CodigoArticulo",
+        "DescripcionArticulo1a25",
+        "DescripcionArticulo25a50",
+        "CodigoAlternativo"
+      ],
+      "display_columns": [
+        "CodigoArticulo",
+        "DescripcionArticulo1a25"
+      ],
+      "value_column": "",
+      "autofill": {
+        "codigo_articulo": "CodigoArticulo",
+        "codigo_de_barras": "CodigoAlternativo",
+        "descripcion_parte_1": "DescripcionArticulo1a25",
+        "descripcion_parte_2": "DescripcionArticulo25a50"
+      }
+    },
+    {
+      "key": "codigo_articulo",
+      "label": "Codigo Articulo",
+      "default": "",
+      "placeholder": "{codigo_articulo}",
+      "required": false,
+      "multiline": false,
+      "barcode": "",
+      "type": "text",
+      "source": "",
+      "table": "",
+      "search_columns": [],
+      "display_columns": [],
+      "value_column": "",
+      "autofill": {}
+    },
+    {
+      "key": "descripcion_parte_1",
+      "label": "Descripcion Parte 1",
+      "default": "",
+      "placeholder": "{descripcion_parte_1}",
+      "required": false,
+      "multiline": false,
+      "barcode": "",
+      "type": "text",
+      "source": "",
+      "table": "",
+      "search_columns": [],
+      "display_columns": [],
+      "value_column": "",
+      "autofill": {}
+    },
+    {
+      "key": "descripcion_parte_2",
+      "label": "Descripcion Parte 2",
+      "default": "",
+      "placeholder": "{descripcion_parte_2}",
+      "required": false,
+      "multiline": false,
+      "barcode": "",
+      "type": "text",
+      "source": "",
+      "table": "",
+      "search_columns": [],
+      "display_columns": [],
+      "value_column": "",
+      "autofill": {}
+    },
+    {
+      "key": "codigo_de_barras",
+      "label": "Codigo De Barras",
+      "default": "",
+      "placeholder": "{codigo_de_barras}",
+      "required": false,
+      "multiline": false,
+      "barcode": "",
+      "type": "text",
+      "source": "",
+      "table": "",
+      "search_columns": [],
+      "display_columns": [],
+      "value_column": "",
+      "autofill": {}
+    }
+  ]
+}
