@@ -39,7 +39,19 @@ def _specs_for(template_file: str) -> list[fields_mod.FieldSpec]:
 
 
 def _render_form(template_file: str = '', values: dict | None = None,
-                 image_url: str | None = None):
+                 image_url: str | None = None,
+                 reuse: bool = False):
+    """Render the print form.
+
+    ``reuse=False`` (the default — used by ``/`` on first load): lookup
+    fields and the fields they autofill are reset to empty so the user
+    starts a fresh job. Showing an old SKU paired with stale
+    description/barcode invites mis-prints.
+
+    ``reuse=True`` (used by ``/load/<id>`` when the user explicitly
+    picks a past label from history): every value is restored verbatim
+    — that's the whole point of "reuse this label".
+    """
     templates_dir = _settings().templates_dir
     templates = zpl.list_templates(templates_dir)
     if not template_file and templates:
@@ -58,12 +70,7 @@ def _render_form(template_file: str = '', values: dict | None = None,
     defaults = fields_mod.specs_to_defaults(specs)
     merged = {**defaults, **(values or {})}
 
-    # Lookup fields are meant to be searched, not pre-filled from history:
-    # showing an old SKU paired with description/barcode that the user
-    # didn't reconfirm leads to mis-prints. Reset both the lookup field
-    # itself and every field it would autofill, so the user has to pick
-    # a row (or override manually after picking).
-    if values:
+    if values and not reuse:
         reset_keys: set[str] = set()
         for s in specs:
             if s.type == 'lookup':
@@ -98,7 +105,9 @@ def load_label(label_id):
     record = db.get_by_id(_db_path(), label_id)
     if record:
         template_file, values = record
-        return _render_form(template_file=template_file, values=values)
+        return _render_form(
+            template_file=template_file, values=values, reuse=True,
+        )
     return _render_form()
 
 

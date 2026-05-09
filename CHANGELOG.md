@@ -7,6 +7,38 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.14.2] - 2026-05-09
+
+### Corregido
+
+- **Editor ZPL en Windows duplicaba saltos de línea** — el navegador
+  envía las textareas con `\r\n` y `Path.write_text` en Windows
+  traducía cada `\n` a `\r\n` dejando los `\r` intactos, escribiendo
+  `\r\r\n`. Al releerlo con universal newlines aparecía una línea en
+  blanco extra y, en cada guardado, los blancos crecían. Ahora se
+  normaliza a `\n` al recibir y se escribe con `newline='\n'`, así el
+  archivo queda estable. Aplica a `/templates/<name>/source` y a
+  `/templates/save`.
+
+### Cambiado
+
+- **Reusar etiqueta del historial** vuelve a rellenar también los
+  campos lookup (y los campos que autorrellena un lookup). Antes se
+  vaciaban siempre para evitar mis-prints, pero el flujo "Reusar esta
+  etiqueta" pierde su sentido si el SKU no aparece. Ahora la primera
+  carga del formulario sigue reseteando lookups (correcto), y solo
+  `/load/<id>` los conserva — que es el caso explícito en el que el
+  usuario pidió reusar.
+- **Multi-copia usa `^PQ` en lugar de re-enviar la etiqueta N veces.**
+  `send_to_printer` inyecta `^PQ<n>` en el ZPL y lo manda **una sola
+  vez** a la impresora; la firmware bufferiza el formato y emite las
+  copias internamente. Resultado: menos datos en el cable, una única
+  parsing pass por trabajo, y el contador de copias del display de la
+  Zebra muestra lo correcto. Si el ZPL ya trae `^PQ`, sólo se reescribe
+  la cantidad (los opcionales `,p,r,o` se conservan); si no, se inserta
+  antes del último `^XZ`. CUPS deja de usar `-n` porque la repetición
+  va in-band.
+
 ## [0.14.1] - 2026-05-09
 
 ### Añadido
