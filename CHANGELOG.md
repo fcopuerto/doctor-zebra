@@ -7,6 +7,29 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [0.14.2] - 2026-05-09
+
+### Corregido
+
+- **Editor ZPL en Windows duplicaba saltos de línea** — el navegador
+  envía las textareas con `\r\n` y `Path.write_text` en Windows
+  traducía cada `\n` a `\r\n` dejando los `\r` intactos, escribiendo
+  `\r\r\n`. Al releerlo con universal newlines aparecía una línea en
+  blanco extra y, en cada guardado, los blancos crecían. Ahora se
+  normaliza a `\n` al recibir y se escribe con `newline='\n'`, así el
+  archivo queda estable. Aplica a `/templates/<name>/source` y a
+  `/templates/save`.
+
+### Cambiado
+
+- **Reusar etiqueta del historial** vuelve a rellenar también los
+  campos lookup (y los campos que autorrellena un lookup). Antes se
+  vaciaban siempre para evitar mis-prints, pero el flujo "Reusar esta
+  etiqueta" pierde su sentido si el SKU no aparece. Ahora la primera
+  carga del formulario sigue reseteando lookups (correcto), y solo
+  `/load/<id>` los conserva — que es el caso explícito en el que el
+  usuario pidió reusar.
+
 ## [0.14.1] - 2026-05-09
 
 ### Añadido
