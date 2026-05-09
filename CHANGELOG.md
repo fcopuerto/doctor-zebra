@@ -29,6 +29,15 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
   carga del formulario sigue reseteando lookups (correcto), y solo
   `/load/<id>` los conserva — que es el caso explícito en el que el
   usuario pidió reusar.
+- **Multi-copia usa `^PQ` en lugar de re-enviar la etiqueta N veces.**
+  `send_to_printer` inyecta `^PQ<n>` en el ZPL y lo manda **una sola
+  vez** a la impresora; la firmware bufferiza el formato y emite las
+  copias internamente. Resultado: menos datos en el cable, una única
+  parsing pass por trabajo, y el contador de copias del display de la
+  Zebra muestra lo correcto. Si el ZPL ya trae `^PQ`, sólo se reescribe
+  la cantidad (los opcionales `,p,r,o` se conservan); si no, se inserta
+  antes del último `^XZ`. CUPS deja de usar `-n` porque la repetición
+  va in-band.
 
 ## [0.14.1] - 2026-05-09
 
