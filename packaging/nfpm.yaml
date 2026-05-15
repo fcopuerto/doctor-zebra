@@ -8,8 +8,23 @@
 #
 # The packaged binary is the browser-mode build (build_linux.spec), so
 # there is NO WebKitGTK / GTK dependency — it runs on any glibc desktop,
-# Linux Mint 21/22 included. `xdg-utils` is only needed so Python's
-# `webbrowser` can resolve the default browser via `xdg-open`.
+# Linux Mint 21/22 included.
+#
+# Dependencies:
+#   - xdg-utils    so Python's `webbrowser` can resolve the default
+#                  browser via `xdg-open`.
+#   - cups-client  provides `lp` / `lpstat`, which zebra/printer.py shells
+#                  out to for USB (and any non-TCP) printing on Linux.
+#   - cups         the local CUPS daemon + USB backend. USB Zebras print
+#                  exclusively through a CUPS queue (the app has no direct
+#                  USB path); without the daemon a USB printer is
+#                  unreachable. Networked Zebras over TCP:9100 don't need
+#                  CUPS, but a full desktop (incl. Mint) ships it anyway,
+#                  so requiring it costs nothing and prevents a silent
+#                  "lp command not found" on minimal installs.
+#
+# Package names `cups` / `cups-client` exist on both Debian/Ubuntu/Mint
+# and Fedora/openSUSE, so one shared list works for the .deb and .rpm.
 
 name: comandante-zebra
 arch: amd64
@@ -30,6 +45,8 @@ description: |
 
 depends:
   - xdg-utils
+  - cups-client
+  - cups
 
 contents:
   - src: dist/ComandanteZebra
