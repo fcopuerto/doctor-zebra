@@ -98,9 +98,29 @@ Get-FileHash ComandanteZebra.exe -Algorithm SHA256
 # Must match the contents of ComandanteZebra.exe.sha256
 ```
 
-#### macOS / Linux
+#### Linux (.deb / .rpm)
 
-Only Windows binaries are published right now. On macOS/Linux you can [run from source](#run-from-source) or build the `.app` locally with `pyinstaller build_desktop.spec`.
+Linux ships a **browser-mode** build: it starts a local server and opens your default browser instead of a native window, so there's **no WebKitGTK dependency** and it runs on any glibc desktop (Linux Mint 21/22 included). Download `comandante-zebra_<ver>_amd64.deb` (Debian/Ubuntu/Mint) or the `.rpm` (Fedora/openSUSE) from the [latest release](https://github.com/fcopuerto/comandante_zebra/releases/latest):
+
+```bash
+sudo apt install ./comandante-zebra_*_amd64.deb   # or: sudo dnf install ./comandante-zebra-*.rpm
+comandante-zebra                                   # or launch "Comandante Zebra" from the app menu
+```
+
+##### Printing on Linux (USB)
+
+The app has **no direct USB path** — on Linux it prints through **CUPS** (`lp -o raw`). A networked Zebra needs no setup: just point the printer target at `tcp://IP:9100`. For a **USB** Zebra, register it once as a **raw** CUPS queue (a queue *with* a driver rasterises and mangles ZPL):
+
+```bash
+lpinfo -v | grep usb                                       # find the usb:// URI
+sudo lpadmin -p ZebraUSB -E -v 'usb://Zebra/...' -m raw     # raw queue, no driver
+```
+
+Then set the printer target in **Settings → Printers** to the queue name (`ZebraUSB`). CUPS (`cups` + `cups-client`) is required for the USB path and is pulled in by the package; a standard Mint desktop ships it anyway.
+
+#### macOS
+
+No macOS binary is published. [Run from source](#run-from-source) or build the `.app` locally with `pyinstaller build_desktop.spec`.
 
 ### Run from source
 
@@ -294,9 +314,29 @@ Get-FileHash ComandanteZebra.exe -Algorithm SHA256
 # Debe coincidir con el contenido de ComandanteZebra.exe.sha256
 ```
 
-#### macOS / Linux
+#### Linux (.deb / .rpm)
 
-Por ahora solo se publican binarios de Windows. En macOS/Linux puedes [ejecutarlo desde fuente](#ejecutar-desde-fuente) o construir el `.app` localmente con `pyinstaller build_desktop.spec`.
+Linux usa un build en **modo navegador**: arranca un servidor local y abre tu navegador en vez de una ventana nativa, así que **no depende de WebKitGTK** y corre en cualquier escritorio glibc (Linux Mint 21/22 incluidos). Descarga `comandante-zebra_<ver>_amd64.deb` (Debian/Ubuntu/Mint) o el `.rpm` (Fedora/openSUSE) del [último release](https://github.com/fcopuerto/comandante_zebra/releases/latest):
+
+```bash
+sudo apt install ./comandante-zebra_*_amd64.deb   # o: sudo dnf install ./comandante-zebra-*.rpm
+comandante-zebra                                   # o abre "Comandante Zebra" desde el menú de apps
+```
+
+##### Impresión en Linux (USB)
+
+La app **no tiene path USB directo** — en Linux imprime vía **CUPS** (`lp -o raw`). Una Zebra en red no necesita configuración: apunta el target de impresora a `tcp://IP:9100`. Para una Zebra **USB**, dala de alta una vez como cola CUPS **raw** (una cola *con* driver rasteriza y destroza el ZPL):
+
+```bash
+lpinfo -v | grep usb                                       # localizar la URI usb://
+sudo lpadmin -p ZebraUSB -E -v 'usb://Zebra/...' -m raw     # cola raw, sin driver
+```
+
+Después pon el target de impresora en **Configuración → Impresoras** con el nombre de la cola (`ZebraUSB`). CUPS (`cups` + `cups-client`) es obligatorio para el path USB y lo instala el propio paquete; un escritorio Mint normal ya lo trae.
+
+#### macOS
+
+No se publica binario de macOS. [Ejecuta desde fuente](#ejecutar-desde-fuente) o construye el `.app` localmente con `pyinstaller build_desktop.spec`.
 
 ### Ejecutar desde fuente
 
