@@ -19,22 +19,21 @@ CT~~CD,~CC^~CT~
 
 ^XA
 ^MMT
-^PW784
-^LL440
+^PW440
+^LL784
 ^LS0
 
-^FO0,0^GB784,440,3^FS
+^FO0,0^GB440,784,3^FS
 
-^CF0,55
-^FO20,18^FB744,1,0,L,0^FD{codigo_articulo}^FS
+^CF0,90
+^FO20,40^FB400,1,0,L,0^FD{codigo_articulo}^FS
 
-^CF0,32
-^FO20,90^FB744,1,0,L,0^FD{descripcion_parte_1}^FS
-^FO20,135^FB744,1,0,L,0^FD{descripcion_parte_2}^FS
+^CF0,45
+^FO20,180^FB400,2,8,L,0^FD{descripcion_parte_1}^FS
+^FO20,300^FB400,2,8,L,0^FD{descripcion_parte_2}^FS
 
-^BY3,2,110
-^FT240,400^BEN,,Y,N
+^BY3,2,140
+^FT75,650^BEN,,Y,N
 ^FH\^FD{codigo_de_barras}^FS
 
-^PQ1,0,1,Y
 ^XZ
