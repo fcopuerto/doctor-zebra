@@ -1,0 +1,49 @@
+# nfpm config — builds the Linux .deb and .rpm for Comandante Zebra.
+# https://nfpm.goreleaser.com/
+#
+# Usage (see .github/workflows/build-linux.yml):
+#   VERSION=$(grep -oP "__version__\s*=\s*'\K[^']+" zebra/__init__.py)
+#   nfpm package -f packaging/nfpm.yaml -p deb -t dist/comandante-zebra_${VERSION}_amd64.deb
+#   nfpm package -f packaging/nfpm.yaml -p rpm -t dist/comandante-zebra-${VERSION}.x86_64.rpm
+#
+# The packaged binary is the browser-mode build (build_linux.spec), so
+# there is NO WebKitGTK / GTK dependency — it runs on any glibc desktop,
+# Linux Mint 21/22 included. `xdg-utils` is only needed so Python's
+# `webbrowser` can resolve the default browser via `xdg-open`.
+
+name: comandante-zebra
+arch: amd64
+platform: linux
+version: ${VERSION}
+version_schema: none
+section: utils
+priority: optional
+maintainer: Fran Puerto <fcopuerto@gmail.com>
+vendor: Fran Puerto
+homepage: https://github.com/fcopuerto/comandante_zebra
+license: MIT
+description: |
+  Comandante Zebra — print Zebra (ZPL) labels without Zebra's proprietary
+  software. Browser-mode build: starts a local server and opens it in your
+  default web browser. Offline-first lookup cache, multi-profile, LAN
+  template sharing.
+
+depends:
+  - xdg-utils
+
+contents:
+  - src: dist/ComandanteZebra
+    dst: /opt/comandante-zebra/ComandanteZebra
+    file_info:
+      mode: 0755
+  - src: packaging/comandante-zebra.sh
+    dst: /usr/bin/comandante-zebra
+    file_info:
+      mode: 0755
+  - src: packaging/comandante-zebra.desktop
+    dst: /usr/share/applications/comandante-zebra.desktop
+  # Single arbitrary-size PNG → pixmaps (no per-size dir contract like
+  # the hicolor theme). Referenced by Icon=comandante-zebra in the
+  # .desktop file.
+  - src: static/icon.png
+    dst: /usr/share/pixmaps/comandante-zebra.png

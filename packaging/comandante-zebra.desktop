@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Comandante Zebra
+GenericName=ZPL Label Printing
+Comment=Print Zebra (ZPL) labels
+Exec=/usr/bin/comandante-zebra
+Icon=comandante-zebra
+Terminal=false
+Categories=Office;Utility;
+Keywords=zebra;zpl;label;printing;barcode;
+StartupNotify=true

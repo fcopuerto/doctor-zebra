@@ -1,0 +1,114 @@
+name: Build Linux package
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  workflow_dispatch:
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  build:
+    # Pinned to 22.04 on purpose: a PyInstaller binary links against the
+    # build host's glibc. 22.04 (glibc 2.35) runs on Linux Mint 21 *and*
+    # Mint 22 (glibc 2.39 — newer glibc runs older-glibc binaries fine).
+    # Building on 24.04 would break on Mint 21. Do not bump blindly.
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write   # needed to create/update GitHub Releases on tag push
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Sync dependencies
+        # Runtime + pure-Python SQL Server driver + pyinstaller. No GTK /
+        # WebKit needed: this is the browser-mode build (desktop_browser.py).
+        run: uv sync --extra mssql-pure --group build --frozen
+
+      - name: Build browser-mode binary
+        run: uv run pyinstaller --noconfirm --clean build_linux.spec
+
+      - name: Verify build output
+        run: |
+          test -f dist/ComandanteZebra || { echo "dist/ComandanteZebra not found"; exit 1; }
+          chmod +x dist/ComandanteZebra
+          ls -la dist/ComandanteZebra
+          file dist/ComandanteZebra
+
+      - name: Read version
+        id: ver
+        run: |
+          VERSION=$(grep -oP "__version__\s*=\s*'\K[^']+" zebra/__init__.py)
+          test -n "$VERSION" || { echo "could not read __version__"; exit 1; }
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Version: $VERSION"
+
+      - name: Install nfpm
+        run: |
+          NFPM_TAG=$(curl -fsSL https://api.github.com/repos/goreleaser/nfpm/releases/latest \
+            | grep -oP '"tag_name":\s*"\K[^"]+')
+          echo "nfpm $NFPM_TAG"
+          curl -fsSL "https://github.com/goreleaser/nfpm/releases/download/${NFPM_TAG}/nfpm_${NFPM_TAG#v}_Linux_x86_64.tar.gz" \
+            | tar -xz nfpm
+          sudo install -m 0755 nfpm /usr/local/bin/nfpm
+          nfpm --version
+
+      - name: Build .deb and .rpm
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          nfpm package -f packaging/nfpm.yaml -p deb \
+            -t "dist/comandante-zebra_${VERSION}_amd64.deb"
+          nfpm package -f packaging/nfpm.yaml -p rpm \
+            -t "dist/comandante-zebra-${VERSION}.x86_64.rpm"
+          ls -la dist/
+
+      - name: Compute SHA-256 checksums
+        working-directory: dist
+        run: |
+          # Publishing the SHA-256 lets users verify they downloaded the
+          # exact bytes our CI built.
+          for f in ComandanteZebra comandante-zebra_*.deb comandante-zebra-*.rpm; do
+            sha256sum "$f" | tee -a SHA256SUMS.txt
+          done
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ComandanteZebra-linux
+          path: |
+            dist/ComandanteZebra
+            dist/comandante-zebra_*.deb
+            dist/comandante-zebra-*.rpm
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Attach to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/ComandanteZebra
+            dist/comandante-zebra_*.deb
+            dist/comandante-zebra-*.rpm
+            dist/SHA256SUMS.txt
+          append_body: true
+          body: |
+
+            ---
+            **Linux**
+            - `.deb` (Debian/Ubuntu/Linux Mint) · `.rpm` (Fedora/openSUSE) · binario portable `ComandanteZebra`
+            - Build *modo navegador*: arranca un servidor local y abre tu navegador. Sin dependencia WebKitGTK.
+            - Integridad: SHA-256 en `SHA256SUMS.txt`
