@@ -7,6 +7,38 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-05-15
+
+Primera versión con soporte Linux — de ahí el salto a 1.0.0.
+
+### Añadido
+
+- **Versión instalable para Linux** (`.deb` / `.rpm`) en *modo navegador*:
+  arranca un servidor local y abre el navegador del sistema en vez de una
+  ventana nativa, eliminando la dependencia de WebKitGTK. Corre en
+  cualquier escritorio glibc, Linux Mint 21/22 incluidos. CI dedicada
+  (`build-linux.yml`) que construye binario + `.deb` + `.rpm` +
+  `SHA256SUMS`, los sube como artifact y los adjunta a los Releases en
+  tags `v*`, igual que Windows.
+
+### Cambiado
+
+- `ETIQUETA_GRANDE` rotada a retrato 55×98 mm.
+
+### Corregido
+
+- El preview ya no obliga a pulsar el botón tras un *lookup*: al elegir un
+  valor con la opción de búsqueda se regenera automáticamente, con el
+  mismo debounce que al teclear.
+
+### Documentación
+
+- Guía de impresión USB en Linux vía cola CUPS *raw* (README EN/ES). El
+  `.deb`/`.rpm` ahora declara `cups`/`cups-client` como dependencia, así
+  la impresión USB funciona sin pasos extra en una instalación normal.
+- `CLAUDE.md` + `ONBOARDING.md` para que colaboradores (y Claude Code)
+  tengan el contexto del proyecto automáticamente.
+
 ## [0.14.2] - 2026-05-09
 
 ### Corregido
