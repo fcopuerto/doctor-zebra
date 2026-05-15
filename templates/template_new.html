@@ -15,6 +15,16 @@
         </div>
     </div>
 
+    <a href="{{ url_for('tmpl.wizard') }}" class="radio card"
+       style="display:flex;gap:12px;align-items:center;text-decoration:none;margin-bottom:16px;">
+        <svg class="icon" aria-hidden="true" style="flex:0 0 auto;"><use href="#i-check" /></svg>
+        <span>
+            <strong>Guided wizard — WiFi QR label</strong>
+            <small>No ZPL needed: pick the network, size and where the QR sits,
+                with live preview. Builds a ready-to-print label for you.</small>
+        </span>
+    </a>
+
     <form action="{{ url_for('tmpl.new') }}" method="post" enctype="multipart/form-data"
         class="printer-form" data-builder="new">
         <div class="field-row">

@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block title %}Label wizard{% endblock %}
+{% block topbar_title %}Label wizard <code>WiFi QR</code>{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="{{ url_for('config.config_page') }}">Settings</a>
+    <svg class="icon"><use href="#i-chevron-right" /></svg>
+    <a href="{{ url_for('config.templates_list') }}">Templates</a>
+    <svg class="icon"><use href="#i-chevron-right" /></svg>
+    <a href="{{ url_for('tmpl.new') }}">New</a>
+    <svg class="icon"><use href="#i-chevron-right" /></svg>
+    <span>WiFi QR wizard</span>
+</nav>
+
+<style>
+    .wiz-anchor { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; max-width:180px; }
+    .wiz-anchor label { display:flex; align-items:center; justify-content:center;
+        height:34px; border:1px solid var(--border,#ccc); border-radius:6px;
+        cursor:pointer; font-size:11px; opacity:.5; }
+    .wiz-anchor input { position:absolute; opacity:0; width:0; height:0; }
+    .wiz-anchor input:checked + span { font-weight:700; }
+    .wiz-anchor label:has(input:checked) { opacity:1; border-color:var(--accent,#1d3557);
+        background:rgba(56,189,248,.12); }
+    .wiz-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px 16px; }
+    .wiz-grid .full { grid-column:1 / -1; }
+    .wiz-pane { min-width:320px; }
+</style>
+
+<div class="card">
+    <div class="card__header">
+        <div>
+            <h1 class="card__title" style="font-size:18px;">WiFi QR label</h1>
+            <p class="card__subtitle">
+                Pick the network, size and where the QR sits. The preview updates as
+                you change things. "Create label" saves it as a normal template you
+                can print and reprint.
+            </p>
+        </div>
+    </div>
+
+    <div class="source-editor">
+        <div class="source-editor__pane wiz-pane">
+            <form id="labelWizardForm" method="post" action="{{ url_for('tmpl.wizard') }}">
+                <div class="wiz-grid">
+                    <div class="full">
+                        <label>Template name</label>
+                        <input type="text" name="template_name"
+                               placeholder="WIFI_MiRed (auto from SSID if blank)"
+                               pattern="[A-Za-z0-9À-ɏ][A-Za-z0-9À-ɏ_\- ]{0,60}">
+                    </div>
+
+                    <div class="full"><strong>Network</strong></div>
+                    <div>
+                        <label>SSID *</label>
+                        <input type="text" name="ssid" required autocomplete="off"
+                               placeholder="My-Network">
+                    </div>
+                    <div>
+                        <label>Password</label>
+                        <input type="text" name="password" autocomplete="off"
+                               placeholder="(blank if open)">
+                    </div>
+                    <div>
+                        <label>Security</label>
+                        <select name="security">
+                            <option value="WPA" selected>WPA / WPA2 / WPA3</option>
+                            <option value="WEP">WEP</option>
+                            <option value="nopass">Open (no password)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="check">
+                            <input type="checkbox" name="hidden" value="1"> Hidden SSID
+                        </label>
+                    </div>
+
+                    <div class="full"><strong>Label size (mm)</strong></div>
+                    <div>
+                        <label>Width</label>
+                        <input type="number" name="label_w_mm" value="50"
+                               min="5" max="200" step="1">
+                    </div>
+                    <div>
+                        <label>Height</label>
+                        <input type="number" name="label_h_mm" value="50"
+                               min="5" max="200" step="1">
+                    </div>
+
+                    <div class="full"><strong>QR placement</strong></div>
+                    <div>
+                        <label>Anchor</label>
+                        <div class="wiz-anchor">
+                            {% for a in anchors %}
+                            <label title="{{ a }}">
+                                <input type="radio" name="qr_anchor" value="{{ a }}"
+                                    {% if a == 'center' %}checked{% endif %}>
+                                <span>{{ a.split('-')[0][0]|upper }}{{ a.split('-')[1][0]|upper if '-' in a else '' }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div>
+                        <label>Fine offset (mm)</label>
+                        <div class="wiz-grid">
+                            <div>
+                                <span class="muted">X</span>
+                                <input type="number" name="qr_offset_x_mm" value="0"
+                                       min="-100" max="100" step="1">
+                            </div>
+                            <div>
+                                <span class="muted">Y</span>
+                                <input type="number" name="qr_offset_y_mm" value="0"
+                                       min="-100" max="100" step="1">
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label>QR size <span class="muted" id="magOut">5</span></label>
+                        <input type="range" name="qr_magnification" min="1" max="10"
+                               value="5" step="1" id="magRange" style="width:100%;">
+                    </div>
+                    <div>
+                        <label>Error correction</label>
+                        <select name="qr_ec">
+                            {% for e in ec_levels %}
+                            <option value="{{ e }}" {% if e == 'M' %}selected{% endif %}>
+                                {{ e }}{% if e == 'L' %} (low){% elif e == 'H' %} (high){% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="full"><strong>Caption (optional)</strong></div>
+                    <div class="full">
+                        <input type="text" name="caption" autocomplete="off"
+                               placeholder="e.g. WiFi: My-Network — visible text, not in the QR">
+                    </div>
+                    <div>
+                        <label>Position</label>
+                        <select name="caption_below">
+                            <option value="true" selected>Below QR</option>
+                            <option value="false">Above QR</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Font size</label>
+                        <input type="number" name="caption_font" value="28"
+                               min="12" max="120" step="2">
+                    </div>
+
+                    <div class="full" style="margin-top:8px;">
+                        <button type="submit">
+                            <svg class="icon" aria-hidden="true"><use href="#i-check" /></svg>
+                            Create label
+                        </button>
+                        <a href="{{ url_for('tmpl.new') }}" class="btn btn-ghost">Cancel</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="source-editor__preview">
+            <div class="source-editor__head">
+                <span class="source-editor__title">Preview</span>
+                <span class="source-editor__meta">
+                    <button type="button" class="link-btn" id="wizRefresh">refresh</button>
+                </span>
+            </div>
+            <div class="preview-frame" id="wizPreviewFrame">
+                <p class="muted">Fill the SSID — preview renders shortly after you stop typing.</p>
+            </div>
+            <p class="hint">
+                The QR payload is baked with proper WiFi escaping, so phones read it
+                even if the password has <code>; , : \ "</code>. Live preview uses
+                Labelary (online); the printed label works offline regardless.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='label-wizard.js') }}"></script>
+{% endblock %}

@@ -23,11 +23,13 @@ import shutil
 from pathlib import Path
 
 from flask import (
-    Blueprint, current_app, flash, jsonify, redirect, render_template, request,
-    url_for,
+    Blueprint, Response, current_app, flash, jsonify, redirect,
+    render_template, request, url_for,
 )
 
 from zebra import datasources, fields as fields_mod
+from zebra import preview as preview_mod
+from zebra import recipes
 from zebra import zpl as zpl_mod
 from zebra import zpl_parser
 
@@ -122,6 +124,87 @@ def new():
         already_parameterised=zpl_parser.already_parameterised,
         existing_keys=existing_keys,
     )
+
+
+def _wizard_params(form) -> dict:
+    """Coerce + clamp wizard form fields into ``recipes.wifi_qr_zpl`` kwargs."""
+    truthy = ('1', 'true', 'on', 'yes')
+    return dict(
+        ssid=(form.get('ssid') or '').strip(),
+        password=(form.get('password') or ''),
+        security=(form.get('security') or 'WPA').strip(),
+        hidden=str(form.get('hidden') or '').lower() in truthy,
+        label_w_mm=_float(form.get('label_w_mm'), 50.0, 5.0, 200.0),
+        label_h_mm=_float(form.get('label_h_mm'), 50.0, 5.0, 200.0),
+        qr_anchor=(form.get('qr_anchor') or 'center').strip(),
+        qr_offset_x_mm=_float(form.get('qr_offset_x_mm'), 0.0, -100.0, 100.0),
+        qr_offset_y_mm=_float(form.get('qr_offset_y_mm'), 0.0, -100.0, 100.0),
+        qr_magnification=_int(form.get('qr_magnification'), 5, 1, 10),
+        qr_ec=(form.get('qr_ec') or 'M').strip(),
+        caption=(form.get('caption') or '').strip(),
+        caption_below=str(form.get('caption_below') or 'true').lower() not in (
+            '0', 'false', 'no', 'off'),
+        caption_font=_int(form.get('caption_font'), 28, 12, 120),
+    )
+
+
+@bp.route('/templates/wizard', methods=['GET', 'POST'])
+def wizard():
+    """Guided builder for basic labels (WiFi QR for now).
+
+    GET renders the two-pane wizard. POST bakes the ZPL and saves it as a
+    normal template (no sidecar — it's a static, always-valid label),
+    then lands on the print page like the rest of the new-template flow.
+    """
+    if request.method == 'GET':
+        return render_template(
+            'template_wizard.html',
+            anchors=recipes.ANCHORS,
+            ec_levels=recipes.EC_LEVELS,
+        )
+
+    params = _wizard_params(request.form)
+    if not params['ssid']:
+        flash('SSID is required', 'error')
+        return redirect(url_for('tmpl.wizard'))
+
+    name = (request.form.get('template_name') or '').strip()
+    if not name:
+        slug = re.sub(r'[^A-Za-z0-9_\- ]', '', params['ssid']).strip() or 'red'
+        name = f'WIFI_{slug}'[:60]
+
+    path = _template_path(name)
+    if path is None:
+        flash(f'Invalid template name: {name!r}', 'error')
+        return redirect(url_for('tmpl.wizard'))
+    if path.is_file():
+        flash(f'"{path.name}" already exists — pick another name.', 'error')
+        return redirect(url_for('tmpl.wizard'))
+
+    zpl_text = recipes.wifi_qr_zpl(**params)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(zpl_text, encoding='utf-8', newline='\n')
+    fields_mod.remove_sidecar(path)   # static label → no variables
+    logging.info(f'Wizard created template {path.name} (wifi-qr)')
+    flash(f'Created {path.name}', 'success')
+    return redirect(url_for('labels.index'))
+
+
+@bp.route('/api/wizard/preview', methods=['POST'])
+def wizard_preview():
+    """Render the wizard's current ZPL to a PNG (live preview).
+
+    Returns the PNG bytes directly so the page blob-loads it without a
+    temp file — avoids racing the shared ``static/preview.png`` the
+    print form's auto-preview writes.
+    """
+    params = _wizard_params(request.form)
+    if not params['ssid']:
+        params['ssid'] = 'SSID'   # still show a layout before they type
+    png = preview_mod.zpl_to_png(recipes.wifi_qr_zpl(**params))
+    if not png:
+        return jsonify({'error': 'Preview service unavailable'}), 502
+    return Response(png, mimetype='image/png')
 
 
 @bp.route('/templates/<path:name>/fields')
@@ -387,6 +470,14 @@ def delete(name):
 def _int(raw, default: int, lo: int, hi: int) -> int:
     try:
         value = int(raw)
+    except (TypeError, ValueError):
+        return default
+    return max(lo, min(hi, value))
+
+
+def _float(raw, default: float, lo: float, hi: float) -> float:
+    try:
+        value = float(raw)
     except (TypeError, ValueError):
         return default
     return max(lo, min(hi, value))
