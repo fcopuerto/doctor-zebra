@@ -334,6 +334,11 @@
             });
             close();
             syncMirrorAndPreview();
+            // Picking a lookup result must refresh the preview the same
+            // way typing does. The form-level auto-preview listens on
+            // `input`, but we dispatch `change` below, so trigger the
+            // debounced preview here explicitly.
+            schedulePreview();
             input.dispatchEvent(new Event('change', { bubbles: true }));
         }
 
