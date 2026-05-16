@@ -38,6 +38,19 @@ def _specs_for(template_file: str) -> list[fields_mod.FieldSpec]:
     return fields_mod.load_fields(path)
 
 
+def _pick_template(requested, templates, exists) -> str:
+    """Choose which template the print form should render.
+
+    Returns ``requested`` when it's set and still resolves, otherwise the
+    first available template (or ``''`` when there are none). This keeps a
+    stale history row pointing at a deleted template from collapsing every
+    field to plain text and stripping lookup pickers.
+    """
+    if requested and exists(requested):
+        return requested
+    return templates[0] if templates else ''
+
+
 def _render_form(template_file: str = '', values: dict | None = None,
                  image_url: str | None = None,
                  reuse: bool = False):
@@ -54,8 +67,20 @@ def _render_form(template_file: str = '', values: dict | None = None,
     """
     templates_dir = _settings().templates_dir
     templates = zpl.list_templates(templates_dir)
-    if not template_file and templates:
-        template_file = templates[0]
+
+    # Fall back to the first available template when none was requested,
+    # or when the requested one no longer exists (e.g. a history row that
+    # points at a since-deleted template). Without this an unresolved name
+    # yields zero specs and every field silently degrades to plain text,
+    # so lookup fields lose their picker.
+    chosen = _pick_template(
+        template_file, templates, lambda t: _resolve(t) is not None,
+    )
+    if template_file and chosen != template_file:
+        # The stale values belong to the now-missing template, not to the
+        # fallback one — don't carry them over into a different form.
+        values = None
+    template_file = chosen
 
     specs = _specs_for(template_file) if template_file else []
 
