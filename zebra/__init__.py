@@ -16,7 +16,7 @@ from zebra.routes._dev import register_if_enabled as _register_dev_routes
 
 LANG_COOKIE = 'comandante_zebra_lang'
 
-__version__ = '1.0.0'
+__version__ = '1.1.0'
 
 # Path to the package root (read-only assets when frozen with PyInstaller).
 PACKAGE_ROOT = Path(__file__).resolve().parent.parent

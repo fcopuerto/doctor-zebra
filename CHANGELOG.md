@@ -7,6 +7,34 @@ el versionado adopta [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-05-29
+
+### Añadido
+
+- **Popup de búsqueda en campos lookup**: el desplegable inline (280 px) se
+  sustituye por un modal centrado (780 px × 80 vh) con cabecera de columnas
+  fija, resultados en dos columnas (código izquierda, campos extra derecha) y
+  navegación completa por teclado (↑ ↓ Enter Escape).
+- **Vista compacta de campos**: los campos del formulario de impresión se
+  muestran como una tabla de solo lectura. Los campos lookup se abren en el
+  popup de búsqueda al hacer clic; los campos de texto se editan en un popup
+  compacto individual (Enter para confirmar, Escape para cancelar).
+
+### Cambiado
+
+- **Tipografía del formulario de impresión**: etiquetas a 15 px / 600,
+  entradas a 15 px, botones a 15 px / 600 — mejora de legibilidad para
+  usuarios mayores. Colores de texto secundario más oscuros
+  (`--text-muted` #4b5563, `--text-subtle` #64748b).
+- **Botón Imprimir y Copias**: movido antes de los ajustes avanzados
+  (que quedan colapsados debajo), con fondo azul claro, borde primario y
+  botón a ancho completo para que sea el elemento más visible de la pantalla.
+- **Panel de vista previa** reducido a columna estrecha (máx. 320 px);
+  se elimina la lista de valores de campo redundante y solo muestra la
+  imagen generada por Labelary.
+- **Cabeceras de columna en resultados lookup**: los nombres de columna
+  aparecen una sola vez en la cabecera fija en lugar de repetirse en cada fila.
+
 ## [1.0.0] - 2026-05-15
 
 Primera versión con soporte Linux — de ahí el salto a 1.0.0.
