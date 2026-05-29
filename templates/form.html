@@ -80,6 +80,20 @@
                 <input type="hidden" name="{{ f.key }}" value="{{ field_values.get(f.key, '') }}">
                 {% endfor %}
             </div>
+
+            <div class="print-action-row">
+                <div class="print-action-row__copies">
+                    <label for="copies">{{ t('form.copies') }}</label>
+                    <input type="number" id="copies" name="copies" value="1" min="1" max="100">
+                </div>
+                <button type="submit" id="printBtn">
+                    <svg class="icon">
+                        <use href="#i-printer" />
+                    </svg>
+                    {{ t('form.print_btn') }}
+                </button>
+            </div>
+
             <details class="print-overrides" id="printOverrides">
                 <summary>{{ t('form.print_overrides.title') }}</summary>
                 <div class="print-settings__grid" style="margin-top: var(--s-3);">
@@ -122,49 +136,25 @@
                     {{ t('form.print_overrides.hint') }}
                 </p>
             </details>
-
-            <div class="field-row" style="display:flex; align-items:flex-end; gap:var(--s-3); margin-top:var(--s-5);">
-                <div>
-                    <label for="copies">{{ t('form.copies') }}</label>
-                    <input type="number" id="copies" name="copies" value="1" min="1" max="100">
-                </div>
-                <button type="submit" id="printBtn">
-                    <svg class="icon">
-                        <use href="#i-printer" />
-                    </svg>
-                    {{ t('form.print_btn') }}
-                </button>
-            </div>
         </form>
     </div>
 
     <div class="card label-preview">
-        <h2 style="margin-top:0;">{{ t('form.preview.title') }}</h2>
-        <div class="label-box">
-            <div id="previewValues">
-                {% for f in template_fields %}
-                <div class="preview-line" data-preview-key="{{ f.key }}">
-                    <strong>{{ f.label }}:</strong>
-                    <span>{{ field_values.get(f.key, '') }}</span>
-                </div>
-                {% endfor %}
-            </div>
-            <div style="margin-top:var(--s-4); font-size:12px; color:var(--text-subtle);">
-                {{ t('form.preview.template_label') }}: <span id="preview_template">{{ template_file }}</span>
-            </div>
-        </div>
+        <h3 style="margin:0 0 var(--s-3) 0; font-size:14px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;">{{ t('form.preview.title') }}</h3>
         <div id="preview_image_holder">
             {% if image_url %}
             <img src="{{ image_url }}" alt="Label Preview" class="label-preview-img">
             {% else %}
-            <p class="muted">{{ t('form.preview.help')|safe }}</p>
+            <p class="muted" style="font-size:13px;">{{ t('form.preview.help')|safe }}</p>
             {% endif %}
         </div>
-        <div class="button-row" style="margin-top:var(--s-3); justify-content:flex-end;">
-            <button type="button" id="downloadPreviewBtn" class="btn-secondary"
-                title="Descarga el PNG actual del preview para compartir">
-                Descargar PNG
-            </button>
+        <div id="previewValues" hidden>
+            {% for f in template_fields %}
+            <div class="preview-line" data-preview-key="{{ f.key }}">
+                <strong>{{ f.label }}:</strong>
+                <span>{{ field_values.get(f.key, '') }}</span>
+            </div>
+            {% endfor %}
         </div>
     </div>
 </div>

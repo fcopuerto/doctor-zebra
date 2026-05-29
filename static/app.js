@@ -72,6 +72,15 @@
             line.querySelector('strong').textContent = labelText + ':';
             line.querySelector('span').textContent = val;
             pv.appendChild(line);
+
+            const cRow = document.querySelector(`.fields-compact__row[data-field-key="${CSS.escape(key)}"]`);
+            if (cRow) {
+                const vSpan = cRow.querySelector('.fields-compact__value');
+                if (vSpan) {
+                    vSpan.textContent = val || (el ? el.placeholder : '—');
+                    vSpan.classList.toggle('is-empty', !val);
+                }
+            }
         });
 
         const tpl = document.getElementById('template_file');
@@ -253,18 +262,171 @@
     // Lookup autocomplete
     // ------------------------------------------------------------------
 
+    let _lookupPopupEl = null;
+    let _lookupPopupAbort = null;
+
+    function getLookupPopup() {
+        if (_lookupPopupEl) return _lookupPopupEl;
+        const el = document.createElement('div');
+        el.className = 'lookup-popup';
+        el.hidden = true;
+        el.innerHTML = '<div class="lookup-popup__backdrop"></div>'
+            + '<div class="lookup-popup__dialog" role="dialog" aria-modal="true">'
+            + '<div class="lookup-popup__header">'
+            + '<span class="lookup-popup__label"></span>'
+            + '<div class="lookup-popup__input-wrap">'
+            + '<input class="lookup-popup__input" type="text" autocomplete="off" spellcheck="false" />'
+            + '</div></div>'
+            + '<div class="lookup-popup__results"></div>'
+            + '</div>';
+        document.body.appendChild(el);
+        _lookupPopupEl = el;
+        return el;
+    }
+
+    // ------------------------------------------------------------------
+    // Compact field view + per-field edit popup
+    // ------------------------------------------------------------------
+
+    let _fieldEditPopupEl = null;
+    let _fieldEditAbort = null;
+
+    function getFieldEditPopup() {
+        if (_fieldEditPopupEl) return _fieldEditPopupEl;
+        const el = document.createElement('div');
+        el.className = 'field-edit-popup';
+        el.hidden = true;
+        el.innerHTML = '<div class="field-edit-popup__backdrop"></div>'
+            + '<div class="field-edit-popup__dialog">'
+            + '<div class="field-edit-popup__header"><span class="field-edit-popup__label"></span></div>'
+            + '<div class="field-edit-popup__body"></div>'
+            + '<div class="field-edit-popup__footer">'
+            + '<button type="button" class="field-edit-popup__save">OK</button>'
+            + '</div></div>';
+        document.body.appendChild(el);
+        _fieldEditPopupEl = el;
+        return el;
+    }
+
+    function openFieldEditor(label, originalInput, isMultiline) {
+        if (_fieldEditAbort) _fieldEditAbort.abort();
+        _fieldEditAbort = new AbortController();
+        const { signal } = _fieldEditAbort;
+
+        const popup = getFieldEditPopup();
+        popup.querySelector('.field-edit-popup__label').textContent = label;
+        const bodyEl = popup.querySelector('.field-edit-popup__body');
+        const saveBtn = popup.querySelector('.field-edit-popup__save');
+        const backdrop = popup.querySelector('.field-edit-popup__backdrop');
+
+        bodyEl.innerHTML = '';
+        let editInput;
+        if (isMultiline) {
+            editInput = document.createElement('textarea');
+            editInput.rows = 4;
+        } else {
+            editInput = document.createElement('input');
+            editInput.type = originalInput ? (originalInput.type || 'text') : 'text';
+            if (originalInput && originalInput.min) editInput.min = originalInput.min;
+            if (originalInput && originalInput.max) editInput.max = originalInput.max;
+            if (originalInput && originalInput.step) editInput.step = originalInput.step;
+        }
+        editInput.className = 'field-edit-popup__input';
+        editInput.value = originalInput ? originalInput.value : '';
+        editInput.placeholder = originalInput ? (originalInput.placeholder || '') : '';
+        bodyEl.appendChild(editInput);
+        popup.hidden = false;
+        requestAnimationFrame(() => { editInput.focus(); if (editInput.select) editInput.select(); });
+
+        function save() {
+            if (originalInput) {
+                originalInput.value = editInput.value;
+                originalInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            closeEdit();
+        }
+        function closeEdit() {
+            popup.hidden = true;
+            if (_fieldEditAbort) { _fieldEditAbort.abort(); _fieldEditAbort = null; }
+        }
+        saveBtn.addEventListener('click', save, { signal });
+        backdrop.addEventListener('click', save, { signal });
+        editInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !isMultiline) { e.preventDefault(); save(); }
+            else if (e.key === 'Escape') { e.preventDefault(); closeEdit(); }
+        }, { signal });
+    }
+
+    function buildCompactView() {
+        const c = container();
+        if (!c) return;
+        const prev = c.parentNode.querySelector('.fields-compact');
+        if (prev) prev.remove();
+        const rows = Array.from(c.querySelectorAll('.field-row[data-field-key]'));
+        if (!rows.length) { c.style.display = ''; return; }
+        c.style.display = 'none';
+
+        const table = document.createElement('div');
+        table.className = 'fields-compact';
+
+        rows.forEach(row => {
+            const key = row.dataset.fieldKey;
+            const isLookup = row.dataset.fieldType === 'lookup';
+            const input = row.querySelector('input[type="text"], input[type="number"], textarea');
+            const labelEl = row.querySelector('label');
+            const isRequired = !!row.querySelector('.req');
+            const labelText = labelEl
+                ? Array.from(labelEl.childNodes)
+                    .filter(n => n.nodeType === Node.TEXT_NODE)
+                    .map(n => n.textContent.trim()).filter(Boolean).join(' ')
+                : key;
+
+            const compactRow = document.createElement('div');
+            compactRow.className = 'fields-compact__row' + (isLookup ? ' is-lookup' : '');
+            compactRow.dataset.fieldKey = key;
+
+            const lbl = document.createElement('span');
+            lbl.className = 'fields-compact__label';
+            lbl.textContent = labelText;
+            if (isRequired) {
+                const star = document.createElement('span');
+                star.className = 'req'; star.textContent = ' *';
+                lbl.appendChild(star);
+            }
+
+            const val = input ? input.value : '';
+            const vSpan = document.createElement('span');
+            vSpan.className = 'fields-compact__value' + (isLookup ? ' is-lookup' : '');
+            vSpan.textContent = val || (input ? input.placeholder : '—');
+            vSpan.classList.toggle('is-empty', !val);
+
+            compactRow.appendChild(lbl);
+            compactRow.appendChild(vSpan);
+            table.appendChild(compactRow);
+
+            if (isLookup) {
+                compactRow.addEventListener('click', () => { if (row._openLookupPopup) row._openLookupPopup(); });
+            } else {
+                const isMultiline = input && input.tagName === 'TEXTAREA';
+                compactRow.addEventListener('click', () => openFieldEditor(labelText, input, isMultiline));
+            }
+        });
+
+        c.parentNode.insertBefore(table, c);
+    }
+
     function attachLookups() {
         document.querySelectorAll('[data-field-type="lookup"]').forEach(setupLookup);
+        buildCompactView();
     }
 
     function setupLookup(row) {
         if (row._lookupReady) return;
         row._lookupReady = true;
         const input = row.querySelector('input[type="text"]');
-        const results = row.querySelector('.lookup-results');
         const tpl = container().dataset.template;
         const key = row.dataset.fieldKey;
-        if (!input || !results || !tpl || !key) return;
+        if (!input || !tpl || !key) return;
 
         const wrap = input.closest('.lookup-input');
         const statusEl = document.createElement('div');
@@ -294,27 +456,27 @@
         let activeIdx = -1;
         let lastRows = [];
         let lastMeta = { value_column: '', autofill: {}, display_columns: [] };
+        let _syncRetryTimer = null;
 
-        function close() {
-            results.hidden = true;
-            results.innerHTML = '';
-            activeIdx = -1;
+        const popup = getLookupPopup();
+        const popupInputEl = popup.querySelector('.lookup-popup__input');
+        const popupLabelEl = popup.querySelector('.lookup-popup__label');
+        const popupResultsEl = popup.querySelector('.lookup-popup__results');
+        const popupBackdrop = popup.querySelector('.lookup-popup__backdrop');
+
+        function isOwner() {
+            return !popup.hidden && popup._ownerKey === key + '\0' + tpl;
         }
 
         function setActive(idx) {
-            results.querySelectorAll('.lookup-result').forEach((el, i) => {
-                el.classList.toggle('active', i === idx);
-            });
+            const items = popupResultsEl.querySelectorAll('.lookup-result');
+            items.forEach((el, i) => el.classList.toggle('active', i === idx));
             activeIdx = idx;
+            const activeEl = items[idx];
+            if (activeEl) activeEl.scrollIntoView({ block: 'nearest' });
         }
 
         function pick(row_data) {
-            // value_column is the canonical target for the lookup input
-            // itself. If the user didn't configure one, fall back to:
-            //  1) the autofill entry pointing at this same field (covers
-            //     the common pattern of separate lookup + visible field),
-            //  2) the first display column,
-            // so picking never wipes the input to empty.
             const af = lastMeta.autofill || {};
             let val = lastMeta.value_column ? row_data[lastMeta.value_column] : null;
             if (val == null && af[key]) val = row_data[af[key]];
@@ -322,8 +484,6 @@
                 val = row_data[lastMeta.display_columns[0]];
             }
             if (val != null) input.value = String(val);
-
-            // Autofill other fields
             Object.entries(af).forEach(([targetKey, dbCol]) => {
                 const targetRow = container().querySelector(`[data-field-key="${CSS.escape(targetKey)}"]`);
                 if (!targetRow) return;
@@ -332,63 +492,57 @@
                 const v = row_data[dbCol];
                 targetInput.value = v == null ? '' : String(v);
             });
-            close();
+            closePopup();
             syncMirrorAndPreview();
-            // Picking a lookup result must refresh the preview the same
-            // way typing does. The form-level auto-preview listens on
-            // `input`, but we dispatch `change` below, so trigger the
-            // debounced preview here explicitly.
             schedulePreview();
             input.dispatchEvent(new Event('change', { bubbles: true }));
         }
 
         function render(rows, meta, error, isLive) {
-            results.innerHTML = '';
+            popupResultsEl.innerHTML = '';
             if (error) {
                 const e = document.createElement('div');
                 e.className = 'lookup-empty'; e.textContent = error;
-                results.appendChild(e);
-                results.hidden = false;
+                popupResultsEl.appendChild(e);
                 return;
             }
             if (!rows.length) {
                 const e = document.createElement('div');
                 e.className = 'lookup-empty'; e.textContent = 'No results';
-                results.appendChild(e);
-                results.hidden = false;
+                popupResultsEl.appendChild(e);
                 return;
             }
             if (isLive) {
                 const tag = document.createElement('div');
                 tag.className = 'lookup-empty lookup-empty--live';
                 tag.textContent = 'Resultados en vivo desde la BD';
-                results.appendChild(tag);
+                popupResultsEl.appendChild(tag);
             }
             const cols = meta.display_columns && meta.display_columns.length
                 ? meta.display_columns
                 : Object.keys(rows[0]);
-            rows.forEach((r, i) => {
+            const head = cols[0];
+            const tail = cols.slice(1);
+            const hdr = document.createElement('div');
+            hdr.className = 'lookup-results-header';
+            hdr.innerHTML = `<span></span>${tail.length ? '<span></span>' : ''}`;
+            hdr.children[0].textContent = head || '';
+            if (tail.length) hdr.children[1].textContent = tail.join(' · ');
+            popupResultsEl.appendChild(hdr);
+            rows.forEach((r) => {
                 const item = document.createElement('div');
                 item.className = 'lookup-result';
-                const head = cols[0];
-                const tail = cols.slice(1);
                 item.innerHTML = `<div class="key"></div>${tail.length ? '<div class="meta"></div>' : ''}`;
                 item.querySelector('.key').textContent = head ? String(r[head] ?? '') : '';
                 if (tail.length) {
                     item.querySelector('.meta').textContent = tail
-                        .map((c) => `${c}: ${r[c] == null ? '' : r[c]}`).join(' · ');
+                        .map((c) => r[c] == null ? '' : String(r[c])).join(' · ');
                 }
                 item.addEventListener('mousedown', (e) => { e.preventDefault(); pick(r); });
-                results.appendChild(item);
+                popupResultsEl.appendChild(item);
             });
-            results.hidden = false;
-            // No auto-highlight on first row — Enter would otherwise replace
-            // the user's typed query with that row's value silently. The
-            // user opts in by ArrowDown or by clicking.
             activeIdx = -1;
         }
-
-        let _syncRetryTimer = null;
 
         async function search(q) {
             try {
@@ -399,14 +553,8 @@
                 const data = await res.json().catch(() => ({}));
                 if (!res.ok) { render([], {}, data.error || 'Lookup failed'); return; }
                 updateConnectionStatus(data.cache);
-                if (data.no_cache) {
-                    renderNoCache();
-                    return;
-                }
-                if (data.syncing) {
-                    renderSyncing(q);
-                    return;
-                }
+                if (data.no_cache) { renderNoCache(); return; }
+                if (data.syncing) { renderSyncing(q); return; }
                 if (data.warning) { renderWarning(data.warning); return; }
                 clearTimeout(_syncRetryTimer);
                 lastRows = data.rows || [];
@@ -422,75 +570,133 @@
         }
 
         function renderSyncing(q) {
-            results.innerHTML = '';
+            popupResultsEl.innerHTML = '';
             const w = document.createElement('div');
             w.className = 'lookup-empty lookup-empty--syncing';
             w.innerHTML = `<span class="lookup-spinner"></span>
                 Cache is being prepared in the background. Retrying…`;
-            results.appendChild(w);
-            results.hidden = false;
+            popupResultsEl.appendChild(w);
             clearTimeout(_syncRetryTimer);
             _syncRetryTimer = setTimeout(() => {
-                if (input.value.trim() === q) search(q);
+                if (isOwner() && popupInputEl.value.trim() === q) search(q);
             }, 3000);
         }
 
         function renderNoCache() {
-            results.innerHTML = '';
+            popupResultsEl.innerHTML = '';
             const w = document.createElement('div');
             w.className = 'lookup-empty lookup-empty--warn';
             w.innerHTML = 'No hay caché disponible y la BD no responde. '
                 + 'Puedes escribir el valor directamente y seguir imprimiendo.';
-            results.appendChild(w);
-            results.hidden = false;
+            popupResultsEl.appendChild(w);
             clearTimeout(_syncRetryTimer);
         }
 
         function renderWarning(msg) {
-            results.innerHTML = '';
+            popupResultsEl.innerHTML = '';
             const w = document.createElement('div');
             w.className = 'lookup-empty lookup-empty--warn';
             const tplName = (tpl || '').replace(/\.zpl$/, '');
             w.innerHTML = `${msg} <a href="/templates/${encodeURIComponent(tplName)}/fields"
                 target="_blank" rel="noopener">Open the fields editor →</a>`;
-            results.appendChild(w);
-            results.hidden = false;
+            popupResultsEl.appendChild(w);
         }
 
         function showFocusHint() {
             const cols = (row.dataset.searchColumns || '')
                 .split(',').map((s) => s.trim()).filter(Boolean);
             const target = cols.length ? cols.join(', ') : 'the database';
-            results.innerHTML = `
+            popupResultsEl.innerHTML = `
                 <div class="lookup-empty lookup-empty--hint">
                     <strong>Starts with</strong> match against ${target}.<br>
                     Use <code>*</code> for wildcards: <code>*foo</code>, <code>*foo*</code>, <code>fo*ar</code>.
                 </div>`;
-            results.hidden = false;
         }
 
-        input.addEventListener('input', () => {
-            const q = input.value.trim();
+        function closePopup({ returnFocus = false } = {}) {
+            if (!isOwner()) return;
             clearTimeout(timer);
-            if (q.length < 1) { showFocusHint(); return; }
-            timer = setTimeout(() => search(q), 250);
-        });
+            clearTimeout(_syncRetryTimer);
+            input.value = popupInputEl.value;
+            popup.hidden = true;
+            popupResultsEl.innerHTML = '';
+            activeIdx = -1;
+            if (_lookupPopupAbort) { _lookupPopupAbort.abort(); _lookupPopupAbort = null; }
+            if (returnFocus) {
+                input._lookupIgnoreNextFocus = true;
+                setTimeout(() => input.focus(), 0);
+            }
+        }
+
+        function openPopup() {
+            if (!popup.hidden && popup._ownerInput && popup._ownerInput !== input) {
+                popup._ownerInput.value = popupInputEl.value;
+            }
+            if (_lookupPopupAbort) _lookupPopupAbort.abort();
+            _lookupPopupAbort = new AbortController();
+            const { signal } = _lookupPopupAbort;
+
+            const labelEl = row.querySelector('label');
+            const labelText = labelEl
+                ? labelEl.textContent.trim().replace(/\s*[*]\s*$/, '').trim()
+                : key;
+            popupLabelEl.textContent = labelText;
+            popupInputEl.placeholder = input.placeholder || '';
+            popupInputEl.value = input.value;
+            popupResultsEl.innerHTML = '';
+            popup._ownerKey = key + '\0' + tpl;
+            popup._ownerInput = input;
+            popup.hidden = false;
+
+            requestAnimationFrame(() => {
+                popupInputEl.focus();
+                if (popupInputEl.value) popupInputEl.select();
+            });
+
+            const q = popupInputEl.value.trim();
+            if (q.length >= 1) {
+                search(q);
+            } else {
+                showFocusHint();
+            }
+
+            popupInputEl.addEventListener('input', () => {
+                const q = popupInputEl.value.trim();
+                clearTimeout(timer);
+                if (q.length < 1) { showFocusHint(); return; }
+                timer = setTimeout(() => search(q), 250);
+            }, { signal });
+
+            popupInputEl.addEventListener('keydown', (e) => {
+                const items = popupResultsEl.querySelectorAll('.lookup-result');
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    setActive(Math.min(items.length - 1, activeIdx + 1));
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    setActive(Math.max(0, activeIdx - 1));
+                } else if (e.key === 'Enter' && activeIdx >= 0) {
+                    e.preventDefault();
+                    pick(lastRows[activeIdx]);
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    closePopup({ returnFocus: true });
+                }
+            }, { signal });
+
+            popupBackdrop.addEventListener('click', () => closePopup({ returnFocus: false }), { signal });
+        }
+
+        row._openLookupPopup = openPopup;
 
         input.addEventListener('focus', () => {
-            if (!input.value.trim()) showFocusHint();
+            if (input._lookupIgnoreNextFocus) { input._lookupIgnoreNextFocus = false; return; }
+            openPopup();
         });
 
-        input.addEventListener('keydown', (e) => {
-            if (results.hidden) return;
-            const items = results.querySelectorAll('.lookup-result');
-            if (!items.length) return;
-            if (e.key === 'ArrowDown') { e.preventDefault(); setActive(Math.min(items.length - 1, activeIdx + 1)); }
-            else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(Math.max(0, activeIdx - 1)); }
-            else if (e.key === 'Enter' && activeIdx >= 0) { e.preventDefault(); pick(lastRows[activeIdx]); }
-            else if (e.key === 'Escape') { close(); }
+        input.addEventListener('click', () => {
+            if (!isOwner()) openPopup();
         });
-
-        input.addEventListener('blur', () => setTimeout(close, 120));
     }
 
     // ------------------------------------------------------------------
